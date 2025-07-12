@@ -1,0 +1,89 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: goodreads_app
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - DB_CONNECTION=${DB_CONNECTION:-pgsql}
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_DATABASE=${DB_DATABASE:-goodreads}
+      - DB_USERNAME=${DB_USERNAME:-goodreads}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php", "artisan", "tinker", "--execute=echo 'OK';"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - goodreads_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: goodreads_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - goodreads_network
+
+  db:
+    image: postgres:15-alpine
+    container_name: goodreads_db
+    environment:
+      - POSTGRES_DB=${DB_DATABASE:-goodreads}
+      - POSTGRES_USER=${DB_USERNAME:-goodreads}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secret}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-goodreads} -d ${DB_DATABASE:-goodreads}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - goodreads_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: goodreads_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - goodreads_network
+
+volumes:
+  db_data:
+  redis_data:
+
+networks:
+  goodreads_network:
+    driver: bridge
