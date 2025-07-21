@@ -14,7 +14,7 @@ return new class extends Migration
         DB::statement("
             DO $$
             BEGIN
-                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'reading_format_enum') THEN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'reading_format') THEN
                     CREATE TYPE reading_format AS ENUM ('physical', 'ebook', 'audiobook', 'other');
                 END IF;
             END$$;
@@ -23,6 +23,6 @@ return new class extends Migration
 
     public function down()
     {
-        DB::statement("DROP TYPE IF EXISTS reading_format_enum");
+        DB::statement("DROP TYPE IF EXISTS reading_format");
     }
 };

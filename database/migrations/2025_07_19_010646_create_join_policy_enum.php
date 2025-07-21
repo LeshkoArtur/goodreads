@@ -11,8 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("CREATE TYPE join_policy_enum AS ENUM ('open', 'request', 'invite_only')");
+        DB::statement("
+    DO $$
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'join_policy_enum') THEN
+            CREATE TYPE join_policy_enum AS ENUM ('open', 'request', 'invite_only');
+        END IF;
+    END
+    $$;
+    ");
     }
+
 
     public function down(): void
     {

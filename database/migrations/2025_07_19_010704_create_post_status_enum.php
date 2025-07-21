@@ -11,7 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("CREATE TYPE post_status_enum AS ENUM ('active', 'pending', 'deleted')");
+        DB::statement("
+    DO $$
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'post_status_enum') THEN
+            CREATE TYPE post_status_enum AS ENUM ('active', 'pending', 'deleted');
+        END IF;
+    END
+    $$;
+    ");
     }
 
     public function down(): void

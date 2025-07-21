@@ -11,9 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("CREATE TYPE report_type_enum AS ENUM (
+        DB::statement("DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'report_type_enum') THEN
+        CREATE TYPE report_type_enum AS ENUM (
             'spam', 'offensive', 'inappropriate', 'spoilers', 'copyright', 'other'
-        )");
+        );
+    END IF;
+END$$;");
     }
 
     /**
