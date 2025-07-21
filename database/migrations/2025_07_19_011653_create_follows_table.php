@@ -6,24 +6,16 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('follows', function (Blueprint $table) {
-            $table->uuid('follower_id');
-            $table->uuid('followed_id');
+            $table->foreignUuid('follower_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('followed_id')->constrained('users')->cascadeOnDelete();
             $table->timestamp('created_at')->useCurrent();
             $table->primary(['follower_id', 'followed_id']);
-            $table->foreign('follower_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('followed_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('follows');

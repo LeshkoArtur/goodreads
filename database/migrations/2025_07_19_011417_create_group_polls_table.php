@@ -6,26 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('group_polls', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('group_id');
-            $table->uuid('creator_id');
+            $table->foreignUuid('group_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('creator_id')->constrained('users')->cascadeOnDelete();
             $table->text('question');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
-            $table->foreign('creator_id')->references('id')->on('users')->onDelete('cascade');
         });;
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('group_polls');

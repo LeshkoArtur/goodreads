@@ -1,41 +1,41 @@
 <?php
 
+use App\Enums\PostStatus;
+use App\Enums\PostType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id');
-            $table->uuid('book_id')->nullable();
-            $table->uuid('author_id')->nullable();
-            $table->enum('type', ['article', 'story', 'lifehack']); // ENUM (зовні не Laravel native)
-            $table->string('title', 255);
-            $table->string('slug', 255)->nullable();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('book_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignUuid('author_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('title', 248);
+            $table->string('slug', 248)->nullable()->unique();
             $table->text('content');
-            $table->string('cover_image', 255)->nullable();
-            $table->enum('status', ['draft', 'pending', 'published', 'archived'])->default('draft');
+            $table->string('cover_image', 2048)->nullable();
             $table->timestamp('published_at')->nullable();
             $table->timestamps();
-            $table->unique('slug');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('book_id')->references('id')->on('books')->onDelete('set null');
-            $table->foreign('author_id')->references('id')->on('authors')->onDelete('set null');
         });
+
+        Schema::table('posts', function (Blueprint $table) {
+            $table->enumAlterColumn('post_type', 'post_type', PostType::class, PostType::ARTICLE);
+            $table->enumAlterColumn('post_status', 'post_status', PostStatus::class, PostStatus::DRAFT);
+        });
+
+        DB::statement("ALTER TABLE posts ADD CONSTRAINT unique_slug CHECK (type != 'article' OR slug IS NOT NULL)");
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('posts');
+        DB::unprepared('DROP TYPE post_type');
+        DB::unprepared('DROP TYPE post_status');
     }
 };

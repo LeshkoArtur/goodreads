@@ -6,25 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('view_histories', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id');
-            $table->uuid('viewable_id');
-            $table->string('viewable_type', 50);
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
+            $table->uuidMorphs('viewable');
             $table->timestamps();
             $table->unique(['user_id', 'viewable_id', 'viewable_type']);
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('view_histories');

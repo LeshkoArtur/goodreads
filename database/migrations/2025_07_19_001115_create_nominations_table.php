@@ -6,29 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('nominations', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('award_id');
+            $table->foreignUuid('award_id')->constrained()->cascadeOnDelete();
             $table->string('name', 255);
             $table->text('description')->nullable();
-            $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP'));
-
-            $table->foreign('award_id')
-                ->references('id')
-                ->on('awards')
-                ->onDelete('cascade');
+            $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('nominations');

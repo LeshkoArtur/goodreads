@@ -6,26 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('awards', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('name', 255);
+            $table->string('name', 248);
             $table->integer('year');
             $table->text('description')->nullable();
-            $table->string('organizer', 255)->nullable();
-            $table->string('country', 50)->nullable();
+            $table->string('organizer', 248)->nullable();
+            $table->string('country', 64)->nullable();
             $table->date('ceremony_date')->nullable();
-            $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP'));
-        });    }
+            $table->timestamps();
+        });
+    }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('awards');

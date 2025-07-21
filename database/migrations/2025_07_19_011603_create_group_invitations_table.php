@@ -1,33 +1,28 @@
 <?php
 
+use App\Enums\InvitationStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('group_invitations', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('group_id');
-            $table->uuid('inviter_id');
-            $table->uuid('invitee_id');
-            $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
+            $table->foreignUuid('group_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('inviter_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('invitee_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
             $table->unique(['group_id', 'invitee_id']);
-            $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
-            $table->foreign('inviter_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('invitee_id')->references('id')->on('users')->onDelete('cascade');
+        });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->enumAlterColumn('invitation_status', 'invitation_status', InvitationStatus::class, InvitationStatus::PENDING);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('group_invitations');

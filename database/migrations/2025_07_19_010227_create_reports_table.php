@@ -1,38 +1,35 @@
 <?php
 
+use App\Enums\ReportStatus;
+use App\Enums\ReportType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id');
-            $table->uuid('reportable_id');
-            $table->string('reportable_type', 50);
-            $table->enum('report_type', [
-                'spam', 'offensive', 'inappropriate', 'spoilers', 'copyright', 'other'
-            ]);
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
+            $table->uuidMorphs('reportable');
             $table->text('description')->nullable();
-            $table->enum('status', ['pending', 'reviewed', 'resolved', 'dismissed'])->default('pending');
-            $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->timestamps();
             $table->unique(['user_id', 'reportable_id', 'reportable_type']);
+        });
+
+        Schema::table('reports', function (Blueprint $table) {
+            $table->enumAlterColumn('report_type', 'report_type', ReportType::class);
+            $table->enumAlterColumn('status', 'status', ReportStatus::class, ReportStatus::PENDING);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('reports');
+        DB::unprepared('DROP TYPE role');
+        DB::unprepared('DROP TYPE gender');
     }
 };
