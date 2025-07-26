@@ -25,9 +25,8 @@ return new class extends Migration
 
             $table->unique(['user_id', 'book_id']);
 
-            DB::statement('ALTER TABLE user_books ADD CONSTRAINT check_rating_range CHECK (rating >= 1 AND rating <= 5)');
         });
-
+        DB::statement('ALTER TABLE user_books ADD CONSTRAINT check_rating_range CHECK (rating >= 1 AND rating <= 5)');
         Schema::table('user_books', function (Blueprint $table) {
             $table->enumAlterColumn('reading_format', 'reading_format', ReadingFormat::class);
         });

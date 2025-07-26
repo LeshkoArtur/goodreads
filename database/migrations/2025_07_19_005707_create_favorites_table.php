@@ -11,12 +11,12 @@ return new class extends Migration
         Schema::create('favorites', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('favoriteable');
+            $table->uuid('favoriteable_id');
+            $table->string('favoriteable_type', 50);
             $table->timestamps();
             $table->unique(['user_id', 'favoriteable_id', 'favoriteable_type']);
         });
     }
-
     public function down(): void
     {
         Schema::dropIfExists('favorites');

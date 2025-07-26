@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignUuid('poll_option_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->timestamp('created_at')->useCurrent();
-            $table->primary(['poll_id', 'user_id']);
+            $table->primary(['group_poll_id', 'user_id']);
         });
     }
 

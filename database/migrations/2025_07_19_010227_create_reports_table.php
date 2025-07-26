@@ -22,7 +22,7 @@ return new class extends Migration
 
         Schema::table('reports', function (Blueprint $table) {
             $table->enumAlterColumn('report_type', 'report_type', ReportType::class);
-            $table->enumAlterColumn('status', 'status', ReportStatus::class, ReportStatus::PENDING);
+            $table->enumAlterColumn('status', 'status', ReportStatus::class, ReportStatus::PENDING->value);
         });
     }
 

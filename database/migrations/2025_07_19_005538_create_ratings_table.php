@@ -18,8 +18,8 @@ return new class extends Migration
             $table->timestamps();
             $table->unique(['user_id', 'book_id']);
 
-            DB::statement('ALTER TABLE ratings ADD CONSTRAINT check_rating_range CHECK (rating >= 1 AND rating <= 5)');
         });
+        DB::statement('ALTER TABLE ratings ADD CONSTRAINT check_rating_range CHECK (rating >= 1 AND rating <= 5)');
     }
 
     public function down(): void

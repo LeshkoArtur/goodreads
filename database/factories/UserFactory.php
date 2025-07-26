@@ -32,7 +32,7 @@ class UserFactory extends Factory
             'bio' => fake()->paragraph(),
             'birthday' => fake()->date(),
             'gender' => fake()->randomElement(['male', 'female', 'other']),
-            'location' => fake()->city(),
+            'address' => fake()->city(),
             'last_login' => now(),
             'is_public' => fake()->boolean(),
             'role' => fake()->randomElement(['user', 'admin', 'author', 'librarian']),

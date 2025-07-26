@@ -19,7 +19,7 @@ return new class extends Migration
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->enumAlterColumn('invitation_status', 'invitation_status', InvitationStatus::class, InvitationStatus::PENDING);
+            $table->enumAlterColumn('invitation_status', 'invitation_status', InvitationStatus::class, InvitationStatus::PENDING->value);
         });
     }
 

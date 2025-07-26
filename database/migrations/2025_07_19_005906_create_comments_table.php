@@ -13,8 +13,12 @@ return new class extends Migration
             $table->foreignUuid('user_id');
             $table->uuidMorphs('commentable');
             $table->text('content');
-            $table->foreignUuid('parent_id')->nullable()->constrained('comments')->nullOnDelete();
+            $table->uuid('parent_id')->nullable();
             $table->timestamps();
+        });
+
+        Schema::table('comments', function (Blueprint $table) {
+            $table->foreign('parent_id')->references('id')->on('comments')->nullOnDelete();
         });
     }
 

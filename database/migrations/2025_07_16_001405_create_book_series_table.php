@@ -15,8 +15,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->integer('total_books')->default(0);
             $table->boolean('is_completed')->default(false);
-            $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamps();
         });
     }
 

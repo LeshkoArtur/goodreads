@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'novelist' => 'Романіст',
+    'short_story_writer' => 'Автор оповідань',
+    'poet' => 'Поет',
+    'playwright' => 'Драматург',
+    'screenwriter' => 'Сценарист',
+    'essayist' => 'Есеїст',
+    'biographer' => 'Біограф',
+    'memoirist' => 'Мемуарист',
+    'historian' => 'Історик',
+    'journalist' => 'Журналіст',
+    'science_writer' => 'Науковий автор',
+    'self_help_writer' => 'Автор самодопомоги',
+    'children_writer' => 'Автор дитячих книг',
+    'young_adult_writer' => 'Автор для підлітків',
+    'graphic_novelist' => 'Автор графічних романів',
+    'fantasy_writer' => 'Автор фентезі',
+    'sci_fi_writer' => 'Автор наукової фантастики',
+    'mystery_writer' => 'Автор детективів',
+    'romance_writer' => 'Автор романів',
+    'horror_writer' => 'Автор жахів',
+    'other' => 'Інше',
+];

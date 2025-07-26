@@ -20,7 +20,6 @@ return new class extends Migration
             $table->text('bio')->nullable();
             $table->boolean('is_public')->default(true);
             $table->date('birthday')->nullable();
-            $table->string('gender', 20)->nullable();
             $table->string('address', 248)->nullable();
             $table->timestamp('last_login')->nullable();
             $table->jsonb('social_media_links')->nullable();

@@ -21,8 +21,8 @@ return new class extends Migration
         });
 
         Schema::table('group_posts', function (Blueprint $table) {
-            $table->enumAlterColumn('category', 'category', PostCategory::class, PostCategory::GENERAL);
-            $table->enumAlterColumn('post_status', 'post_status', PostStatus::class, PostCategory::GENERAL);
+            $table->enumAlterColumn('category', 'category', PostCategory::class, PostCategory::GENERAL->value);
+            $table->enumAlterColumn('post_status', 'post_status', PostStatus::class, PostStatus::DRAFT->value);
         });
     }
 

@@ -22,7 +22,7 @@ return new class extends Migration
         });
 
         Schema::table('group_events', function (Blueprint $table) {
-            $table->enumAlterColumn('group_status', 'group_status', EventStatus::class, EventStatus::UPCOMING);
+            $table->enumAlterColumn('group_status', 'group_status', EventStatus::class, EventStatus::UPCOMING->value);
         });
     }
 

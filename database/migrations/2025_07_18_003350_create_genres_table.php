@@ -11,12 +11,17 @@ return new class extends Migration
         Schema::create('genres', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name', 50);
-            $table->foreignUuid("parent_id")->nullable()->constrained("genres");
+            $table->uuid('parent_id')->nullable();
             $table->text('description')->nullable();
             $table->integer('book_count')->default(0);
             $table->timestamps();
         });
+
+        Schema::table('genres', function (Blueprint $table) {
+            $table->foreign('parent_id')->references('id')->on('genres')->nullOnDelete();
+        });
     }
+
 
     public function down(): void
     {

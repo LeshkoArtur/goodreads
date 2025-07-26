@@ -13,24 +13,22 @@
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $name
  * @property string|null $bio
- * @property string|null $birth_date
+ * @property \Illuminate\Support\Carbon|null $birth_date
  * @property string|null $birth_place
  * @property string|null $nationality
  * @property string|null $website
- * @property string|null $type_of_work
  * @property string|null $profile_picture
- * @property string|null $death_date
- * @property string|null $social_media_links
- * @property string|null $media_images
- * @property string|null $media_videos
- * @property string|null $fun_facts
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property \Illuminate\Support\Carbon|null $death_date
+ * @property array<array-key, mixed>|null $social_media_links
+ * @property array<array-key, mixed>|null $media_images
+ * @property array<array-key, mixed>|null $media_videos
+ * @property array<array-key, mixed>|null $fun_facts
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $type_of_work
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\AuthorAnswer> $answers
  * @property-read int|null $answers_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Book> $books
@@ -71,29 +69,27 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $question_id
  * @property string $author_id
  * @property string $content
- * @property string $status
  * @property string|null $published_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $answer_status
  * @property-read \App\Models\Author $author
  * @property-read \App\Models\AuthorQuestion $question
  * @method static \Database\Factories\AuthorAnswerFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereAnswerStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereAuthorId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereContent($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer wherePublishedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereQuestionId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereUpdatedAt($value)
  * @mixin \Eloquent
  */
@@ -103,16 +99,14 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
  * @property string $author_id
  * @property string|null $book_id
  * @property string $content
- * @property string $status
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $question_status
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\AuthorAnswer> $answers
  * @property-read int|null $answers_count
  * @property-read \App\Models\Author $author
@@ -127,7 +121,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereContent($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereQuestionStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereUserId($value)
  * @mixin \Eloquent
@@ -138,8 +132,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $name
  * @property int $year
@@ -147,8 +139,8 @@ namespace App\Models{
  * @property string|null $organizer
  * @property string|null $country
  * @property string|null $ceremony_date
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Nomination> $nominations
  * @property-read int|null $nominations_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Award newModelQuery()
@@ -171,18 +163,15 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $title
  * @property string|null $description
  * @property string|null $plot
  * @property string|null $history
- * @property string|null $series_id
+ * @property string $series_id
  * @property int|null $number_in_series
  * @property int|null $page_count
  * @property string|null $languages
- * @property string|null $age_restriction
  * @property string|null $cover_image
  * @property string|null $fun_facts
  * @property string|null $adaptations
@@ -190,6 +179,7 @@ namespace App\Models{
  * @property string $average_rating
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $age_restriction
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Author> $authors
  * @property-read int|null $authors_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Character> $characters
@@ -241,8 +231,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $book_id
  * @property string $name
@@ -254,8 +242,8 @@ namespace App\Models{
  * @property string|null $fun_facts
  * @property string|null $links
  * @property string|null $media_images
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Book $book
  * @method static \Database\Factories\CharacterFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Character newModelQuery()
@@ -282,8 +270,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
  * @property string $title
@@ -315,12 +301,10 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
- * @property string $commentable_id
  * @property string $commentable_type
+ * @property string $commentable_id
  * @property string $content
  * @property string|null $parent_id
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -329,7 +313,7 @@ namespace App\Models{
  * @property-read Comment|null $parent
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Comment> $replies
  * @property-read int|null $replies_count
- * @property-read \App\Models\User $user
+ * @property-read \App\Models\User|null $user
  * @method static \Database\Factories\CommentFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment newQuery()
@@ -350,24 +334,12 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
- * @property string $event_id
- * @property string $user_id
- * @property string $response
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\GroupEvent $event
- * @property-read \App\Models\User $user
+ * @property-read \App\Models\GroupEvent|null $event
+ * @property-read \App\Models\User|null $user
  * @method static \Database\Factories\EventRsvpFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventRsvp newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventRsvp newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventRsvp query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventRsvp whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventRsvp whereEventId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventRsvp whereResponse($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventRsvp whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventRsvp whereUserId($value)
  * @mixin \Eloquent
  */
 	#[\AllowDynamicProperties]
@@ -376,8 +348,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
  * @property string $favoriteable_id
@@ -404,8 +374,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $name
  * @property string|null $parent_id
@@ -434,8 +402,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $name
  * @property string|null $description
@@ -443,12 +409,12 @@ namespace App\Models{
  * @property bool $is_public
  * @property string|null $cover_image
  * @property string|null $rules
- * @property string $join_policy
- * @property string $post_policy
  * @property int $member_count
  * @property bool $is_active
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $join_policy
+ * @property string $post_policy
  * @property-read \App\Models\User $creator
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\GroupEvent> $events
  * @property-read int|null $events_count
@@ -487,8 +453,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $group_id
  * @property string $creator_id
@@ -496,9 +460,9 @@ namespace App\Models{
  * @property string|null $description
  * @property string|null $event_date
  * @property string|null $location
- * @property string $status
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $group_status
  * @property-read \App\Models\User $creator
  * @property-read \App\Models\Group $group
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EventRsvp> $rsvps
@@ -512,9 +476,9 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupEvent whereDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupEvent whereEventDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupEvent whereGroupId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupEvent whereGroupStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupEvent whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupEvent whereLocation($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupEvent whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupEvent whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupEvent whereUpdatedAt($value)
  * @mixin \Eloquent
@@ -525,13 +489,10 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $group_id
  * @property string $inviter_id
  * @property string $invitee_id
- * @property string $status
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Group $group
@@ -546,7 +507,6 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupInvitation whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupInvitation whereInviteeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupInvitation whereInviterId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupInvitation whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupInvitation whereUpdatedAt($value)
  * @mixin \Eloquent
  */
@@ -556,14 +516,12 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $group_id
  * @property string $moderator_id
  * @property string $action
- * @property string|null $target_id
- * @property string|null $target_type
+ * @property string $targetable_type
+ * @property string $targetable_id
  * @property string|null $description
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -579,8 +537,8 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupModerationLog whereGroupId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupModerationLog whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupModerationLog whereModeratorId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupModerationLog whereTargetId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupModerationLog whereTargetType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupModerationLog whereTargetableId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupModerationLog whereTargetableType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupModerationLog whereUpdatedAt($value)
  * @mixin \Eloquent
  */
@@ -590,8 +548,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $group_id
  * @property string $creator_id
@@ -624,17 +580,15 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $group_id
  * @property string $user_id
  * @property string $content
- * @property string $category
  * @property bool $is_pinned
- * @property string $status
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $category
+ * @property string $post_status
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Comment> $comments
  * @property-read int|null $comments_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Favorite> $favorites
@@ -653,7 +607,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupPost whereGroupId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupPost whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupPost whereIsPinned($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupPost whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupPost wherePostStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupPost whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GroupPost whereUserId($value)
  * @mixin \Eloquent
@@ -664,12 +618,10 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
- * @property string $likeable_id
  * @property string $likeable_type
+ * @property string $likeable_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent $likeable
@@ -692,14 +644,12 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $award_id
  * @property string $name
  * @property string|null $description
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Award $award
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\NominationEntry> $entries
  * @property-read int|null $entries_count
@@ -721,15 +671,13 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $nomination_id
  * @property string|null $book_id
  * @property string|null $author_id
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
- * @property string $status
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $nomination_status
  * @property-read \App\Models\Author|null $author
  * @property-read \App\Models\Book|null $book
  * @property-read \App\Models\Nomination $nomination
@@ -742,7 +690,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|NominationEntry whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|NominationEntry whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|NominationEntry whereNominationId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|NominationEntry whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|NominationEntry whereNominationStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|NominationEntry whereUpdatedAt($value)
  * @mixin \Eloquent
  */
@@ -752,8 +700,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
  * @property string $book_id
@@ -761,8 +707,8 @@ namespace App\Models{
  * @property int|null $page_number
  * @property bool $contains_spoilers
  * @property bool $is_private
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Book $book
  * @property-read \App\Models\User $user
  * @method static \Database\Factories\NoteFactory factory($count = null, $state = [])
@@ -786,25 +732,27 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
- * @property string $user_id
  * @property string $type
- * @property string $content
- * @property bool $is_read
- * @property \Illuminate\Support\Carbon $created_at
- * @property-read \App\Models\User $user
+ * @property string $notifiable_type
+ * @property int $notifiable_id
+ * @property string $data
+ * @property string|null $read_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User|null $user
  * @method static \Database\Factories\NotificationFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereContent($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereData($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereIsRead($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereNotifiableId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereNotifiableType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereReadAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereType($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereUpdatedAt($value)
  * @mixin \Eloquent
  */
 	#[\AllowDynamicProperties]
@@ -813,22 +761,20 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
- * @property string $poll_id
+ * @property string $group_poll_id
  * @property string $text
  * @property int $vote_count
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\GroupPoll $poll
+ * @property-read \App\Models\GroupPoll|null $poll
  * @method static \Database\Factories\PollOptionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollOption newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollOption newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollOption query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollOption whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PollOption whereGroupPollId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollOption whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PollOption wherePollId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollOption whereText($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollOption whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollOption whereVoteCount($value)
@@ -840,22 +786,20 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
- * @property string $poll_id
- * @property string $option_id
+ * @property string $group_poll_id
+ * @property string $poll_option_id
  * @property string $user_id
  * @property \Illuminate\Support\Carbon $created_at
- * @property-read \App\Models\PollOption $option
- * @property-read \App\Models\GroupPoll $poll
+ * @property-read \App\Models\PollOption|null $option
+ * @property-read \App\Models\GroupPoll|null $poll
  * @property-read \App\Models\User $user
  * @method static \Database\Factories\PollVoteFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollVote newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollVote newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollVote query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollVote whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PollVote whereOptionId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PollVote wherePollId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PollVote whereGroupPollId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PollVote wherePollOptionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PollVote whereUserId($value)
  * @mixin \Eloquent
  */
@@ -865,21 +809,19 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
  * @property string|null $book_id
  * @property string|null $author_id
- * @property string $type
  * @property string $title
  * @property string|null $slug
  * @property string $content
  * @property string|null $cover_image
- * @property string $status
  * @property string|null $published_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $post_type
+ * @property string $post_status
  * @property-read \App\Models\Author|null $author
  * @property-read \App\Models\Book|null $book
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Comment> $comments
@@ -899,11 +841,11 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereCoverImage($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post wherePostStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post wherePostType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post wherePublishedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereSlug($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereTitle($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereUserId($value)
  * @mixin \Eloquent
@@ -914,8 +856,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $name
  * @property string|null $description
@@ -952,8 +892,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
  * @property string $book_id
@@ -992,8 +930,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
  * @property string $book_id
@@ -1028,8 +964,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
  * @property int $year
@@ -1057,17 +991,15 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
- * @property string $reportable_id
  * @property string $reportable_type
- * @property string $report_type
+ * @property string $reportable_id
  * @property string|null $description
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $report_type
  * @property string $status
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
  * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent $reportable
  * @property-read \App\Models\User $user
  * @method static \Database\Factories\ReportFactory factory($count = null, $state = [])
@@ -1091,13 +1023,11 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string|null $user_id
  * @property string $name
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\User|null $user
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\UserBook> $userBooks
  * @property-read int|null $user_books_count
@@ -1118,12 +1048,10 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $name
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Taggable> $taggables
  * @property-read int|null $taggables_count
  * @method static \Database\Factories\TagFactory factory($count = null, $state = [])
@@ -1142,13 +1070,11 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property string $tag_id
- * @property string $taggable_id
  * @property string $taggable_type
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property string $taggable_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Tag $tag
  * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent $taggable
  * @method static \Database\Factories\TaggableFactory factory($count = null, $state = [])
@@ -1168,8 +1094,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $username
  * @property string $email
@@ -1178,13 +1102,14 @@ namespace App\Models{
  * @property string|null $bio
  * @property bool $is_public
  * @property string|null $birthday
- * @property string|null $gender
- * @property string|null $location
+ * @property string|null $address
  * @property string|null $last_login
- * @property string $role
  * @property string|null $social_media_links
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $role
+ * @property string $gender
+ * @property string $invitation_status
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Author> $authors
  * @property-read int|null $authors_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Comment> $comments
@@ -1219,15 +1144,16 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereAddress($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereBio($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereBirthday($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereGender($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereInvitationStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereIsPublic($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastLogin($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLocation($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePasswordHash($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereProfilePicture($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRole($value)
@@ -1242,8 +1168,6 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
  * @property string $book_id
@@ -1254,9 +1178,9 @@ namespace App\Models{
  * @property bool $is_private
  * @property int|null $rating
  * @property string|null $notes
- * @property string|null $reading_format
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $reading_format
  * @property-read \App\Models\Book $book
  * @property-read \App\Models\Shelf $shelf
  * @property-read \App\Models\User $user
@@ -1285,12 +1209,10 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * 
- *
  * @property int $id
  * @property string $user_id
- * @property string $viewable_id
  * @property string $viewable_type
+ * @property string $viewable_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\User $user

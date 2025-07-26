@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'novelist' => 'Novelist',
+    'short_story_writer' => 'Short Story Writer',
+    'poet' => 'Poet',
+    'playwright' => 'Playwright',
+    'screenwriter' => 'Screenwriter',
+    'essayist' => 'Essayist',
+    'biographer' => 'Biographer',
+    'memoirist' => 'Memoirist',
+    'historian' => 'Historian',
+    'journalist' => 'Journalist',
+    'science_writer' => 'Science Writer',
+    'self_help_writer' => 'Self-help Writer',
+    'children_writer' => 'Children’s Writer',
+    'young_adult_writer' => 'Young Adult Writer',
+    'graphic_novelist' => 'Graphic Novelist',
+    'fantasy_writer' => 'Fantasy Writer',
+    'sci_fi_writer' => 'Science Fiction Writer',
+    'mystery_writer' => 'Mystery Writer',
+    'romance_writer' => 'Romance Writer',
+    'horror_writer' => 'Horror Writer',
+    'other' => 'Other',
+];

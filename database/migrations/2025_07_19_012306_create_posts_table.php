@@ -25,11 +25,11 @@ return new class extends Migration
         });
 
         Schema::table('posts', function (Blueprint $table) {
-            $table->enumAlterColumn('post_type', 'post_type', PostType::class, PostType::ARTICLE);
-            $table->enumAlterColumn('post_status', 'post_status', PostStatus::class, PostStatus::DRAFT);
+            $table->enumAlterColumn('post_type', 'post_type', PostType::class, PostType::ARTICLE->value);
+            $table->enumAlterColumn('post_status', 'post_status', PostStatus::class, PostStatus::DRAFT->value);
         });
 
-        DB::statement("ALTER TABLE posts ADD CONSTRAINT unique_slug CHECK (type != 'article' OR slug IS NOT NULL)");
+        DB::statement("ALTER TABLE posts ADD CONSTRAINT unique_slug CHECK (post_type != 'article' OR slug IS NOT NULL)");
     }
 
     public function down(): void

@@ -25,8 +25,8 @@ return new class extends Migration
         });
 
         Schema::table('groups', function (Blueprint $table) {
-            $table->enumAlterColumn('join_policy', 'join_policy', JoinPolicy::class, JoinPolicy::OPEN);
-            $table->enumAlterColumn('post_policy', 'post_policy', PostPolicy::class, PostPolicy::ALL);
+            $table->enumAlterColumn('join_policy', 'join_policy', JoinPolicy::class, JoinPolicy::OPEN->value);
+            $table->enumAlterColumn('post_policy', 'post_policy', PostPolicy::class, PostPolicy::ALL->value);
         });
     }
 

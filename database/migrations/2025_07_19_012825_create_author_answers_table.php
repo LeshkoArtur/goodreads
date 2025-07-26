@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('author_answers', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('question_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('question_id')->constrained('author_questions')->cascadeOnDelete();
             $table->foreignUuid('author_id')->constrained()->cascadeOnDelete();
             $table->text('content');
             $table->timestamp('published_at')->nullable();
@@ -19,7 +19,7 @@ return new class extends Migration
         });
 
         Schema::table('author_answers', function (Blueprint $table) {
-            $table->enumAlterColumn('answer_status', 'answer_status', AnswerStatus::class, AnswerStatus::DRAFT);
+            $table->enumAlterColumn('answer_status', 'answer_status', AnswerStatus::class, AnswerStatus::DRAFT->value);
         });
     }
 
