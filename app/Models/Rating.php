@@ -10,6 +10,16 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Rating extends Model {
     use HasFactory;
+    protected $fillable = [
+        'user_id',
+        'book_id',
+        'rating',
+        'review',
+    ];
+
+    protected $casts = [
+        'rating' => 'integer',
+    ];
     public function user() { return $this->belongsTo(User::class); }
     public function book() { return $this->belongsTo(Book::class); }
     public function comments() { return $this->morphMany(Comment::class, 'commentable'); }

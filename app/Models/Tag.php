@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Tag extends Model {
     use HasFactory;
+    protected $fillable = [
+        'name',
+    ];
     public function taggables() { return $this->morphedByMany(Taggable::class, 'taggable'); }
 }
 

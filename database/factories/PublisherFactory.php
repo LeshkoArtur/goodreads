@@ -12,6 +12,7 @@ class PublisherFactory extends Factory
     public function definition(): array
     {
         return [
+            'id' => $this->faker->uuid(),
             'name' => fake()->company(),
             'country' => fake()->country(),
             'founded_year' => fake()->year(),

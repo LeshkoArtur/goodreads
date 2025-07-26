@@ -10,6 +10,12 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Nomination extends Model {
     use HasFactory;
+    protected $fillable = [
+        'id',
+        'award_id',
+        'name',
+        'description',
+    ];
     public function award() { return $this->belongsTo(Award::class); }
     public function entries() { return $this->hasMany(NominationEntry::class); }
 }

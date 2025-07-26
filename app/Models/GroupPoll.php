@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\Model;
  */
 class GroupPoll extends Model {
     use HasFactory;
+    protected $fillable = [
+        'id',
+        'group_id',
+        'creator_id',
+        'question',
+        'is_active',
+    ];
     public function group() { return $this->belongsTo(Group::class); }
     public function creator() { return $this->belongsTo(User::class, 'creator_id'); }
     public function options() { return $this->hasMany(PollOption::class); }

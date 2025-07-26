@@ -7,6 +7,7 @@ use App\Models\AuthorAnswer;
 use App\Models\AuthorQuestion;
 use App\Models\Award;
 use App\Models\Book;
+use App\Models\BookSeries;
 use App\Models\Character;
 use App\Models\Collection;
 use App\Models\Comment;
@@ -48,30 +49,84 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $users = User::factory(10)->create();
+        $authors = Author::factory(10)->create();
+        $series = BookSeries::factory(5)->create();
+        foreach ($authors as $author) {
+            Book::factory(3)->create([
+                'author_id' => $author->id,
+                'series_id' => $series->random()->id,
+            ]);
+        }
+        $books = Book::factory(10)->create();
+        foreach ($books as $book) {
+            $book->authors()->attach($authors->random(rand(1, 3))->pluck('id')->toArray());
+        }
+        $genres = Genre::factory(10)->create();
+        $publishers = Publisher::factory(10)->create();
+        foreach ($users as $user) {
+            Shelf::factory(2)->create([
+                'user_id' => $user->id,
+            ]);
+        }
+        foreach ($users as $user) {
+            Rating::factory(3)->create([
+                'user_id' => $user->id,
+                'book_id' => Book::inRandomOrder()->first()->id,
+            ]);
+        }
 
-        User::factory(10)->create();
-        Author::factory(10)->create();
-        Book::factory(10)->create();
-        Genre::factory(10)->create();
-        Publisher::factory(10)->create();
-        Shelf::factory(10)->create();
-        Rating::factory(10)->create();
-        Quote::factory(10)->create();
-        Comment::factory(10)->create();
+        foreach ($authors as $author) {
+            Quote::factory(3)->create([
+                'author_id' => $author->id,
+                'book_id' => Book::inRandomOrder()->first()->id,
+            ]);
+        }
+        foreach ($users as $user) {
+            Comment::factory(3)->create([
+                'user_id' => $user->id,
+                'book_id' => Book::inRandomOrder()->first()->id,
+            ]);
+        }
         Report::factory(10)->create();
         Tag::factory(10)->create();
         Taggable::factory(10)->create();
-        Group::factory(10)->create();
-        GroupPost::factory(10)->create();
-        GroupEvent::factory(10)->create();
+        $groups = Group::factory(5)->create();
+        foreach ($groups as $group) {
+            GroupPost::factory(3)->create([
+                'group_id' => $group->id,
+            ]);
+        }
+        foreach ($groups as $group) {
+            GroupEvent::factory(2)->create([
+                'group_id' => $group->id,
+            ]);
+        }
         EventRsvp::factory(10)->create();
-        GroupPoll::factory(10)->create();
-        PollOption::factory(10)->create();
-        PollVote::factory(10)->create();
+        foreach ($groups as $group) {
+            GroupPoll::factory(2)->create([
+                'group_id' => $group->id,
+            ]);
+        }
+        foreach (GroupPoll::all() as $poll) {
+            PollOption::factory(3)->create([
+                'poll_id' => $poll->id,
+            ]);
+        }
+        foreach (PollOption::all() as $option) {
+            PollVote::factory(2)->create([
+                'option_id' => $option->id,
+            ]);
+        }
         Notification::factory(10)->create();
-        AuthorQuestion::factory(10)->create();
-        AuthorAnswer::factory(10)->create();
+        foreach ($authors as $author) {
+            AuthorQuestion::factory(2)->create([
+                'author_id' => $author->id,
+            ]);
+            AuthorAnswer::factory(2)->create([
+                'author_id' => $author->id,
+            ]);
+        }
         GroupInvitation::factory(10)->create();
         GroupModerationLog::factory(10)->create();
         ViewHistory::factory(10)->create();

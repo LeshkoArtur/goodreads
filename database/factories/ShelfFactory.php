@@ -15,7 +15,6 @@ class ShelfFactory extends Factory
         return [
             'user_id' => User::factory(),
             'name' => fake()->word(),
-            'is_private' => fake()->boolean(),
         ];
     }
 }

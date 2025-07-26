@@ -10,5 +10,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 class PollOption extends Model {
     use HasFactory;
+    protected $fillable = [
+        'group_poll_id',
+        'text',
+        'vote_count',
+    ];
     public function poll() { return $this->belongsTo(GroupPoll::class); }
 }

@@ -10,6 +10,25 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Post extends Model {
     use HasFactory;
+    protected $casts = [
+        'post_type' => PostType::class,
+        'post_status' => PostStatus::class,
+        'published_at' => 'datetime',
+    ];
+
+    protected $fillable = [
+        'user_id',
+        'book_id',
+        'author_id',
+        'title',
+        'slug',
+        'content',
+        'cover_image',
+        'published_at',
+        'post_type',
+        'post_status',
+    ];
+
     public function user() { return $this->belongsTo(User::class); }
     public function book() { return $this->belongsTo(Book::class); }
     public function author() { return $this->belongsTo(Author::class); }

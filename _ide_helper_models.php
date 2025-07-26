@@ -231,6 +231,32 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * @property string $id
+ * @property string $title
+ * @property string|null $description
+ * @property int $total_books
+ * @property bool $is_completed
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Database\Factories\BookSeriesFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookSeries newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookSeries newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookSeries query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookSeries whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookSeries whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookSeries whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookSeries whereIsCompleted($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookSeries whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookSeries whereTotalBooks($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookSeries whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperBookSeries {}
+}
+
+namespace App\Models{
+/**
  * @property int $id
  * @property string $book_id
  * @property string $name

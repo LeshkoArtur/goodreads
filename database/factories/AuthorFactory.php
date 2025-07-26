@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\TypeOfWork;
 use     App\Models\Author;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -12,20 +13,28 @@ class AuthorFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => $this->faker->uuid(),
             'name' => $this->faker->name(),
-            'bio' => $this->faker->paragraph(),
+            'bio' => $this->faker->text(),
             'birth_date' => $this->faker->date(),
             'birth_place' => $this->faker->city(),
             'nationality' => $this->faker->country(),
-            'type_of_work' => $this->faker->randomElement(['novelist', 'short_story_writer', 'poet', 'playwright', 'screenwriter', 'essayist', 'biographer', 'memoirist', 'historian', 'journalist', 'science_writer', 'self_help_writer', 'children_writer', 'young_adult_writer', 'graphic_novelist', 'fantasy_writer', 'sci_fi_writer', 'mystery_writer', 'romance_writer', 'horror_writer', 'other']),
             'website' => $this->faker->url(),
-            'profile_picture' => $this->faker->imageUrl(),
-            'death_date' => null,
-            'social_media_links' => [],
-            'media_images' => [],
-            'media_videos' => [],
-            'fun_facts' => [],
+            'profile_picture' => $this->faker->imageUrl(400, 400),
+            'death_date' => $this->faker->date(),
+            'social_media_links' => [
+                'twitter' => $this->faker->url(),
+                'facebook' => $this->faker->url(),
+                'instagram' => $this->faker->url(),
+            ],
+            'media_images' => [
+                $this->faker->imageUrl(640, 480),
+                $this->faker->imageUrl(640, 480),
+            ],
+            'media_videos' => [
+                'https://youtu.be/' . $this->faker->lexify('??????????'),
+            ],
+            'fun_facts' => [$this->faker->sentence()],
+            'type_of_work' => $this->faker->randomElement(TypeOfWork::cases())->value,
         ];
     }
 }

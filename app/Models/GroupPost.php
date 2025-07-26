@@ -10,6 +10,15 @@ use Illuminate\Database\Eloquent\Model;
  */
 class GroupPost extends Model {
     use HasFactory;
+    protected $fillable = [
+        'id',
+        'group_id',
+        'user_id',
+        'content',
+        'is_pinned',
+        'category',
+        'post_status',
+    ];
     public function group() { return $this->belongsTo(Group::class); }
     public function user() { return $this->belongsTo(User::class); }
     public function comments() { return $this->morphMany(Comment::class, 'commentable'); }

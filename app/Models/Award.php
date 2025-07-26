@@ -10,5 +10,20 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Award extends Model {
     use HasFactory;
+    protected $casts = [
+        'year' => 'integer',
+        'ceremony_date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    protected $fillable = [
+        'name',
+        'year',
+        'description',
+        'organizer',
+        'country',
+        'ceremony_date',
+    ];
     public function nominations() { return $this->hasMany(Nomination::class); }
 }

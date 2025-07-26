@@ -3,6 +3,8 @@
 namespace App\Models;
 
 
+use App\Enums\Gender;
+use App\Enums\Role;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,6 +14,29 @@ use Illuminate\Database\Eloquent\Model;
  */
 class User extends Model {
     use HasFactory;
+    protected $fillable = [
+        'username',
+        'email',
+        'password_hash',
+        'profile_picture',
+        'bio',
+        'is_public',
+        'birthday',
+        'address',
+        'last_login',
+        'social_media_links',
+        'role',
+        'gender',
+    ];
+
+    protected $casts = [
+        'is_public' => 'boolean',
+        'birthday' => 'date',
+        'last_login' => 'datetime',
+        'social_media_links' => 'array',
+        'role' => Role::class,
+        'gender' => Gender::class,
+    ];
     public function authors() { return $this->belongsToMany(Author::class, 'user_authors'); }
     public function shelves() { return $this->hasMany(Shelf::class); }
     public function userBooks() { return $this->hasMany(UserBook::class); }

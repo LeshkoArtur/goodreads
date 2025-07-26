@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ViewHistory extends Model {
     use HasFactory;
+    protected $fillable = [
+        'user_id',
+        'viewable_id',
+        'viewable_type',
+    ];
     public function user() { return $this->belongsTo(User::class); }
     public function viewable() { return $this->morphTo(); }
 }
