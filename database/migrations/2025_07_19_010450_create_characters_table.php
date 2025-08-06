@@ -13,9 +13,9 @@ return new class extends Migration
             $table->foreignUuid('book_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->jsonb('other_names')->nullable();
-            $table->string('race', 64)->nullable();
-            $table->string('nationality', 64)->nullable();
-            $table->string('residence', 128)->nullable();
+            $table->string('race', 50)->nullable();
+            $table->string('nationality', 50)->nullable();
+            $table->string('residence', 100)->nullable();
             $table->text('biography')->nullable();
             $table->jsonb('fun_facts')->nullable();
             $table->jsonb('links')->nullable();

@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * @mixin IdeHelperGroupModerationLog
  */
-class GroupModerationLog extends Model {
-    use HasFactory;
+class GroupModerationLog extends Model
+{
+    use HasFactory, HasUuids;
+
     protected $fillable = [
-        'id',
         'group_id',
         'moderator_id',
         'action',
@@ -19,6 +23,19 @@ class GroupModerationLog extends Model {
         'targetable_type',
         'description',
     ];
-    public function group() { return $this->belongsTo(Group::class); }
-    public function moderator() { return $this->belongsTo(User::class, 'moderator_id'); }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
+    }
+
+    public function moderator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'moderator_id');
+    }
+
+    public function targetable(): MorphTo
+    {
+        return $this->morphTo();
+    }
 }

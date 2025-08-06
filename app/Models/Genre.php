@@ -2,16 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @mixin IdeHelperGenre
  */
-class Genre extends Model {
-    use HasFactory;
+class Genre extends Model
+{
+    use HasFactory, HasUuids;
+
     protected $fillable = [
-        'id',
         'name',
         'parent_id',
         'description',
@@ -19,12 +24,25 @@ class Genre extends Model {
     ];
 
     protected $casts = [
-        'id' => 'string',
         'parent_id' => 'string',
         'book_count' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
-    public function books() {return $this->belongsToMany(Book::class); }
-    public function parent() {return $this->belongsTo(Parent::class); }
-    public function children() {return $this->hasMany(Parent::class); }
+
+    public function books(): BelongsToMany
+    {
+        return $this->belongsToMany(Book::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Genre::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Genre::class, 'parent_id');
+    }
 
 }

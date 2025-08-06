@@ -16,11 +16,11 @@ return new class extends Migration
             $table->date('published_date')->nullable();
             $table->string('isbn', 13)->unique()->nullable();
             $table->integer('circulation')->nullable();
-            $table->string('format', 64)->nullable();
-            $table->string('translator', 128)->nullable();
+            $table->string('format', 50)->nullable();
+            $table->string('translator', 100)->nullable();
             $table->integer('edition')->nullable();
-            $table->bigInteger('price')->nullable();
-            $table->string('binding', 64)->nullable();
+            $table->decimal('price', 10, 2);
+            $table->string('binding', 50)->nullable();
             $table->timestamps();
             $table->primary(['book_id', 'publisher_id']);
         });

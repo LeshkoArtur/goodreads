@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @mixin IdeHelperReadingStat
  */
-class ReadingStat extends Model {
-    use HasFactory;
+class ReadingStat extends Model
+{
+    use HasFactory, HasUuids;
+
     protected $fillable = [
         'user_id',
         'year',
@@ -25,5 +29,9 @@ class ReadingStat extends Model {
         'genres_read' => 'array',
         'updated_at' => 'datetime',
     ];
-    public function user() { return $this->belongsTo(User::class); }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

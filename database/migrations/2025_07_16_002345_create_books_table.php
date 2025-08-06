@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->text('plot')->nullable();
             $table->text('history')->nullable();
-            $table->foreignUuid('series_id')->constrained('book_series')->nullOnDelete();
+            $table->foreignUuid('series_id')->nullable()->constrained('book_series')->nullOnDelete();
             $table->integer('number_in_series')->nullable();
             $table->integer('page_count')->nullable();
             $table->jsonb('languages')->nullable();

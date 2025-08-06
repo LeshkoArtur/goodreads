@@ -12,13 +12,13 @@ return new class extends Migration
     {
         Schema::create('authors', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('name', 128);
+            $table->string('name', 100);
             $table->text('bio')->nullable();
             $table->date('birth_date')->nullable();
-            $table->string('birth_place', 128)->nullable();
-            $table->string('nationality', 64)->nullable();
-            $table->string('website', 2048)->nullable();
-            $table->string('profile_picture', 2048)->nullable();
+            $table->string('birth_place', 100)->nullable();
+            $table->string('nationality', 50)->nullable();
+            $table->string('website', 255)->nullable();
+            $table->string('profile_picture', 255)->nullable();
             $table->date('death_date')->nullable();
             $table->jsonb('social_media_links')->nullable();
             $table->jsonb('media_images')->nullable();

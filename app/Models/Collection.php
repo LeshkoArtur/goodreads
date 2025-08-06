@@ -2,20 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @mixin IdeHelperCollection
  */
-class Collection extends Model {
-    use HasFactory;
-    protected $casts = [
-        'user_id' => 'string',
-        'is_public' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
+class Collection extends Model
+{
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'user_id',
@@ -24,8 +22,21 @@ class Collection extends Model {
         'cover_image',
         'is_public',
     ];
-    public function user() { return $this->belongsTo(User::class); }
-    public function books() {
+
+    protected $casts = [
+        'user_id' => 'string',
+        'is_public' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function books(): BelongsToMany
+    {
         return $this->belongsToMany(Book::class, 'collection_books')->withPivot('order_index');
     }
 }

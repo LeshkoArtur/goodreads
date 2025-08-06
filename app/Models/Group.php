@@ -4,16 +4,21 @@ namespace App\Models;
 
 use App\Enums\JoinPolicy;
 use App\Enums\PostPolicy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @mixin IdeHelperGroup
  */
-class Group extends Model {
-    use HasFactory;
+class Group extends Model
+{
+    use HasFactory, HasUuids;
+
     protected $fillable = [
-        'id',
         'name',
         'description',
         'creator_id',
@@ -27,7 +32,6 @@ class Group extends Model {
     ];
 
     protected $casts = [
-        'id' => 'string',
         'creator_id' => 'string',
         'is_public' => 'boolean',
         'member_count' => 'integer',
@@ -35,11 +39,39 @@ class Group extends Model {
         'join_policy' => JoinPolicy::class,
         'post_policy' => PostPolicy::class,
     ];
-    public function creator() { return $this->belongsTo(User::class, 'creator_id'); }
-    public function members() { return $this->belongsToMany(User::class, 'group_members')->withPivot('role', 'status', 'joined_at'); }
-    public function posts() { return $this->hasMany(GroupPost::class); }
-    public function events() { return $this->hasMany(GroupEvent::class); }
-    public function invitations() { return $this->hasMany(GroupInvitation::class); }
-    public function polls() { return $this->hasMany(GroupPoll::class); }
-    public function moderationLogs() { return $this->hasMany(GroupModerationLog::class); }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'group_members')->withPivot('role', 'status', 'joined_at');
+    }
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(GroupPost::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(GroupEvent::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(GroupInvitation::class);
+    }
+
+    public function polls(): HasMany
+    {
+        return $this->hasMany(GroupPoll::class);
+    }
+
+    public function moderationLogs(): HasMany
+    {
+        return $this->hasMany(GroupModerationLog::class);
+    }
 }

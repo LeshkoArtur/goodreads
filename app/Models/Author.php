@@ -2,38 +2,76 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Enums\TypeOfWork;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Casts\AsCollection;
+use Illuminate\Database\Eloquent\Relations\{
+    BelongsToMany,
+    HasMany
+};
 
 /**
  * @mixin IdeHelperAuthor
  */
-class Author extends Model {
-    use HasFactory;
+class Author extends Model
+{
+    use HasFactory, HasUuids;
+
+    protected $fillable = [
+        'name',
+        'bio',
+        'birth_date',
+        'birth_place',
+        'nationality',
+        'website',
+        'profile_picture',
+        'death_date',
+        'social_media_links',
+        'media_images',
+        'media_videos',
+        'fun_facts',
+        'type_of_work',
+    ];
+
     protected $casts = [
         'birth_date' => 'date',
         'death_date' => 'date',
         'type_of_work' => TypeOfWork::class,
-        'social_media_links' => 'array',
-        'media_images' => 'array',
-        'media_videos' => 'array',
-        'fun_facts' => 'array',
+        'social_media_links' => AsCollection::class,
+        'media_images' => AsCollection::class,
+        'media_videos' => AsCollection::class,
+        'fun_facts' => AsCollection::class,
     ];
-    protected static function boot()
-    {
-        parent::boot();
 
-        static::creating(function ($model) {
-            if (empty($model->id)) {
-                $model->id = (string) Str::uuid();
-            }
-        });
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'author_user');
     }
-    public function users() { return $this->belongsToMany(User::class, 'user_authors'); }
-    public function books() { return $this->belongsToMany(Book::class, 'author_book'); }
-    public function nominations() { return $this->hasMany(NominationEntry::class); }
-    public function questions() { return $this->hasMany(AuthorQuestion::class); }
-    public function answers() { return $this->hasMany(AuthorAnswer::class); }
-    public function posts() { return $this->hasMany(Post::class); }
+
+    public function books(): BelongsToMany
+    {
+        return $this->belongsToMany(Book::class, 'author_book');
+    }
+
+    public function nominations(): HasMany
+    {
+        return $this->hasMany(NominationEntry::class);
+    }
+
+    public function questions(): HasMany
+    {
+        return $this->hasMany(AuthorQuestion::class);
+    }
+
+    public function answers(): HasMany
+    {
+        return $this->hasMany(AuthorAnswer::class);
+    }
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
 }

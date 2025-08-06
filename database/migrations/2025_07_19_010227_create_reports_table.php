@@ -21,15 +21,15 @@ return new class extends Migration
         });
 
         Schema::table('reports', function (Blueprint $table) {
-            $table->enumAlterColumn('report_type', 'report_type', ReportType::class);
-            $table->enumAlterColumn('status', 'status', ReportStatus::class, ReportStatus::PENDING->value);
+            $table->enumAlterColumn('type', 'report_type', ReportType::class);
+            $table->enumAlterColumn('status', 'report_status', ReportStatus::class, ReportStatus::PENDING->value);
         });
     }
 
     public function down(): void
     {
         Schema::dropIfExists('reports');
-        DB::unprepared('DROP TYPE role');
-        DB::unprepared('DROP TYPE gender');
+        DB::unprepared('DROP TYPE report_type');
+        DB::unprepared('DROP TYPE report_status');
     }
 };

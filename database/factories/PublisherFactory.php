@@ -5,6 +5,9 @@ namespace Database\Factories;
 use App\Models\Publisher;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Publisher>
+ */
 class PublisherFactory extends Factory
 {
     protected $model = Publisher::class;
@@ -12,10 +15,14 @@ class PublisherFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => $this->faker->uuid(),
-            'name' => fake()->company(),
-            'country' => fake()->country(),
-            'founded_year' => fake()->year(),
+            'name' => $this->faker->company(),
+            'description' => $this->faker->paragraph(),
+            'website' => $this->faker->url(),
+            'country' => $this->faker->country(),
+            'founded_year' => $this->faker->year(),
+            'logo' => $this->faker->imageUrl(),
+            'contact_email' => $this->faker->companyEmail(),
+            'phone' => $this->faker->phoneNumber(),
         ];
     }
 }

@@ -22,13 +22,13 @@ return new class extends Migration
         });
 
         Schema::table('group_events', function (Blueprint $table) {
-            $table->enumAlterColumn('group_status', 'group_status', EventStatus::class, EventStatus::UPCOMING->value);
+            $table->enumAlterColumn('status', 'group_status', EventStatus::class, EventStatus::UPCOMING->value);
         });
     }
 
     public function down(): void
     {
         Schema::dropIfExists('group_events');
-        DB::unprepared('DROP TYPE group_events');
+        DB::unprepared('DROP TYPE group_status');
     }
 };

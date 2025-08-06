@@ -10,11 +10,11 @@ return new class extends Migration
     {
         Schema::create('awards', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('name', 248);
+            $table->string('name', 255);
             $table->integer('year');
             $table->text('description')->nullable();
-            $table->string('organizer', 248)->nullable();
-            $table->string('country', 64)->nullable();
+            $table->string('organizer', 255)->nullable();
+            $table->string('country', 50)->nullable();
             $table->date('ceremony_date')->nullable();
             $table->timestamps();
         });

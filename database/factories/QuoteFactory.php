@@ -7,6 +7,9 @@ use App\Models\Quote;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Quote>
+ */
 class QuoteFactory extends Factory
 {
     protected $model = Quote::class;
@@ -16,8 +19,10 @@ class QuoteFactory extends Factory
         return [
             'user_id' => User::factory(),
             'book_id' => Book::factory(),
-            'text' => fake()->paragraph(),
-            'page' => fake()->numberBetween(1, 400),
+            'text' => $this->faker->sentence(),
+            'page_number' => $this->faker->numberBetween(1, 500),
+            'contains_spoilers' => $this->faker->boolean(),
+            'is_public' => $this->faker->boolean(),
         ];
     }
 }

@@ -7,6 +7,7 @@ use App\Models\AuthorAnswer;
 use App\Models\AuthorQuestion;
 use App\Models\Award;
 use App\Models\Book;
+use App\Models\BookOffer;
 use App\Models\BookSeries;
 use App\Models\Character;
 use App\Models\Collection;
@@ -24,7 +25,6 @@ use App\Models\Like;
 use App\Models\Nomination;
 use App\Models\NominationEntry;
 use App\Models\Note;
-use App\Models\Notification;
 use App\Models\PollOption;
 use App\Models\PollVote;
 use App\Models\Post;
@@ -34,10 +34,9 @@ use App\Models\Rating;
 use App\Models\ReadingStat;
 use App\Models\Report;
 use App\Models\Shelf;
+use App\Models\Store;
 use App\Models\Tag;
-use App\Models\Taggable;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\UserBook;
 use App\Models\ViewHistory;
 use Illuminate\Database\Seeder;
@@ -49,97 +48,51 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $users = User::factory(10)->create();
-        $authors = Author::factory(10)->create();
-        $series = BookSeries::factory(5)->create();
-        foreach ($authors as $author) {
-            Book::factory(3)->create([
-                'author_id' => $author->id,
-                'series_id' => $series->random()->id,
-            ]);
-        }
-        $books = Book::factory(10)->create();
-        foreach ($books as $book) {
-            $book->authors()->attach($authors->random(rand(1, 3))->pluck('id')->toArray());
-        }
-        $genres = Genre::factory(10)->create();
-        $publishers = Publisher::factory(10)->create();
-        foreach ($users as $user) {
-            Shelf::factory(2)->create([
-                'user_id' => $user->id,
-            ]);
-        }
-        foreach ($users as $user) {
-            Rating::factory(3)->create([
-                'user_id' => $user->id,
-                'book_id' => Book::inRandomOrder()->first()->id,
-            ]);
-        }
+        // Незалежні моделі (створюємо першими)
+        User::factory(200)->create();
+        Genre::factory(50)->create();
+        Publisher::factory(30)->create();
+        Store::factory(20)->create();
+        Tag::factory(100)->create();
+        Award::factory(50)->create();
+        BookSeries::factory(50)->create();
 
-        foreach ($authors as $author) {
-            Quote::factory(3)->create([
-                'author_id' => $author->id,
-                'book_id' => Book::inRandomOrder()->first()->id,
-            ]);
-        }
-        foreach ($users as $user) {
-            Comment::factory(3)->create([
-                'user_id' => $user->id,
-                'book_id' => Book::inRandomOrder()->first()->id,
-            ]);
-        }
-        Report::factory(10)->create();
-        Tag::factory(10)->create();
-        Taggable::factory(10)->create();
-        $groups = Group::factory(5)->create();
-        foreach ($groups as $group) {
-            GroupPost::factory(3)->create([
-                'group_id' => $group->id,
-            ]);
-        }
-        foreach ($groups as $group) {
-            GroupEvent::factory(2)->create([
-                'group_id' => $group->id,
-            ]);
-        }
-        EventRsvp::factory(10)->create();
-        foreach ($groups as $group) {
-            GroupPoll::factory(2)->create([
-                'group_id' => $group->id,
-            ]);
-        }
-        foreach (GroupPoll::all() as $poll) {
-            PollOption::factory(3)->create([
-                'poll_id' => $poll->id,
-            ]);
-        }
-        foreach (PollOption::all() as $option) {
-            PollVote::factory(2)->create([
-                'option_id' => $option->id,
-            ]);
-        }
-        Notification::factory(10)->create();
-        foreach ($authors as $author) {
-            AuthorQuestion::factory(2)->create([
-                'author_id' => $author->id,
-            ]);
-            AuthorAnswer::factory(2)->create([
-                'author_id' => $author->id,
-            ]);
-        }
-        GroupInvitation::factory(10)->create();
-        GroupModerationLog::factory(10)->create();
-        ViewHistory::factory(10)->create();
-        Post::factory(10)->create();
-        Like::factory(10)->create();
-        ReadingStat::factory(10)->create();
-        Award::factory(10)->create();
-        Nomination::factory(10)->create();
-        NominationEntry::factory(10)->create();
-        Collection::factory(10)->create();
-        UserBook::factory(10)->create();
-        Character::factory(10)->create();
-        Note::factory(10)->create();
-        Favorite::factory(10)->create();
+        // Моделі зі зв’язками
+        Author::factory(150)->create();
+        Book::factory(500)->create();
+        Group::factory(50)->create();
+        Shelf::factory(300)->create();
+        Collection::factory(100)->create();
+
+        // Пов’язані з книгами та авторами
+        Character::factory(1000)->create();
+        AuthorQuestion::factory(500)->create();
+        AuthorAnswer::factory(400)->create();
+        BookOffer::factory(1000)->create();
+        Nomination::factory(100)->create();
+        NominationEntry::factory(300)->create();
+        UserBook::factory(2000)->create();
+        Note::factory(1000)->create();
+        Quote::factory(500)->create();
+        Rating::factory(1500)->create();
+        ReadingStat::factory(200)->create();
+
+        // Пов’язані з групами
+        GroupEvent::factory(200)->create();
+        GroupPost::factory(1000)->create();
+        GroupPoll::factory(100)->create();
+        PollOption::factory(300)->create();
+        PollVote::factory(1000)->create();
+        GroupInvitation::factory(500)->create();
+        EventRsvp::factory(1000)->create();
+        GroupModerationLog::factory(200)->create();
+
+        // Поліморфні зв’язки
+        Post::factory(1000)->create();
+        Comment::factory(3000)->create();
+        Like::factory(5000)->create();
+        Favorite::factory(2000)->create();
+        Report::factory(200)->create();
+        ViewHistory::factory(5000)->create();
     }
 }

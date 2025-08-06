@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -18,12 +19,12 @@ return new class extends Migration
                 UPDATE genres
                 SET book_count = (
                     SELECT COUNT(*)
-                    FROM book_genres
+                    FROM book_genre
                     WHERE genre_id = genres.id
                 )
                 WHERE id IN (
                     SELECT genre_id
-                    FROM book_genres
+                    FROM book_genre
                     WHERE genre_id = genres.id
                 );
                 RETURN NEW;
@@ -31,7 +32,7 @@ return new class extends Migration
             $$ LANGUAGE plpgsql;
 
             CREATE TRIGGER trigger_update_genre_book_count
-            AFTER INSERT OR DELETE ON book_genres
+            AFTER INSERT OR DELETE ON book_genre
             FOR EACH ROW
             EXECUTE FUNCTION update_genre_book_count();
         ');
@@ -40,7 +41,7 @@ return new class extends Migration
     public function down()
     {
         DB::unprepared('
-            DROP TRIGGER IF EXISTS trigger_update_genre_book_count ON book_genres;
+            DROP TRIGGER IF EXISTS trigger_update_genre_book_count ON book_genre;
             DROP FUNCTION IF EXISTS update_genre_book_count();
         ');
     }

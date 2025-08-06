@@ -20,8 +20,8 @@ return new class extends Migration
         });
 
         Schema::table('group_members', function (Blueprint $table) {
-            $table->enumAlterColumn('member_role', 'member_role', MemberRole::class);
-            $table->enumAlterColumn('member_status', 'member_status', MemberStatus::class);
+            $table->enumAlterColumn('role', 'member_role', MemberRole::class);
+            $table->enumAlterColumn('status', 'member_status', MemberStatus::class);
         });
     }
 

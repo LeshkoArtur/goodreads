@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('shelves', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->nullable()->index()->constrained()->cascadeOnDelete();
-            $table->string('name', 64);
+            $table->string('name', 50);
             $table->timestamps();
             $table->unique(['user_id', 'name']);
         });

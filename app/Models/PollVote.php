@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @mixin IdeHelperPollVote
  */
-class PollVote extends Model {
-    use HasFactory;
-    protected $primaryKey = ['group_poll_id', 'user_id'];
+class PollVote extends Model
+{
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'group_poll_id',
@@ -19,7 +21,18 @@ class PollVote extends Model {
         'created_at',
     ];
 
-    public function poll() { return $this->belongsTo(GroupPoll::class); }
-    public function option() { return $this->belongsTo(PollOption::class); }
-    public function user() { return $this->belongsTo(User::class); }
+    public function poll(): BelongsTo
+    {
+        return $this->belongsTo(GroupPoll::class, 'group_poll_id');
+    }
+
+    public function option(): BelongsTo
+    {
+        return $this->belongsTo(PollOption::class, 'poll_option_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

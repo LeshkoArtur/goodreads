@@ -3,9 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\TypeOfWork;
-use     App\Models\Author;
+use App\Models\Author;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Author>
+ */
 class AuthorFactory extends Factory
 {
     protected $model = Author::class;
@@ -14,27 +17,21 @@ class AuthorFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
-            'bio' => $this->faker->text(),
-            'birth_date' => $this->faker->date(),
+            'bio' => $this->faker->paragraph(),
+            'birth_date' => $this->faker->dateTimeBetween('-80 years', '-20 years'),
             'birth_place' => $this->faker->city(),
             'nationality' => $this->faker->country(),
             'website' => $this->faker->url(),
-            'profile_picture' => $this->faker->imageUrl(400, 400),
-            'death_date' => $this->faker->date(),
-            'social_media_links' => [
+            'profile_picture' => $this->faker->imageUrl(),
+            'death_date' => $this->faker->boolean(20) ? $this->faker->dateTimeBetween('-20 years', 'now') : null,
+            'social_media_links' => collect([
                 'twitter' => $this->faker->url(),
                 'facebook' => $this->faker->url(),
-                'instagram' => $this->faker->url(),
-            ],
-            'media_images' => [
-                $this->faker->imageUrl(640, 480),
-                $this->faker->imageUrl(640, 480),
-            ],
-            'media_videos' => [
-                'https://youtu.be/' . $this->faker->lexify('??????????'),
-            ],
-            'fun_facts' => [$this->faker->sentence()],
-            'type_of_work' => $this->faker->randomElement(TypeOfWork::cases())->value,
+            ]),
+            'media_images' => collect([$this->faker->imageUrl(), $this->faker->imageUrl()]),
+            'media_videos' => collect([$this->faker->url(), $this->faker->url()]),
+            'fun_facts' => collect([$this->faker->sentence(), $this->faker->sentence()]),
+            'type_of_work' => $this->faker->randomElement(TypeOfWork::cases()),
         ];
     }
 }

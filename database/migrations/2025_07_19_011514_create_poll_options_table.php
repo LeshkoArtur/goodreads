@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('poll_options', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('group_poll_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('group_poll_id')->constrained('group_polls')->cascadeOnDelete();
             $table->string('text', 248);
             $table->integer('vote_count')->default(0);
             $table->timestamps();

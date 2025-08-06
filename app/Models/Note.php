@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @mixin IdeHelperNote
  */
-class Note extends Model {
-    use HasFactory;
+class Note extends Model
+{
+    use HasFactory, HasUuids;
+
     protected $fillable = [
         'user_id',
         'book_id',
@@ -23,6 +27,14 @@ class Note extends Model {
         'contains_spoilers' => 'boolean',
         'is_private' => 'boolean',
     ];
-    public function user() { return $this->belongsTo(User::class); }
-    public function book() { return $this->belongsTo(Book::class); }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function book(): BelongsTo
+    {
+        return $this->belongsTo(Book::class);
+    }
 }

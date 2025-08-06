@@ -35,6 +35,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('user_books');
-        DB::unprepared('DROP TYPE user_books');
+        DB::unprepared('DROP TYPE reading_format');
     }
 };

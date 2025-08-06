@@ -6,6 +6,9 @@ use App\Models\Shelf;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Shelf>
+ */
 class ShelfFactory extends Factory
 {
     protected $model = Shelf::class;
@@ -14,7 +17,7 @@ class ShelfFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'name' => fake()->word(),
+            'name' => $this->faker->word(),
         ];
     }
 }

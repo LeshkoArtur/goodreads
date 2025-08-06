@@ -2,50 +2,38 @@
 
 namespace Database\Factories;
 
+use App\Enums\Gender;
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected $model = User::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'id' => (string) Str::uuid(),
-            'username' => fake()->userName(),
-            'email' => fake()->unique()->safeEmail(),
-            'password_hash' => bcrypt('password'),
-            'bio' => fake()->paragraph(),
-            'birthday' => fake()->date(),
-            'gender' => fake()->randomElement(['male', 'female', 'other']),
-            'address' => fake()->city(),
-            'last_login' => now(),
-            'is_public' => fake()->boolean(),
-            'role' => fake()->randomElement(['user', 'admin', 'author', 'librarian']),
+            'username' => $this->faker->userName(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'password' => Hash::make('password'),
+            'email_verified_at' => $this->faker->dateTimeThisYear(),
+            'profile_picture' => $this->faker->imageUrl(),
+            'bio' => $this->faker->paragraph(),
+            'is_public' => $this->faker->boolean(),
+            'birthday' => $this->faker->dateTimeBetween('-80 years', '-18 years'),
+            'location' => $this->faker->city(),
+            'last_login' => $this->faker->dateTimeThisYear(),
+            'social_media_links' => collect([
+                'twitter' => $this->faker->url(),
+                'facebook' => $this->faker->url(),
+            ]),
+            'role' => $this->faker->randomElement(Role::cases()),
+            'gender' => $this->faker->randomElement(Gender::cases()),
         ];
-    }
-
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
     }
 }

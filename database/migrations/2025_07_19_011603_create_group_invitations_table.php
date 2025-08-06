@@ -3,6 +3,7 @@
 use App\Enums\InvitationStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -18,13 +19,14 @@ return new class extends Migration
             $table->unique(['group_id', 'invitee_id']);
         });
 
-        Schema::table('users', function (Blueprint $table) {
-            $table->enumAlterColumn('invitation_status', 'invitation_status', InvitationStatus::class, InvitationStatus::PENDING->value);
+        Schema::table('group_invitations', function (Blueprint $table) {
+            $table->enumAlterColumn('status', 'invitation_status', InvitationStatus::class, InvitationStatus::PENDING->value);
         });
     }
 
     public function down(): void
     {
         Schema::dropIfExists('group_invitations');
+        DB::unprepared('DROP TYPE invitation_status');
     }
 };

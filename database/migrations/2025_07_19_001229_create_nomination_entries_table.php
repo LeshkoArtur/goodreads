@@ -19,7 +19,7 @@ return new class extends Migration
         });
 
         Schema::table('nomination_entries', function (Blueprint $table) {
-            $table->enumAlterColumn('nomination_status', 'nomination_status', NominationStatus::class);
+            $table->enumAlterColumn('status', 'nomination_status', NominationStatus::class);
         });
 
         DB::statement("ALTER TABLE nomination_entries ADD CONSTRAINT check_book_or_author CHECK (book_id IS NOT NULL OR author_id IS NOT NULL)");

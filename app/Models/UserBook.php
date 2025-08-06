@@ -3,14 +3,18 @@
 namespace App\Models;
 
 use App\Enums\ReadingFormat;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @mixin IdeHelperUserBook
  */
-class UserBook extends Model {
-    use HasFactory;
+class UserBook extends Model
+{
+    use HasFactory, HasUuids;
+
     protected $fillable = [
         'user_id',
         'book_id',
@@ -31,7 +35,19 @@ class UserBook extends Model {
         'rating' => 'integer',
         'reading_format' => ReadingFormat::class,
     ];
-    public function user() { return $this->belongsTo(User::class); }
-    public function book() { return $this->belongsTo(Book::class); }
-    public function shelf() { return $this->belongsTo(Shelf::class); }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function book(): BelongsTo
+    {
+        return $this->belongsTo(Book::class);
+    }
+
+    public function shelf(): BelongsTo
+    {
+        return $this->belongsTo(Shelf::class);
+    }
 }

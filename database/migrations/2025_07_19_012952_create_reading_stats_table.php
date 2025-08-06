@@ -15,7 +15,7 @@ return new class extends Migration
             $table->integer('books_read')->default(0);
             $table->integer('pages_read')->default(0);
             $table->jsonb('genres_read')->nullable();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             $table->unique(['user_id', 'year']);
         });
     }

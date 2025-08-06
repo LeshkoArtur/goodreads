@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('tags', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('name', 64)->unique();
+            $table->string('name', 50)->unique();
             $table->timestamps();
         });
     }

@@ -2,23 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\AsCollection;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @mixin IdeHelperCharacter
  */
-class Character extends Model {
-    use HasFactory;
-    protected $casts = [
-        'book_id' => 'string',
-        'other_names' => 'array',
-        'fun_facts' => 'array',
-        'links' => 'array',
-        'media_images' => 'array',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
+class Character extends Model
+{
+    use HasFactory, HasUuids;
+
     protected $fillable = [
         'book_id',
         'name',
@@ -31,5 +27,19 @@ class Character extends Model {
         'links',
         'media_images',
     ];
-    public function book() { return $this->belongsTo(Book::class); }
+
+    protected $casts = [
+        'book_id' => 'string',
+        'other_names' => AsCollection::class,
+        'fun_facts' => AsCollection::class,
+        'links' => AsCollection::class,
+        'media_images' => AsCollection::class,
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function book(): BelongsTo
+    {
+        return $this->belongsTo(Book::class);
+    }
 }
