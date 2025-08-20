@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\CommentQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,11 @@ class Comment extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): CommentQueryBuilder
+    {
+        return new CommentQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

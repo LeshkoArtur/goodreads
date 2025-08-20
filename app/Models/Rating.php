@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\RatingQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +26,11 @@ class Rating extends Model
     protected $casts = [
         'rating' => 'integer',
     ];
+
+    public function newEloquentBuilder($query): RatingQueryBuilder
+    {
+        return new RatingQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

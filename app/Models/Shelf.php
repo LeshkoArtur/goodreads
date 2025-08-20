@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\ShelfQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +26,11 @@ class Shelf extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): ShelfQueryBuilder
+    {
+        return new ShelfQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

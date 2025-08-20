@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\PollOptionQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,11 @@ class PollOption extends Model
         'text',
         'vote_count',
     ];
+
+    public function newEloquentBuilder($query): PollOptionQueryBuilder
+    {
+        return new PollOptionQueryBuilder($query);
+    }
 
     public function poll(): BelongsTo
     {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\ReadingStatQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +30,11 @@ class ReadingStat extends Model
         'genres_read' => 'array',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): ReadingStatQueryBuilder
+    {
+        return new ReadingStatQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

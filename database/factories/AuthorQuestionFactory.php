@@ -23,7 +23,7 @@ class AuthorQuestionFactory extends Factory
             'author_id' => Author::factory(),
             'book_id' => Book::factory(),
             'content' => $this->faker->sentence(),
-            'question_status' => $this->faker->randomElement(QuestionStatus::cases()),
+            'status' => $this->faker->randomElement(QuestionStatus::cases()),
         ];
     }
 }

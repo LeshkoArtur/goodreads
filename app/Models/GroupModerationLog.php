@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\GroupModerationLogQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,11 @@ class GroupModerationLog extends Model
         'targetable_type',
         'description',
     ];
+
+    public function newEloquentBuilder($query): GroupModerationLogQueryBuilder
+    {
+        return new GroupModerationLogQueryBuilder($query);
+    }
 
     public function group(): BelongsTo
     {

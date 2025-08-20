@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\FavoriteQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,11 @@ class Favorite extends Model
         'favoriteable_id',
         'favoriteable_type',
     ];
+
+    public function newEloquentBuilder($query): FavoriteQueryBuilder
+    {
+        return new FavoriteQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

@@ -66,10 +66,10 @@ class AuthorQuestionTest extends TestCase
     public function it_casts_question_status_enum()
     {
         $question = AuthorQuestion::factory()->create([
-            'question_status' => QuestionStatus::APPROVED,
+            'status' => QuestionStatus::APPROVED,
         ]);
 
-        $this->assertInstanceOf(QuestionStatus::class, $question->question_status);
-        $this->assertEquals(QuestionStatus::APPROVED, $question->question_status);
+        $this->assertInstanceOf(QuestionStatus::class, $question->status);
+        $this->assertEquals(QuestionStatus::APPROVED, $question->status);
     }
 }

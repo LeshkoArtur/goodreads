@@ -27,7 +27,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('group_member');
+        Schema::dropIfExists('group_members');
         DB::unprepared('DROP TYPE member_role');
         DB::unprepared('DROP TYPE member_status');
     }

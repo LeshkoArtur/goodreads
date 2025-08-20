@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EventStatus;
+use App\Models\Builders\GroupEventQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +33,11 @@ class GroupEvent extends Model
         'event_date' => 'datetime',
         'status' => EventStatus::class,
     ];
+
+    public function newEloquentBuilder($query): GroupEventQueryBuilder
+    {
+        return new GroupEventQueryBuilder($query);
+    }
 
     public function group(): BelongsTo
     {

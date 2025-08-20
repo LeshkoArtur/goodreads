@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\CharacterQueryBuilder;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -37,6 +38,11 @@ class Character extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): CharacterQueryBuilder
+    {
+        return new CharacterQueryBuilder($query);
+    }
 
     public function book(): BelongsTo
     {

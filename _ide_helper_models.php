@@ -76,20 +76,20 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $published_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \App\Enums\AnswerStatus $answer_status
+ * @property \App\Enums\AnswerStatus $status
  * @property-read \App\Models\Author $author
  * @property-read \App\Models\AuthorQuestion $question
  * @method static \Database\Factories\AuthorAnswerFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereAnswerStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereAuthorId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereContent($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer wherePublishedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereQuestionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereUpdatedAt($value)
  * @mixin \Eloquent
  */
@@ -106,7 +106,7 @@ namespace App\Models{
  * @property string $content
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \App\Enums\QuestionStatus $question_status
+ * @property \App\Enums\QuestionStatus $status
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\AuthorAnswer> $answers
  * @property-read int|null $answers_count
  * @property-read \App\Models\Author $author
@@ -121,7 +121,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereContent($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereQuestionStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereUserId($value)
  * @mixin \Eloquent
@@ -197,6 +197,7 @@ namespace App\Models{
  * @property-read int|null $notes_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Post> $posts
  * @property-read int|null $posts_count
+ * @property-read \App\Models\BookPublisher|null $pivot
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Publisher> $publishers
  * @property-read int|null $publishers_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\AuthorQuestion> $questions
@@ -269,6 +270,43 @@ namespace App\Models{
  */
 	#[\AllowDynamicProperties]
 	class IdeHelperBookOffer {}
+}
+
+namespace App\Models{
+/**
+ * @property string $book_id
+ * @property string $publisher_id
+ * @property \Illuminate\Support\Carbon|null $published_date
+ * @property string|null $isbn
+ * @property int|null $circulation
+ * @property string|null $format
+ * @property string|null $translator
+ * @property int|null $edition
+ * @property numeric $price
+ * @property string|null $binding
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $cover_type
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher whereBinding($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher whereBookId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher whereCirculation($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher whereCoverType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher whereEdition($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher whereFormat($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher whereIsbn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher wherePrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher wherePublishedDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher wherePublisherId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher whereTranslator($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperBookPublisher {}
 }
 
 namespace App\Models{
@@ -936,6 +974,7 @@ namespace App\Models{
  * @property string|null $phone
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\BookPublisher|null $pivot
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Book> $books
  * @property-read int|null $books_count
  * @method static \Database\Factories\PublisherFactory factory($count = null, $state = [])

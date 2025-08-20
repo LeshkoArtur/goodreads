@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TypeOfWork;
+use App\Models\Builders\AuthorQueryBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -44,6 +45,11 @@ class Author extends Model
         'media_videos' => AsCollection::class,
         'fun_facts' => AsCollection::class,
     ];
+
+    public function newEloquentBuilder($query): AuthorQueryBuilder
+    {
+        return new AuthorQueryBuilder($query);
+    }
 
     public function users(): BelongsToMany
     {

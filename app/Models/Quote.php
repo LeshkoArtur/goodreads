@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\QuoteQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +30,11 @@ class Quote extends Model
         'contains_spoilers' => 'boolean',
         'is_public' => 'boolean',
     ];
+
+    public function newEloquentBuilder($query): QuoteQueryBuilder
+    {
+        return new QuoteQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

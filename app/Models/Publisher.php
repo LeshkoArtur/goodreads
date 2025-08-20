@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\PublisherQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,6 +31,11 @@ class Publisher extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): PublisherQueryBuilder
+    {
+        return new PublisherQueryBuilder($query);
+    }
 
     public function books(): BelongsToMany
     {

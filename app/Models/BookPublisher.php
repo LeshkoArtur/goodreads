@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Carbon\Carbon;
 
+/**
+ * @mixin IdeHelperBookPublisher
+ */
 class BookPublisher extends Pivot
 {
     protected $table = 'book_publisher';

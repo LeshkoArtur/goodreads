@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Currency;
 use App\Enums\OfferStatus;
+use App\Models\Builders\BookOfferQueryBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -37,6 +38,11 @@ class BookOffer extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): BookOfferQueryBuilder
+    {
+        return new BookOfferQueryBuilder($query);
+    }
 
     public function book(): BelongsTo
     {

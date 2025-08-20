@@ -22,7 +22,7 @@ return new class extends Migration
 
         Schema::table('group_posts', function (Blueprint $table) {
             $table->enumAlterColumn('category', 'category', PostCategory::class, PostCategory::GENERAL->value);
-            $table->enumAlterColumn('post_status', 'post_status', PostStatus::class, PostStatus::DRAFT->value);
+            $table->enumAlterColumn('post_status', 'group_post_status', PostStatus::class, PostStatus::DRAFT->value);
         });
     }
 
@@ -30,6 +30,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('group_posts');
         DB::unprepared('DROP TYPE category');
-        DB::unprepared('DROP TYPE post_status');
+        DB::unprepared('DROP TYPE group_post_status');
     }
 };

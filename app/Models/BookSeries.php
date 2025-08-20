@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\BookSeriesQueryBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -20,6 +21,11 @@ class BookSeries extends Model
         'total_books',
         'is_completed',
     ];
+
+    public function newEloquentBuilder($query): BookSeriesQueryBuilder
+    {
+        return new BookSeriesQueryBuilder($query);
+    }
 
     public function books(): HasMany
     {

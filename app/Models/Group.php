@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\JoinPolicy;
 use App\Enums\PostPolicy;
+use App\Models\Builders\GroupQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -39,6 +40,11 @@ class Group extends Model
         'join_policy' => JoinPolicy::class,
         'post_policy' => PostPolicy::class,
     ];
+
+    public function newEloquentBuilder($query): GroupQueryBuilder
+    {
+        return new GroupQueryBuilder($query);
+    }
 
     public function creator(): BelongsTo
     {

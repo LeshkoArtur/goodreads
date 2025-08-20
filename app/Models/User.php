@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Gender;
 use App\Enums\Role;
+use App\Models\Builders\UserQueryBuilder;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -50,6 +51,11 @@ class User extends Model
         'role' => Role::class,
         'gender' => Gender::class,
     ];
+
+    public function newEloquentBuilder($query): UserQueryBuilder
+    {
+        return new UserQueryBuilder($query);
+    }
 
     public function authors(): BelongsToMany
     {
@@ -124,5 +130,10 @@ class User extends Model
     public function eventRsvps(): HasMany
     {
         return $this->hasMany(EventRsvp::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role == Role::ADMIN;
     }
 }

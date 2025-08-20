@@ -25,7 +25,7 @@ class AuthorAnswerTest extends TestCase
             'author_id',
             'content',
             'published_at',
-            'answer_status',
+            'status',
         ], $model->getFillable());
     }
 
@@ -43,11 +43,11 @@ class AuthorAnswerTest extends TestCase
     public function it_casts_answer_status_enum_correctly()
     {
         $answer = AuthorAnswer::factory()->create([
-            'answer_status' => AnswerStatus::DRAFT,
+            'status' => AnswerStatus::DRAFT,
         ]);
 
-        $this->assertInstanceOf(AnswerStatus::class, $answer->answer_status);
-        $this->assertEquals(AnswerStatus::DRAFT, $answer->answer_status);
+        $this->assertInstanceOf(AnswerStatus::class, $answer->status);
+        $this->assertEquals(AnswerStatus::DRAFT, $answer->status);
     }
 
     /** @test */
@@ -90,7 +90,7 @@ class AuthorAnswerTest extends TestCase
         $this->expectException(ValueError::class);
 
         AuthorAnswer::factory()->create([
-            'answer_status' => 'invalid-status',
+            'status' => 'invalid-status',
         ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\GenreQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,6 +31,10 @@ class Genre extends Model
         'updated_at' => 'datetime',
     ];
 
+    public function newEloquentBuilder($query): GenreQueryBuilder
+    {
+        return new GenreQueryBuilder($query);
+    }
     public function books(): BelongsToMany
     {
         return $this->belongsToMany(Book::class);
