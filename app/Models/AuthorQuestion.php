@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\QuestionStatus;
+use App\Models\Builders\AuthorQuestionQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,14 +22,19 @@ class AuthorQuestion extends Model
         'author_id',
         'book_id',
         'content',
-        'question_status',
+        'status',
     ];
 
     protected $casts = [
-        'question_status' => QuestionStatus::class,
+        'status' => QuestionStatus::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): AuthorQuestionQueryBuilder
+    {
+        return new AuthorQuestionQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

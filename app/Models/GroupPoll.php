@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\GroupPollQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +30,11 @@ class GroupPoll extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): GroupPollQueryBuilder
+    {
+        return new GroupPollQueryBuilder($query);
+    }
 
     public function group(): BelongsTo
     {

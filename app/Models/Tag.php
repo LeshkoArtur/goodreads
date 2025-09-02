@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\TagQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,11 @@ class Tag extends Model
     protected $fillable = [
         'name',
     ];
+
+    public function newEloquentBuilder($query): TagQueryBuilder
+    {
+        return new TagQueryBuilder($query);
+    }
 
     public function posts(): MorphToMany
     {

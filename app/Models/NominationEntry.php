@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\NominationStatus;
+use App\Models\Builders\NominationEntryQueryBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -27,6 +28,11 @@ class NominationEntry extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): NominationEntryQueryBuilder
+    {
+        return new NominationEntryQueryBuilder($query);
+    }
 
     public function nomination(): BelongsTo
     {

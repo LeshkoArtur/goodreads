@@ -38,9 +38,9 @@ enum Gender: string implements HasColor, HasIcon, HasLabel
     public function getIcon(): ?string
     {
         return match ($this) {
-            self::MALE => 'fas-male',  // Іконка для чоловіків
-            self::FEMALE => 'fas-female',       // Іконка для жінок
-            self::OTHER => 'bx-male-female', // Іконка для інших
+            self::MALE => 'heroicon-o-user',  // Іконка для чоловіків
+            self::FEMALE => 'heroicon-o-user',       // Іконка для жінок
+            self::OTHER => 'heroicon-o-user', // Іконка для інших
         };
     }
 }

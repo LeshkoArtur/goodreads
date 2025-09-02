@@ -20,7 +20,7 @@ return new class extends Migration
         });
 
         Schema::table('author_questions', function (Blueprint $table) {
-            $table->enumAlterColumn('question_status', 'question_status', QuestionStatus::class);
+            $table->enumAlterColumn('status', 'question_status', QuestionStatus::class);
         });
     }
 

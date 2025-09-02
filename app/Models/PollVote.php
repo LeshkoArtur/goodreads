@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\PollVoteQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,11 @@ class PollVote extends Model
         'user_id',
         'created_at',
     ];
+
+    public function newEloquentBuilder($query): PollVoteQueryBuilder
+    {
+        return new PollVoteQueryBuilder($query);
+    }
 
     public function poll(): BelongsTo
     {

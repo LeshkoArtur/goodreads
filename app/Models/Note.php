@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\NoteQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +28,11 @@ class Note extends Model
         'contains_spoilers' => 'boolean',
         'is_private' => 'boolean',
     ];
+
+    public function newEloquentBuilder($query): NoteQueryBuilder
+    {
+        return new NoteQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

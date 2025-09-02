@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AnswerStatus;
+use App\Models\Builders\AuthorAnswerQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,13 +21,18 @@ class AuthorAnswer extends Model
         'author_id',
         'content',
         'published_at',
-        'answer_status',
+        'status',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
-        'answer_status' => AnswerStatus::class,
+        'status' => AnswerStatus::class,
     ];
+
+    public function newEloquentBuilder($query): AuthorAnswerQueryBuilder
+    {
+        return new AuthorAnswerQueryBuilder($query);
+    }
 
     public function question(): BelongsTo
     {

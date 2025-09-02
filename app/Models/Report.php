@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ReportStatus;
 use App\Enums\ReportType;
+use App\Models\Builders\ReportQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +33,11 @@ class Report extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): ReportQueryBuilder
+    {
+        return new ReportQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

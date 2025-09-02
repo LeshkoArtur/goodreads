@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ReadingFormat;
+use App\Models\Builders\UserBookQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,6 +36,11 @@ class UserBook extends Model
         'rating' => 'integer',
         'reading_format' => ReadingFormat::class,
     ];
+
+    public function newEloquentBuilder($query): UserBookQueryBuilder
+    {
+        return new UserBookQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

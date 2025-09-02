@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\NominationQueryBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -20,6 +21,11 @@ class Nomination extends Model
         'name',
         'description',
     ];
+
+    public function newEloquentBuilder($query): NominationQueryBuilder
+    {
+        return new NominationQueryBuilder($query);
+    }
 
     public function award(): BelongsTo
     {

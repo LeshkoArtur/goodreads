@@ -4,11 +4,11 @@ namespace App\Models;
 
 use App\Enums\PostCategory;
 use App\Enums\PostStatus;
+use App\Models\Builders\GroupPostQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
@@ -36,6 +36,11 @@ class GroupPost extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): GroupPostQueryBuilder
+    {
+        return new GroupPostQueryBuilder($query);
+    }
 
     public function group(): BelongsTo
     {

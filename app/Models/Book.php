@@ -3,18 +3,21 @@
 namespace App\Models;
 
 use App\Enums\AgeRestriction;
+use App\Models\Builders\BookQueryBuilder;
+use App\Models\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, BelongsToMany, HasMany, MorphMany};
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperBook
  */
 class Book extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable, HasFiles;
 
     protected $fillable = [
         'title',
@@ -46,6 +49,11 @@ class Book extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): BookQueryBuilder
+    {
+        return new BookQueryBuilder($query);
+    }
 
     public function authors(): BelongsToMany
     {
@@ -111,7 +119,7 @@ class Book extends Model
 
     public function collections(): BelongsToMany
     {
-        return $this->belongsToMany(Collection::class, 'collection_books')
+        return $this->belongsToMany(Collection::class, 'book_collection')
             ->withPivot('order_index');
     }
 
@@ -128,5 +136,33 @@ class Book extends Model
     public function favorites(): MorphMany
     {
         return $this->morphMany(Favorite::class, 'favoriteable');
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => (string) $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'plot' => $this->plot,
+            'history' => $this->history,
+            'languages' => $this->languages,
+            'is_bestseller' => $this->is_bestseller,
+            'average_rating' => $this->average_rating,
+            'age_restriction' => $this->age_restriction,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'books';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => ['is_bestseller', 'average_rating', 'age_restriction', 'languages'],
+            'sortableAttributes' => ['average_rating', 'page_count', 'created_at'],
+        ];
     }
 }

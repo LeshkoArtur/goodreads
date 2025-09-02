@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\ViewHistoryQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,11 @@ class ViewHistory extends Model
         'viewable_id',
         'viewable_type',
     ];
+
+    public function newEloquentBuilder($query): ViewHistoryQueryBuilder
+    {
+        return new ViewHistoryQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

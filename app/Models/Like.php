@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\LikeQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,11 @@ class Like extends Model
         'likeable_id',
         'likeable_type',
     ];
+
+    public function newEloquentBuilder($query): LikeQueryBuilder
+    {
+        return new LikeQueryBuilder($query);
+    }
 
     public function user(): BelongsTo
     {

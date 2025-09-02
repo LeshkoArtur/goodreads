@@ -22,7 +22,7 @@ class AuthorAnswerFactory extends Factory
             'author_id' => Author::factory(),
             'content' => $this->faker->paragraph(),
             'published_at' => $this->faker->dateTimeThisYear(),
-            'answer_status' => $this->faker->randomElement(AnswerStatus::cases()),
+            'status' => $this->faker->randomElement(AnswerStatus::cases()),
         ];
     }
 }

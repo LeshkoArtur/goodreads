@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EventResponse;
+use App\Models\Builders\EventRsvpQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,11 @@ class EventRsvp extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): EventRsvpQueryBuilder
+    {
+        return new EventRsvpQueryBuilder($query);
+    }
 
     public function event(): BelongsTo
     {

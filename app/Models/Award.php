@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\AwardQueryBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -29,6 +30,11 @@ class Award extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function newEloquentBuilder($query): AwardQueryBuilder
+    {
+        return new AwardQueryBuilder($query);
+    }
 
     public function nominations(): HasMany
     {

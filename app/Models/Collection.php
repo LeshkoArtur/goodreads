@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\CollectionQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,6 +31,11 @@ class Collection extends Model
         'updated_at' => 'datetime',
     ];
 
+    public function newEloquentBuilder($query): CollectionQueryBuilder
+    {
+        return new CollectionQueryBuilder($query);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -37,6 +43,6 @@ class Collection extends Model
 
     public function books(): BelongsToMany
     {
-        return $this->belongsToMany(Book::class, 'collection_books')->withPivot('order_index');
+        return $this->belongsToMany(Book::class, 'book_collection')->withPivot('order_index');
     }
 }
