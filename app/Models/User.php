@@ -140,6 +140,7 @@ class User extends Authenticatable implements FilamentUser, HasName
     {
         return $this->role == Role::ADMIN;
     }
+
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
         return $this->isAdmin();

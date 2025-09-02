@@ -1,6 +1,10 @@
 <?php
 
+<<<<<<< HEAD
 namespace App\DTOs\NominationEntry;
+=======
+namespace App\DTOs\NominationEntrie;
+>>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
 
 use App\Enums\NominationStatus;
 use Illuminate\Http\Request;

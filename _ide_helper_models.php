@@ -84,12 +84,16 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $published_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+<<<<<<< HEAD
  * @property string $answer_status
+=======
+>>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
  * @property \App\Enums\AnswerStatus $status
  * @property-read \App\Models\Author $author
  * @property-read \App\Models\AuthorQuestion $question
  * @method static \App\Models\Builders\AuthorAnswerQueryBuilder<static>|AuthorAnswer byAuthor(string $authorId)
  * @method static \Database\Factories\AuthorAnswerFactory factory($count = null, $state = [])
+<<<<<<< HEAD
  * @method static \App\Models\Builders\AuthorAnswerQueryBuilder<static>|AuthorAnswer forQuestion(string $questionId)
  * @method static \App\Models\Builders\AuthorAnswerQueryBuilder<static>|AuthorAnswer newModelQuery()
  * @method static \App\Models\Builders\AuthorAnswerQueryBuilder<static>|AuthorAnswer newQuery()
@@ -105,6 +109,19 @@ namespace App\Models{
  * @method static \App\Models\Builders\AuthorAnswerQueryBuilder<static>|AuthorAnswer whereUpdatedAt($value)
  * @method static \App\Models\Builders\AuthorAnswerQueryBuilder<static>|AuthorAnswer withContent(string $content)
  * @method static \App\Models\Builders\AuthorAnswerQueryBuilder<static>|AuthorAnswer withStatus(\App\Enums\AnswerStatus $status)
+=======
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereAuthorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereContent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer wherePublishedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereQuestionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorAnswer whereUpdatedAt($value)
+>>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
  * @mixin \Eloquent
  */
 	#[\AllowDynamicProperties]
@@ -120,7 +137,10 @@ namespace App\Models{
  * @property string $content
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+<<<<<<< HEAD
  * @property string $question_status
+=======
+>>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
  * @property \App\Enums\QuestionStatus $status
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\AuthorAnswer> $answers
  * @property-read int|null $answers_count
@@ -129,6 +149,7 @@ namespace App\Models{
  * @property-read \App\Models\User $user
  * @method static \App\Models\Builders\AuthorQuestionQueryBuilder<static>|AuthorQuestion byUser(string $userId)
  * @method static \Database\Factories\AuthorQuestionFactory factory($count = null, $state = [])
+<<<<<<< HEAD
  * @method static \App\Models\Builders\AuthorQuestionQueryBuilder<static>|AuthorQuestion forAuthor(string $authorId)
  * @method static \App\Models\Builders\AuthorQuestionQueryBuilder<static>|AuthorQuestion forBook(string $bookId)
  * @method static \App\Models\Builders\AuthorQuestionQueryBuilder<static>|AuthorQuestion newModelQuery()
@@ -145,6 +166,19 @@ namespace App\Models{
  * @method static \App\Models\Builders\AuthorQuestionQueryBuilder<static>|AuthorQuestion withAnswers()
  * @method static \App\Models\Builders\AuthorQuestionQueryBuilder<static>|AuthorQuestion withContent(string $content)
  * @method static \App\Models\Builders\AuthorQuestionQueryBuilder<static>|AuthorQuestion withStatus(\App\Enums\QuestionStatus $status)
+=======
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereAuthorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereBookId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereContent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AuthorQuestion whereUserId($value)
+>>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
  * @mixin \Eloquent
  */
 	#[\AllowDynamicProperties]

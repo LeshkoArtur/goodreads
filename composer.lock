@@ -4,7 +4,11 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
+<<<<<<< HEAD
     "content-hash": "9a446da884c52f2400fc14aaa031c6ef",
+=======
+    "content-hash": "e2d98a573401382f2ca6cfa640a9287b",
+>>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -2476,6 +2480,64 @@
             "time": "2025-02-03T10:55:03+00:00"
         },
         {
+            "name": "http-interop/http-factory-guzzle",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/http-interop/http-factory-guzzle.git",
+                "reference": "8f06e92b95405216b237521cc64c804dd44c4a81"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/http-interop/http-factory-guzzle/zipball/8f06e92b95405216b237521cc64c804dd44c4a81",
+                "reference": "8f06e92b95405216b237521cc64c804dd44c4a81",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/psr7": "^1.7||^2.0",
+                "php": ">=7.3",
+                "psr/http-factory": "^1.0"
+            },
+            "provide": {
+                "psr/http-factory-implementation": "^1.0"
+            },
+            "require-dev": {
+                "http-interop/http-factory-tests": "^0.9",
+                "phpunit/phpunit": "^9.5"
+            },
+            "suggest": {
+                "guzzlehttp/psr7": "Includes an HTTP factory starting in version 2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Http\\Factory\\Guzzle\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "http://www.php-fig.org/"
+                }
+            ],
+            "description": "An HTTP Factory using Guzzle PSR7",
+            "keywords": [
+                "factory",
+                "http",
+                "psr-17",
+                "psr-7"
+            ],
+            "support": {
+                "issues": "https://github.com/http-interop/http-factory-guzzle/issues",
+                "source": "https://github.com/http-interop/http-factory-guzzle/tree/1.2.0"
+            },
+            "time": "2021-07-21T13:50:14+00:00"
+        },
+        {
             "name": "kirschbaum-development/eloquent-power-joins",
             "version": "4.2.6",
             "source": {
@@ -4023,6 +4085,7 @@
         },
         {
             "name": "laravel/scout",
+<<<<<<< HEAD
             "version": "v10.19.0",
             "source": {
                 "type": "git",
@@ -4033,6 +4096,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/laravel/scout/zipball/996b2a8b5ccc583e7df667c8aac924a46bc8bdd3",
                 "reference": "996b2a8b5ccc583e7df667c8aac924a46bc8bdd3",
+=======
+            "version": "v10.18.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/scout.git",
+                "reference": "be9b14c37915429f0d60a305d786f93632b4b09c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/scout/zipball/be9b14c37915429f0d60a305d786f93632b4b09c",
+                "reference": "be9b14c37915429f0d60a305d786f93632b4b09c",
+>>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
                 "shasum": ""
             },
             "require": {
@@ -4100,7 +4175,11 @@
                 "issues": "https://github.com/laravel/scout/issues",
                 "source": "https://github.com/laravel/scout"
             },
+<<<<<<< HEAD
             "time": "2025-08-26T14:24:24+00:00"
+=======
+            "time": "2025-08-19T02:10:57+00:00"
+>>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
         },
         {
             "name": "laravel/serializable-closure",
