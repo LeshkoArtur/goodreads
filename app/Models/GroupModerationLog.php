@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperGroupModerationLog
  */
 class GroupModerationLog extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'group_id',
@@ -43,5 +44,37 @@ class GroupModerationLog extends Model
     public function targetable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'group_id' => $this->group_id,
+            'moderator_id' => $this->moderator_id,
+            'action' => $this->action,
+            'targetable_id' => $this->targetable_id,
+            'targetable_type' => $this->targetable_type,
+            'description' => $this->description,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'group_moderation_logs';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'group_id',
+                'moderator_id',
+                'action',
+                'targetable_type',
+                'targetable_id',
+            ],
+            'sortableAttributes' => ['created_at', 'action'],
+        ];
     }
 }

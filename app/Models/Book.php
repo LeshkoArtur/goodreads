@@ -141,7 +141,7 @@ class Book extends Model
     public function toSearchableArray(): array
     {
         return [
-            'id' => (string) $this->id,
+            'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
             'plot' => $this->plot,
@@ -150,8 +150,14 @@ class Book extends Model
             'is_bestseller' => $this->is_bestseller,
             'average_rating' => $this->average_rating,
             'age_restriction' => $this->age_restriction,
+            'series_id' => $this->series_id,
+            'page_count' => $this->page_count,
+            'author_ids' => $this->authors()->pluck('authors.id')->toArray(),
+            'genre_ids' => $this->genres()->pluck('genres.id')->toArray(),
+            'publisher_ids' => $this->publishers()->pluck('publishers.id')->toArray(),
         ];
     }
+
 
     public function searchableAs(): string
     {
@@ -161,8 +167,19 @@ class Book extends Model
     public function scoutMetadata(): array
     {
         return [
-            'filterableAttributes' => ['is_bestseller', 'average_rating', 'age_restriction', 'languages'],
+            'filterableAttributes' => [
+                'is_bestseller',
+                'average_rating',
+                'age_restriction',
+                'languages',
+                'series_id',
+                'page_count',
+                'author_ids',
+                'genre_ids',
+                'publisher_ids',
+            ],
             'sortableAttributes' => ['average_rating', 'page_count', 'created_at'],
         ];
     }
+
 }

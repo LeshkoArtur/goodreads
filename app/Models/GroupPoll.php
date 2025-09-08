@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperGroupPoll
  */
 class GroupPoll extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'group_id',
@@ -54,5 +55,33 @@ class GroupPoll extends Model
     public function votes(): HasMany
     {
         return $this->hasMany(PollVote::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'group_id' => $this->group_id,
+            'creator_id' => $this->creator_id,
+            'question' => $this->question,
+            'is_active' => $this->is_active,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'group_polls';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'group_id',
+                'creator_id',
+                'is_active',
+            ],
+            'sortableAttributes' => ['question', 'created_at'],
+        ];
     }
 }

@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperShelf
  */
 class Shelf extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'user_id',
@@ -40,5 +41,29 @@ class Shelf extends Model
     public function userBooks(): HasMany
     {
         return $this->hasMany(UserBook::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'name' => $this->name,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'shelves';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'user_id',
+            ],
+            'sortableAttributes' => ['created_at', 'name'],
+        ];
     }
 }

@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperLike
  */
 class Like extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'user_id',
@@ -35,5 +36,32 @@ class Like extends Model
     public function likeable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'likeable_id' => $this->likeable_id,
+            'likeable_type' => $this->likeable_type,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'likes';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'user_id',
+                'likeable_type',
+                'likeable_id',
+            ],
+            'sortableAttributes' => ['created_at'],
+        ];
     }
 }

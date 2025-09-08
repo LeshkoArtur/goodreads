@@ -11,13 +11,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperGroup
  */
 class Group extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'name',
@@ -79,5 +80,44 @@ class Group extends Model
     public function moderationLogs(): HasMany
     {
         return $this->hasMany(GroupModerationLog::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'creator_id' => $this->creator_id,
+            'is_public' => $this->is_public,
+            'cover_image' => $this->cover_image,
+            'rules' => $this->rules,
+            'member_count' => $this->member_count,
+            'is_active' => $this->is_active,
+            'join_policy' => $this->join_policy,
+            'post_policy' => $this->post_policy,
+            'member_ids' => $this->members()->pluck('users.id')->toArray(),
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'groups';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'creator_id',
+                'is_public',
+                'is_active',
+                'join_policy',
+                'post_policy',
+                'member_count',
+                'member_ids',
+            ],
+            'sortableAttributes' => ['name', 'member_count', 'created_at'],
+        ];
     }
 }

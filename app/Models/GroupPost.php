@@ -10,13 +10,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperGroupPost
  */
 class GroupPost extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'group_id',
@@ -70,5 +71,37 @@ class GroupPost extends Model
     public function moderationLogs(): MorphMany
     {
         return $this->morphMany(GroupModerationLog::class, 'targetable');
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'group_id' => $this->group_id,
+            'user_id' => $this->user_id,
+            'content' => $this->content,
+            'is_pinned' => $this->is_pinned,
+            'category' => $this->category,
+            'post_status' => $this->post_status,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'group_posts';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'group_id',
+                'user_id',
+                'is_pinned',
+                'category',
+                'post_status',
+            ],
+            'sortableAttributes' => ['created_at'],
+        ];
     }
 }

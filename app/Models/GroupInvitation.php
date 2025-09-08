@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperGroupInvitation
  */
 class GroupInvitation extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'group_id',
@@ -50,5 +51,34 @@ class GroupInvitation extends Model
     public function invitee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'invitee_id');
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'group_id' => $this->group_id,
+            'inviter_id' => $this->inviter_id,
+            'invitee_id' => $this->invitee_id,
+            'status' => $this->status,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'group_invitations';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'group_id',
+                'inviter_id',
+                'invitee_id',
+                'status',
+            ],
+            'sortableAttributes' => ['created_at'],
+        ];
     }
 }

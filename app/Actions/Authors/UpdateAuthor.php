@@ -26,7 +26,7 @@ class UpdateAuthor
             'death_date' => $dto->deathDate,
             'type_of_work' => $dto->typeOfWork,
             'social_media_links' => $dto->socialMediaLinks,
-            'bio' => $dto->biography,
+            'bio' => $dto->bio,
         ];
 
         $author->fill(array_filter($attributes, fn($value) => $value !== null));

@@ -33,7 +33,7 @@ class AuthorResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user';
 
-    protected static ?string $navigationGroup = 'Автори';
+    protected static ?string $navigationGroup = 'Книгарня';
 
     protected static ?int $navigationSort = 3;
 
@@ -99,13 +99,16 @@ class AuthorResource extends Resource
 
                                 Select::make('type_of_work')
                                     ->label(__('Тип роботи'))
-                                    ->options(TypeOfWork::class)
-                                    ->nullable(),
+                                    ->options(
+                                        collect(TypeOfWork::cases())
+                                            ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
+                                    )
+                                    ->nullable()
                             ]),
 
                         Tabs\Tab::make(__('Медіа та соціальні мережі'))
                             ->schema([
-                                Forms\Components\FileUpload::make('profile_picture')
+                                FileUpload::make('profile_picture')
                                     ->label(__('Фото профілю'))
                                     ->directory('profile_picture')
                                     ->image()
@@ -153,15 +156,14 @@ class AuthorResource extends Resource
 
                 ImageColumn::make('profile_picture')
                     ->label(__('Фото'))
-                    ->getStateUsing(fn ($record) => $record->getFirstMediaUrl('profile_picture'))
+                    ->getStateUsing(fn ($record) => $record->profile_picture)
                     ->circular()
                     ->defaultImageUrl(url('path/to/default-author-image.jpg')),
 
                 TextColumn::make('name')
                     ->label(__('Ім\'я'))
                     ->searchable()
-                    ->sortable()
-                    ->url(fn ($record) => route('filament.admin.resources.authors.view', $record->id)),
+                    ->sortable(),
 
                 TextColumn::make('nationality')
                     ->label(__('Національність'))
@@ -209,7 +211,7 @@ class AuthorResource extends Resource
 
                 SelectFilter::make('nationality')
                     ->label(__('Національність'))
-                    ->options(fn () => \App\Models\Author::pluck('nationality', 'nationality')->filter()->toArray())
+                    ->options(fn () => Author::pluck('nationality', 'nationality')->filter()->toArray())
                     ->multiple()
                     ->indicator(__('Національність')),
             ])

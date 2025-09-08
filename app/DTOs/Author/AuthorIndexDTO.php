@@ -1,10 +1,7 @@
 <?php
 
-<<<<<<< HEAD
 namespace App\DTOs\Author;
-=======
 namespace App\DTOs\Authors;
->>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
 
 use App\DTOs\Traits\HandlesArrayInput;
 use Illuminate\Http\Request;
@@ -32,11 +29,7 @@ class AuthorIndexDTO
      * @param string|null $typeOfWork Фільтр за типом роботи
      * @param array|null $socialMediaLinks Фільтр за соціальними мережами
      * @param array|null $userIds Фільтр за ID користувачів
-<<<<<<< HEAD
-         * @param array|null $bookIds Фільтр за ID книг
-=======
      * @param array|null $bookIds Фільтр за ID книг
->>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
      */
     public function __construct(
         public readonly ?string $query = null,
