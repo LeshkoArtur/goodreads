@@ -1,6 +1,10 @@
 <?php
 
+<<<<<<< HEAD
 namespace App\DTOs\Author;
+=======
+namespace App\DTOs\Authors;
+>>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
 
 use App\DTOs\Traits\HandlesArrayInput;
 use Illuminate\Http\Request;
@@ -12,6 +16,28 @@ class AuthorIndexDTO
 {
     use HandlesArrayInput;
 
+    /**
+     * Створює новий екземпляр AuthorIndexDTO.
+     *
+     * @param string|null $query Пошуковий запит
+     * @param int $page Номер поточної сторінки
+     * @param int $perPage Кількість елементів на сторінці
+     * @param string|null $sort Поле для сортування
+     * @param string $direction Напрямок сортування (asc або desc)
+     * @param string|null $nationality Фільтр за національністю
+     * @param string|null $minBirthDate Мінімальна дата народження
+     * @param string|null $maxBirthDate Максимальна дата народження
+     * @param string|null $minDeathDate Мінімальна дата смерті
+     * @param string|null $maxDeathDate Максимальна дата смерті
+     * @param string|null $typeOfWork Фільтр за типом роботи
+     * @param array|null $socialMediaLinks Фільтр за соціальними мережами
+     * @param array|null $userIds Фільтр за ID користувачів
+<<<<<<< HEAD
+         * @param array|null $bookIds Фільтр за ID книг
+=======
+     * @param array|null $bookIds Фільтр за ID книг
+>>>>>>> ddf399eaeb167a63c56b43963d810c2306a971c3
+     */
     public function __construct(
         public readonly ?string $query = null,
         public readonly int $page = 1,
@@ -30,6 +56,12 @@ class AuthorIndexDTO
     ) {
     }
 
+    /**
+     * Створює новий екземпляр DTO з запиту.
+     *
+     * @param Request $request HTTP-запит
+     * @return static
+     */
     public static function fromRequest(Request $request): static
     {
         return new static(

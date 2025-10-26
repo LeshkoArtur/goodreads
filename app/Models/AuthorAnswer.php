@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperAuthorAnswer
  */
 class AuthorAnswer extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'question_id',
@@ -42,5 +43,35 @@ class AuthorAnswer extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(Author::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'question_id' => $this->question_id,
+            'author_id' => $this->author_id,
+            'content' => $this->content,
+            'published_at' => $this->published_at,
+            'status' => $this->status,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'author_answers';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'question_id',
+                'author_id',
+                'status',
+                'published_at',
+            ],
+            'sortableAttributes' => ['published_at', 'created_at'],
+        ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Gender;
 use App\Enums\Role;
 use App\Models\Builders\UserQueryBuilder;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\{
 };
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasName;
+use Laravel\Scout\Searchable;
 
 
 /**
@@ -23,7 +25,7 @@ use Filament\Models\Contracts\HasName;
  */
 class User extends Authenticatable implements FilamentUser, HasName
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'username',
@@ -141,7 +143,7 @@ class User extends Authenticatable implements FilamentUser, HasName
         return $this->role == Role::ADMIN;
     }
 
-    public function canAccessPanel(\Filament\Panel $panel): bool
+    public function canAccessPanel(Panel $panel): bool
     {
         return $this->isAdmin();
     }
@@ -149,5 +151,44 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function getFilamentName(): string
     {
         return $this->username ?? $this->email ?? 'Без імені';
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'username' => $this->username,
+            'email' => $this->email,
+            'profile_picture' => $this->profile_picture,
+            'bio' => $this->bio,
+            'is_public' => $this->is_public,
+            'birthday' => $this->birthday,
+            'location' => $this->location,
+            'last_login' => $this->last_login,
+            'social_media_links' => $this->social_media_links,
+            'role' => $this->role,
+            'gender' => $this->gender,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'users';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'role',
+                'gender',
+                'is_public',
+                'location',
+                'social_media_links',
+                'birthday',
+                'last_login',
+            ],
+            'sortableAttributes' => ['created_at', 'username', 'last_login'],
+        ];
     }
 }

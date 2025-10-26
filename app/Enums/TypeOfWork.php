@@ -33,7 +33,7 @@ enum TypeOfWork: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('author_work_type.' . $this->value);
+        return __('type_of_work.' . $this->value);
     }
 
     // Colors for display in Filament
@@ -84,7 +84,7 @@ enum TypeOfWork: string implements HasColor, HasIcon, HasLabel
             self::YOUNG_ADULT_WRITER => 'heroicon-o-users',
             self::GRAPHIC_NOVELIST => 'heroicon-o-photograph',
             self::FANTASY_WRITER => 'heroicon-o-sparkles',
-            self::SCI_FI_WRITER => 'heroicon-o-rocket',
+            self::SCI_FI_WRITER => 'heroicon-o-star',
             self::MYSTERY_WRITER => 'heroicon-o-question-mark-circle',
             self::ROMANCE_WRITER => 'heroicon-o-heart',
             self::HORROR_WRITER => 'heroicon-o-fire',

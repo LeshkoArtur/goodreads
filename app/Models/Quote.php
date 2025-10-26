@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperQuote
  */
 class Quote extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'user_id',
@@ -59,5 +60,36 @@ class Quote extends Model
     public function favorites(): MorphMany
     {
         return $this->morphMany(Favorite::class, 'favoriteable');
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'book_id' => $this->book_id,
+            'text' => $this->text,
+            'page_number' => $this->page_number,
+            'contains_spoilers' => $this->contains_spoilers,
+            'is_public' => $this->is_public,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'quotes';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'user_id',
+                'book_id',
+                'is_public',
+                'page_number',
+            ],
+            'sortableAttributes' => ['created_at', 'page_number'],
+        ];
     }
 }

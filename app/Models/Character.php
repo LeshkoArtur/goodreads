@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperCharacter
  */
 class Character extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'book_id',
@@ -47,5 +48,41 @@ class Character extends Model
     public function book(): BelongsTo
     {
         return $this->belongsTo(Book::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'book_id' => $this->book_id,
+            'name' => $this->name,
+            'other_names' => $this->other_names,
+            'race' => $this->race,
+            'nationality' => $this->nationality,
+            'residence' => $this->residence,
+            'biography' => $this->biography,
+            'fun_facts' => $this->fun_facts,
+            'links' => $this->links,
+            'media_images' => $this->media_images,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'characters';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'book_id',
+                'race',
+                'nationality',
+                'residence',
+                'other_names',
+            ],
+            'sortableAttributes' => ['name', 'created_at'],
+        ];
     }
 }

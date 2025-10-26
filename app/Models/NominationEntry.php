@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperNominationEntry
  */
 class NominationEntry extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'nomination_id',
@@ -47,5 +48,34 @@ class NominationEntry extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(Author::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'nomination_id' => $this->nomination_id,
+            'book_id' => $this->book_id,
+            'author_id' => $this->author_id,
+            'status' => $this->status,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'nomination_entries';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'nomination_id',
+                'book_id',
+                'author_id',
+                'status',
+            ],
+            'sortableAttributes' => ['created_at'],
+        ];
     }
 }

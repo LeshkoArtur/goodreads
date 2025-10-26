@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\TypeOfWork;
 use App\Models\Builders\AuthorQueryBuilder;
+use App\Models\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -12,13 +13,14 @@ use Illuminate\Database\Eloquent\Relations\{
     BelongsToMany,
     HasMany
 };
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperAuthor
  */
 class Author extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable, HasFiles;
 
     protected $fillable = [
         'name',
@@ -79,5 +81,48 @@ class Author extends Model
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'bio' => $this->bio,
+            'birth_date' => $this->birth_date,
+            'birth_place' => $this->birth_place,
+            'nationality' => $this->nationality,
+            'website' => $this->website,
+            'profile_picture' => $this->profile_picture,
+            'death_date' => $this->death_date,
+            'social_media_links' => $this->social_media_links,
+            'media_images' => $this->media_images,
+            'media_videos' => $this->media_videos,
+            'fun_facts' => $this->fun_facts,
+            'type_of_work' => $this->type_of_work,
+            'user_ids' => $this->users()->pluck('users.id')->toArray(),
+            'book_ids' => $this->books()->pluck('books.id')->toArray(),
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'authors';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'nationality',
+                'birth_date',
+                'death_date',
+                'type_of_work',
+                'social_media_links',
+                'user_ids',
+                'book_ids',
+            ],
+            'sortableAttributes' => ['name', 'birth_date', 'created_at'],
+        ];
     }
 }

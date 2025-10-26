@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperGroupEvent
  */
 class GroupEvent extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'group_id',
@@ -52,5 +53,38 @@ class GroupEvent extends Model
     public function rsvps(): HasMany
     {
         return $this->hasMany(EventRsvp::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'group_id' => $this->group_id,
+            'creator_id' => $this->creator_id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'event_date' => $this->event_date,
+            'location' => $this->location,
+            'status' => $this->status,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'group_events';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'group_id',
+                'creator_id',
+                'status',
+                'event_date',
+                'location',
+            ],
+            'sortableAttributes' => ['title', 'event_date', 'created_at'],
+        ];
     }
 }

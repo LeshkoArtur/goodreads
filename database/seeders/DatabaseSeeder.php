@@ -49,8 +49,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Незалежні моделі (створюємо першими)
-        User::factory(200)->create();
-        Genre::factory(50)->create();
+        User::factory(1)->create();
+        /*Genre::factory(50)->create();
         Publisher::factory(30)->create();
         Store::factory(20)->create();
         Tag::factory(100)->create();
@@ -93,6 +93,6 @@ class DatabaseSeeder extends Seeder
         Like::factory(5000)->create();
         Favorite::factory(2000)->create();
         Report::factory(200)->create();
-        ViewHistory::factory(5000)->create();
+        ViewHistory::factory(5000)->create();*/
     }
 }

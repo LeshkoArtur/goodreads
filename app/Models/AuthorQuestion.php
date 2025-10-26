@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
 
 /**
  * @mixin IdeHelperAuthorQuestion
  */
 class AuthorQuestion extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'user_id',
@@ -54,5 +55,35 @@ class AuthorQuestion extends Model
     public function answers(): HasMany
     {
         return $this->hasMany(AuthorAnswer::class, 'question_id');
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'author_id' => $this->author_id,
+            'book_id' => $this->book_id,
+            'content' => $this->content,
+            'status' => $this->status,
+        ];
+    }
+
+    public function searchableAs(): string
+    {
+        return 'author_questions';
+    }
+
+    public function scoutMetadata(): array
+    {
+        return [
+            'filterableAttributes' => [
+                'user_id',
+                'author_id',
+                'book_id',
+                'status',
+            ],
+            'sortableAttributes' => ['created_at'],
+        ];
     }
 }
