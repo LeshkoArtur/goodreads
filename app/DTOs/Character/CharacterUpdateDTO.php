@@ -2,51 +2,50 @@
 
 namespace App\DTOs\Character;
 
-use App\DTOs\Traits\HandlesArrayInput;
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних персонажа.
- */
 class CharacterUpdateDTO
 {
-    use HandlesArrayInput;
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр CharacterUpdateDTO.
-     *
-     * @param string|null $name Ім’я персонажа
-     * @param string|null $race Раса персонажа
-     * @param string|null $nationality Національність персонажа
-     * @param string|null $residence Місце проживання персонажа
-     * @param array|null $otherNames Інші імена персонажа
-     * @param string|null $description Опис персонажа
-     */
     public function __construct(
+        public readonly ?string $bookId = null,
         public readonly ?string $name = null,
+        public readonly array|Collection|null $otherNames = null,
         public readonly ?string $race = null,
         public readonly ?string $nationality = null,
         public readonly ?string $residence = null,
-        public readonly ?array $otherNames = null,
-        public readonly ?string $description = null,
-    ) {
-    }
+        public readonly ?string $biography = null,
+        public readonly array|Collection|null $funFacts = null,
+        public readonly array|Collection|null $links = null,
+        public readonly array|Collection|null $mediaImages = null
+    ) {}
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            name: $request->input('name'),
-            race: $request->input('race'),
-            nationality: $request->input('nationality'),
-            residence: $request->input('residence'),
-            otherNames: self::processArrayInput($request, 'other_names'),
-            description: $request->input('description'),
+            bookId: $data['book_id'] ?? null,
+            name: $data['name'] ?? null,
+            otherNames: self::processJsonArray($data['other_names'] ?? null),
+            race: $data['race'] ?? null,
+            nationality: $data['nationality'] ?? null,
+            residence: $data['residence'] ?? null,
+            biography: $data['biography'] ?? null,
+            funFacts: self::processJsonArray($data['fun_facts'] ?? null),
+            links: self::processJsonArray($data['links'] ?? null),
+            mediaImages: self::processJsonArray($data['media_images'] ?? null)
         );
     }
 }

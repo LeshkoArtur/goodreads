@@ -2,36 +2,44 @@
 
 namespace App\DTOs\BookSeries;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class BookSeriesStoreDTO
 {
-    /**
-     * @param string $title Назва серії
-     * @param string|null $description Опис серії
-     * @param int|null $totalBooks Загальна кількість книг у серії
-     * @param bool|null $isCompleted Чи завершена серія
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $title,
         public readonly ?string $description = null,
         public readonly ?int $totalBooks = null,
         public readonly ?bool $isCompleted = null,
+        public readonly ?array $bookIds = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити BookSeriesStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            title: $request->input('title'),
-            description: $request->input('description'),
-            totalBooks: $request->input('total_books') !== null ? (int)$request->input('total_books') : null,
-            isCompleted: $request->has('is_completed') ? (bool)$request->input('is_completed') : null,
+            title: $data['title'],
+            description: $data['description'] ?? null,
+            totalBooks: isset($data['total_books']) ? (int) $data['total_books'] : null,
+            isCompleted: isset($data['is_completed']) ? (bool) $data['is_completed'] : null,
+            bookIds: self::processJsonArray($data['book_ids'] ?? null),
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

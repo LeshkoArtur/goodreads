@@ -2,24 +2,16 @@
 
 namespace App\DTOs\Group;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use App\Enums\JoinPolicy;
 use App\Enums\PostPolicy;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class GroupStoreDTO
 {
-    /**
-     * @param string $name Назва групи
-     * @param string|null $description Опис
-     * @param string $creatorId ID творця
-     * @param bool $isPublic Чи публічна група
-     * @param string|null $coverImage Обкладинка
-     * @param string|null $rules Правила
-     * @param int|null $memberCount Кількість учасників
-     * @param bool $isActive Чи активна група
-     * @param JoinPolicy|null $joinPolicy Політика приєднання
-     * @param PostPolicy|null $postPolicy Політика публікацій
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $name,
         public readonly string $creatorId,
@@ -30,28 +22,36 @@ class GroupStoreDTO
         public readonly ?int $memberCount = null,
         public readonly bool $isActive = true,
         public readonly ?JoinPolicy $joinPolicy = null,
-        public readonly ?PostPolicy $postPolicy = null
+        public readonly ?PostPolicy $postPolicy = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити GroupStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            name: $request->input('name'),
-            description: $request->input('description'),
-            creatorId: $request->input('creator_id'),
-            isPublic: $request->input('is_public', false),
-            coverImage: $request->input('cover_image'),
-            rules: $request->input('rules'),
-            memberCount: $request->input('member_count'),
-            isActive: $request->input('is_active', true),
-            joinPolicy: $request->input('join_policy') ? JoinPolicy::from($request->input('join_policy')) : null,
-            postPolicy: $request->input('post_policy') ? PostPolicy::from($request->input('post_policy')) : null
+            name: $data['name'],
+            creatorId: $data['creator_id'],
+            isPublic: $data['is_public'] ?? false,
+            description: $data['description'] ?? null,
+            coverImage: $data['cover_image'] ?? null,
+            rules: $data['rules'] ?? null,
+            memberCount: isset($data['member_count']) ? (int) $data['member_count'] : null,
+            isActive: $data['is_active'] ?? true,
+            joinPolicy: !empty($data['join_policy']) ? JoinPolicy::from($data['join_policy']) : null,
+            postPolicy: !empty($data['post_policy']) ? PostPolicy::from($data['post_policy']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

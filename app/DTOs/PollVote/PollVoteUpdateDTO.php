@@ -2,33 +2,40 @@
 
 namespace App\DTOs\PollVote;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних голосу в опитуванні.
- */
 class PollVoteUpdateDTO
 {
-    /**
-     * Створює новий екземпляр PollVoteUpdateDTO.
-     *
-     * @param string|null $pollOptionId ID варіанту опитування
-     */
-    public function __construct(
-        public readonly ?string $pollOptionId = null,
-    ) {
-    }
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
+    public function __construct(
+        public readonly ?string $groupPollId = null,
+        public readonly ?string $pollOptionId = null,
+        public readonly ?string $userId = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
+
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            pollOptionId: $request->input('poll_option_id'),
+            groupPollId: $data['group_poll_id'] ?? null,
+            pollOptionId: $data['poll_option_id'] ?? null,
+            userId: $data['user_id'] ?? null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

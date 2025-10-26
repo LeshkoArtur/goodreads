@@ -3,25 +3,15 @@
 namespace App\DTOs\Post;
 
 use App\DTOs\Traits\HandlesJsonArrays;
-use App\Enums\PostStatus;
 use App\Enums\PostType;
+use App\Enums\PostStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class PostStoreDTO
 {
     use HandlesJsonArrays;
-    /**
-     * @param string $userId ID користувача
-     * @param string|null $bookId ID книги
-     * @param string|null $authorId ID автора
-     * @param string $title Заголовок
-     * @param string $content Текст посту
-     * @param string|null $coverImage Обкладинка
-     * @param string|null $publishedAt Дата публікації у форматі Y-m-d H:i:s
-     * @param array|null $tagIds Масив ID тегів
-     * @param PostType|null $type Тип посту
-     * @param PostStatus|null $status Статус посту
-     */
+
     public function __construct(
         public readonly string $userId,
         public readonly string $title,
@@ -32,28 +22,36 @@ class PostStoreDTO
         public readonly ?string $publishedAt = null,
         public readonly ?array $tagIds = null,
         public readonly ?PostType $type = null,
-        public readonly ?PostStatus $status = null
+        public readonly ?PostStatus $status = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити PostStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            userId: $request->input('user_id'),
-            title: $request->input('title'),
-            content: $request->input('content'),
-            bookId: $request->input('book_id'),
-            authorId: $request->input('author_id'),
-            coverImage: $request->input('cover_image'),
-            publishedAt: $request->input('published_at'),
-            tagIds: self::processJsonArray($request->input('tag_ids')),
-            type: $request->input('type') ? PostType::from($request->input('type')) : null,
-            status: $request->input('status') ? PostStatus::from($request->input('status')) : null
+            userId: $data['user_id'],
+            title: $data['title'],
+            content: $data['content'],
+            bookId: $data['book_id'] ?? null,
+            authorId: $data['author_id'] ?? null,
+            coverImage: $data['cover_image'] ?? null,
+            publishedAt: $data['published_at'] ?? null,
+            tagIds: self::processJsonArray($data['tag_ids'] ?? null),
+            type: !empty($data['type']) ? PostType::from($data['type']) : null,
+            status: !empty($data['status']) ? PostStatus::from($data['status']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

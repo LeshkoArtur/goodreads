@@ -2,39 +2,46 @@
 
 namespace App\DTOs\Collection;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних колекції.
- */
 class CollectionUpdateDTO
 {
-    /**
-     * Створює новий екземпляр CollectionUpdateDTO.
-     *
-     * @param string|null $name Назва колекції
-     * @param bool|null $isPublic Видимість колекції
-     * @param string|null $description Опис колекції
-     */
-    public function __construct(
-        public readonly ?string $name = null,
-        public readonly ?bool $isPublic = null,
-        public readonly ?string $description = null,
-    ) {
-    }
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
+    public function __construct(
+        public readonly ?string $userId = null,
+        public readonly ?string $title = null,
+        public readonly ?string $description = null,
+        public readonly ?string $coverImage = null,
+        public readonly ?bool $isPublic = null,
+        public readonly ?array $bookIds = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
+
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            name: $request->input('name'),
-            isPublic: $request->has('is_public') ? $request->boolean('is_public') : null,
-            description: $request->input('description'),
+            userId: $data['user_id'] ?? null,
+            title: $data['title'] ?? null,
+            description: $data['description'] ?? null,
+            coverImage: $data['cover_image'] ?? null,
+            isPublic: isset($data['is_public']) ? (bool) $data['is_public'] : null,
+            bookIds: self::processJsonArray($data['book_ids'] ?? null),
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

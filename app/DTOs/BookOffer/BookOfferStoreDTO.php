@@ -2,22 +2,16 @@
 
 namespace App\DTOs\BookOffer;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use App\Enums\Currency;
 use App\Enums\OfferStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class BookOfferStoreDTO
 {
-    /**
-     * @param string $bookId ID книги
-     * @param string $storeId ID магазину
-     * @param float $price Ціна з двома знаками після коми
-     * @param Currency $currency Валюта
-     * @param string|null $referralUrl Реферальне посилання
-     * @param bool|null $availability Наявність товару
-     * @param OfferStatus|null $status Статус пропозиції
-     * @param string|null $lastUpdatedAt Дата останнього оновлення у форматі рядка
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $bookId,
         public readonly string $storeId,
@@ -27,25 +21,33 @@ class BookOfferStoreDTO
         public readonly ?bool $availability = null,
         public readonly ?OfferStatus $status = null,
         public readonly ?string $lastUpdatedAt = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити BookOfferStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            bookId: $request->input('book_id'),
-            storeId: $request->input('store_id'),
-            price: (float) $request->input('price'),
-            currency: Currency::from($request->input('currency')),
-            referralUrl: $request->input('referral_url'),
-            availability: $request->has('availability') ? (bool) $request->input('availability') : null,
-            status: $request->input('status') ? OfferStatus::from($request->input('status')) : null,
-            lastUpdatedAt: $request->input('last_updated_at'),
+            bookId: $data['book_id'],
+            storeId: $data['store_id'],
+            price: (float) $data['price'],
+            currency: Currency::from($data['currency']),
+            referralUrl: $data['referral_url'] ?? null,
+            availability: isset($data['availability']) ? (bool) $data['availability'] : null,
+            status: !empty($data['status']) ? OfferStatus::from($data['status']) : null,
+            lastUpdatedAt: $data['last_updated_at'] ?? null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

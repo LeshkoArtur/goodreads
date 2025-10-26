@@ -2,42 +2,45 @@
 
 namespace App\DTOs\AuthorAnswer;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use App\Enums\AnswerStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class AuthorAnswerStoreDTO
 {
-    /**
-     * @param string $questionId ID питання
-     * @param string $authorId ID автора
-     * @param string $content Текст відповіді
-     * @param string|null $publishedAt Дата публікації у форматі Y-m-d H:i:s
-     * @param AnswerStatus|null $status Статус відповіді
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $questionId,
         public readonly string $authorId,
         public readonly string $content,
         public readonly ?string $publishedAt = null,
-        public readonly ?AnswerStatus $status = null
+        public readonly ?AnswerStatus $status = null,
+        public readonly ?array $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити AuthorAnswerStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            questionId: $request->input('question_id'),
-            authorId: $request->input('author_id'),
-            content: $request->input('content'),
-            publishedAt: $request->input('published_at'),
-            status: $request->input('status')
-                ? AnswerStatus::from($request->input('status'))
-                : null
+            questionId: $data['question_id'],
+            authorId: $data['author_id'],
+            content: $data['content'],
+            publishedAt: $data['published_at'] ?? null,
+            status: !empty($data['status']) ? AnswerStatus::from($data['status']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

@@ -2,48 +2,50 @@
 
 namespace App\DTOs\Award;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних нагороди.
- */
 class AwardUpdateDTO
 {
-    /**
-     * Створює новий екземпляр AwardUpdateDTO.
-     *
-     * @param string|null $name Назва нагороди
-     * @param int|null $year Рік нагороди
-     * @param string|null $organizer Організатор нагороди
-     * @param string|null $country Країна нагороди
-     * @param string|null $ceremonyDate Дата церемонії
-     * @param string|null $description Опис нагороди
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly ?string $name = null,
         public readonly ?int $year = null,
+        public readonly ?string $description = null,
         public readonly ?string $organizer = null,
         public readonly ?string $country = null,
         public readonly ?string $ceremonyDate = null,
-        public readonly ?string $description = null,
-    ) {
-    }
+        public readonly ?array $authorIds = null,
+        public readonly ?array $bookIds = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            name: $request->input('name'),
-            year: $request->input('year') ? (int) $request->input('year') : null,
-            organizer: $request->input('organizer'),
-            country: $request->input('country'),
-            ceremonyDate: $request->input('ceremony_date'),
-            description: $request->input('description'),
+            name: $data['name'] ?? null,
+            year: isset($data['year']) ? (int) $data['year'] : null,
+            description: $data['description'] ?? null,
+            organizer: $data['organizer'] ?? null,
+            country: $data['country'] ?? null,
+            ceremonyDate: $data['ceremony_date'] ?? null,
+            authorIds: self::processJsonArray($data['author_ids'] ?? null),
+            bookIds: self::processJsonArray($data['book_ids'] ?? null),
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

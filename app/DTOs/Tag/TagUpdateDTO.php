@@ -2,33 +2,36 @@
 
 namespace App\DTOs\Tag;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних тегу.
- */
 class TagUpdateDTO
 {
-    /**
-     * Створює новий екземпляр TagUpdateDTO.
-     *
-     * @param string|null $name Назва тегу
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly ?string $name = null,
-    ) {
-    }
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            name: $request->input('name'),
+            name: $data['name'] ?? null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

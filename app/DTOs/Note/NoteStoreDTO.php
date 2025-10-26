@@ -2,42 +2,46 @@
 
 namespace App\DTOs\Note;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class NoteStoreDTO
 {
-    /**
-     * @param string $userId ID користувача
-     * @param string $bookId ID книги
-     * @param string $text Текст нотатки
-     * @param int|null $pageNumber Номер сторінки
-     * @param bool $containsSpoilers Чи містить спойлери
-     * @param bool $isPrivate Чи приватна нотатка
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $userId,
         public readonly string $bookId,
         public readonly string $text,
         public readonly ?int $pageNumber = null,
         public readonly bool $containsSpoilers = false,
-        public readonly bool $isPrivate = false
+        public readonly bool $isPrivate = false,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити NoteStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            userId: $request->input('user_id'),
-            bookId: $request->input('book_id'),
-            text: $request->input('text'),
-            pageNumber: $request->input('page_number'),
-            containsSpoilers: $request->input('contains_spoilers', false),
-            isPrivate: $request->input('is_private', false)
+            userId: $data['user_id'],
+            bookId: $data['book_id'],
+            text: $data['text'],
+            pageNumber: isset($data['page_number']) ? (int) $data['page_number'] : null,
+            containsSpoilers: $data['contains_spoilers'] ?? false,
+            isPrivate: $data['is_private'] ?? false,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

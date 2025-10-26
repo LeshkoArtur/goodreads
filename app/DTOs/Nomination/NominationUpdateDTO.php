@@ -2,36 +2,40 @@
 
 namespace App\DTOs\Nomination;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних номінації.
- */
 class NominationUpdateDTO
 {
-    /**
-     * Створює новий екземпляр NominationUpdateDTO.
-     *
-     * @param string|null $name Назва номінації
-     * @param string|null $description Опис номінації
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
+        public readonly ?string $awardId = null,
         public readonly ?string $name = null,
         public readonly ?string $description = null,
-    ) {
-    }
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            name: $request->input('name'),
-            description: $request->input('description'),
+            awardId: $data['award_id'] ?? null,
+            name: $data['name'] ?? null,
+            description: $data['description'] ?? null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

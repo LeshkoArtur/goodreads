@@ -2,33 +2,40 @@
 
 namespace App\DTOs\ViewHistory;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class ViewHistoryStoreDTO
 {
-    /**
-     * @param string $userId ID користувача
-     * @param string $viewableId ID об'єкта перегляду
-     * @param string $viewableType Тип об'єкта перегляду
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $userId,
         public readonly string $viewableId,
-        public readonly string $viewableType
+        public readonly string $viewableType,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити ViewHistoryStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            userId: $request->input('user_id'),
-            viewableId: $request->input('viewable_id'),
-            viewableType: $request->input('viewable_type')
+            userId: $data['user_id'],
+            viewableId: $data['viewable_id'],
+            viewableType: $data['viewable_type'],
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

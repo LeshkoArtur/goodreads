@@ -11,22 +11,6 @@ class AuthorStoreDTO
 {
     use HandlesJsonArrays;
 
-    /**
-     * @param string $name Ім'я автора
-     * @param string|null $bio Біографія
-     * @param string|null $birthDate Дата народження у форматі Y-m-d
-     * @param string|null $birthPlace Місце народження
-     * @param string|null $nationality Національність
-     * @param string|null $website Вебсайт
-     * @param string|null $profilePicture Фото профілю
-     * @param string|null $deathDate Дата смерті у форматі Y-m-d
-     * @param array|null $userIds Масив ID користувачів
-     * @param array|Collection|null $socialMediaLinks Посилання на соцмережі
-     * @param array|Collection|null $mediaImages Фото
-     * @param array|Collection|null $mediaVideos Відео
-     * @param array|Collection|null $funFacts Цікаві факти
-     * @param TypeOfWork|null $typeOfWork Тип робіт
-     */
     public function __construct(
         public readonly string $name,
         public readonly ?string $bio = null,
@@ -44,31 +28,35 @@ class AuthorStoreDTO
         public readonly ?TypeOfWork $typeOfWork = null
     ) {}
 
-    /**
-     * Створити AuthorStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            name: $request->input('name'),
-            bio: $request->input('bio'),
-            birthDate: $request->input('birth_date'),
-            birthPlace: $request->input('birth_place'),
-            nationality: $request->input('nationality'),
-            website: $request->input('website'),
-            profilePicture: $request->input('profile_picture'),
-            deathDate: $request->input('death_date'),
-            userIds: self::processJsonArray($request->input('user_ids')),
-            socialMediaLinks: self::processJsonArray($request->input('social_media_links')),
-            mediaImages: self::processJsonArray($request->input('media_images')),
-            mediaVideos: self::processJsonArray($request->input('media_videos')),
-            funFacts: self::processJsonArray($request->input('fun_facts')),
-            typeOfWork: $request->input('type_of_work')
-                ? TypeOfWork::from($request->input('type_of_work'))
-                : null
+            name: $data['name'],
+            bio: $data['bio'] ?? null,
+            birthDate: $data['birth_date'] ?? null,
+            birthPlace: $data['birth_place'] ?? null,
+            nationality: $data['nationality'] ?? null,
+            website: $data['website'] ?? null,
+            profilePicture: $data['profile_picture'] ?? null,
+            deathDate: $data['death_date'] ?? null,
+            userIds: self::processJsonArray($data['user_ids'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null),
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            mediaVideos: self::processJsonArray($data['media_videos'] ?? null),
+            funFacts: self::processJsonArray($data['fun_facts'] ?? null),
+            typeOfWork: !empty($data['type_of_work'])
+                ? TypeOfWork::from($data['type_of_work'])
+                : null,
         );
     }
 }

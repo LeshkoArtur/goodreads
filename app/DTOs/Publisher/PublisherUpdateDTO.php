@@ -2,48 +2,52 @@
 
 namespace App\DTOs\Publisher;
 
-use App\DTOs\Traits\HandlesArrayInput;
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних видавця.
- */
 class PublisherUpdateDTO
 {
-    use HandlesArrayInput;
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр PublisherUpdateDTO.
-     *
-     * @param string|null $name Назва видавця
-     * @param string|null $country Країна видавця
-     * @param int|null $foundedYear Рік заснування
-     * @param array|null $contactEmails Контактні email
-     * @param string|null $description Опис видавця
-     */
     public function __construct(
         public readonly ?string $name = null,
+        public readonly ?string $description = null,
+        public readonly ?string $website = null,
         public readonly ?string $country = null,
         public readonly ?int $foundedYear = null,
-        public readonly ?array $contactEmails = null,
-        public readonly ?string $description = null,
-    ) {
-    }
+        public readonly ?string $logo = null,
+        public readonly ?string $contactEmail = null,
+        public readonly ?string $phone = null,
+        public readonly array|Collection|null $contactEmails = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            name: $request->input('name'),
-            country: $request->input('country'),
-            foundedYear: $request->input('founded_year') ? (int) $request->input('founded_year') : null,
-            contactEmails: self::processArrayInput($request, 'contact_emails'),
-            description: $request->input('description'),
+            name: $data['name'] ?? null,
+            description: $data['description'] ?? null,
+            website: $data['website'] ?? null,
+            country: $data['country'] ?? null,
+            foundedYear: isset($data['founded_year']) ? (int) $data['founded_year'] : null,
+            logo: $data['logo'] ?? null,
+            contactEmail: $data['contact_email'] ?? null,
+            phone: $data['phone'] ?? null,
+            contactEmails: self::processJsonArray($data['contact_emails'] ?? null),
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

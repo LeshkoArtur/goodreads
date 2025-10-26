@@ -28,20 +28,23 @@ class GroupEventUpdateDTO
     ) {
     }
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            title: $request->input('title'),
-            description: $request->input('description'),
-            eventDate: $request->input('event_date'),
-            location: $request->input('location'),
-            status: $request->input('status'),
+            title: $data['title'] ?? null,
+            description: $data['description'] ?? null,
+            eventDate: $data['eventDate'] ?? null,
+            location: $data['location'] ?? null,
+            status: $data['status'] ?? null,
         );
     }
 }

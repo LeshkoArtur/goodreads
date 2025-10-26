@@ -2,34 +2,43 @@
 
 namespace App\DTOs\NominationEntry;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use App\Enums\NominationStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних запису номінації.
- */
 class NominationEntryUpdateDTO
 {
-    /**
-     * Створює новий екземпляр NominationEntryUpdateDTO.
-     *
-     * @param string|null $status Статус номінації
-     */
-    public function __construct(
-        public readonly ?string $status = null,
-    ) {
-    }
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
+    public function __construct(
+        public readonly ?string $nominationId = null,
+        public readonly ?string $bookId = null,
+        public readonly ?string $authorId = null,
+        public readonly ?NominationStatus $status = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
+
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            status: $request->input('status'),
+            nominationId: $data['nomination_id'] ?? null,
+            bookId: $data['book_id'] ?? null,
+            authorId: $data['author_id'] ?? null,
+            status: !empty($data['status']) ? NominationStatus::from($data['status']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

@@ -2,51 +2,56 @@
 
 namespace App\DTOs\Post;
 
-use App\DTOs\Traits\HandlesArrayInput;
+use App\DTOs\Traits\HandlesJsonArrays;
+use App\Enums\PostType;
+use App\Enums\PostStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних поста.
- */
 class PostUpdateDTO
 {
-    use HandlesArrayInput;
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр PostUpdateDTO.
-     *
-     * @param string|null $title Назва поста
-     * @param string|null $body Текст поста
-     * @param string|null $type Тип поста
-     * @param string|null $status Статус поста
-     * @param string|null $publishedAt Дата публікації
-     * @param array|null $tagIds ID тегів
-     */
     public function __construct(
+        public readonly ?string $userId = null,
         public readonly ?string $title = null,
-        public readonly ?string $body = null,
-        public readonly ?string $type = null,
-        public readonly ?string $status = null,
+        public readonly ?string $content = null,
+        public readonly ?string $bookId = null,
+        public readonly ?string $authorId = null,
+        public readonly ?string $coverImage = null,
         public readonly ?string $publishedAt = null,
         public readonly ?array $tagIds = null,
-    ) {
-    }
+        public readonly ?PostType $type = null,
+        public readonly ?PostStatus $status = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            title: $request->input('title'),
-            body: $request->input('body'),
-            type: $request->input('type'),
-            status: $request->input('status'),
-            publishedAt: $request->input('published_at'),
-            tagIds: self::processArrayInput($request, 'tag_ids'),
+            userId: $data['user_id'] ?? null,
+            title: $data['title'] ?? null,
+            content: $data['content'] ?? null,
+            bookId: $data['book_id'] ?? null,
+            authorId: $data['author_id'] ?? null,
+            coverImage: $data['cover_image'] ?? null,
+            publishedAt: $data['published_at'] ?? null,
+            tagIds: self::processJsonArray($data['tag_ids'] ?? null),
+            type: !empty($data['type']) ? PostType::from($data['type']) : null,
+            status: !empty($data['status']) ? PostStatus::from($data['status']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

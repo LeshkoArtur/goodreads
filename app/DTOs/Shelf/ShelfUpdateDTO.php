@@ -2,39 +2,42 @@
 
 namespace App\DTOs\Shelf;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних полиці.
- */
 class ShelfUpdateDTO
 {
-    /**
-     * Створює новий екземпляр ShelfUpdateDTO.
-     *
-     * @param string|null $name Назва полиці
-     * @param string|null $type Тип полиці
-     * @param bool|null $isPublic Видимість полиці
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
+        public readonly ?string $userId = null,
         public readonly ?string $name = null,
         public readonly ?string $type = null,
         public readonly ?bool $isPublic = null,
-    ) {
-    }
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            name: $request->input('name'),
-            type: $request->input('type'),
-            isPublic: $request->has('is_public') ? $request->boolean('is_public') : null,
+            userId: $data['user_id'] ?? null,
+            name: $data['name'] ?? null,
+            type: $data['type'] ?? null,
+            isPublic: isset($data['is_public']) ? (bool) $data['is_public'] : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

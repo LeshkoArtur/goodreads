@@ -2,39 +2,42 @@
 
 namespace App\DTOs\ViewHistory;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних історії переглядів.
- */
 class ViewHistoryUpdateDTO
 {
-    /**
-     * Створює новий екземпляр ViewHistoryUpdateDTO.
-     *
-     * @param string|null $viewableType Тип переглянутого об’єкта
-     * @param string|null $viewableId ID переглянутого об’єкта
-     * @param string|null $viewedAt Час перегляду
-     */
-    public function __construct(
-        public readonly ?string $viewableType = null,
-        public readonly ?string $viewableId = null,
-        public readonly ?string $viewedAt = null,
-    ) {
-    }
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
+    public function __construct(
+        public readonly ?string $userId = null,
+        public readonly ?string $viewableId = null,
+        public readonly ?string $viewableType = null,
+        public readonly ?string $viewedAt = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
+
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            viewableType: $request->input('viewable_type'),
-            viewableId: $request->input('viewable_id'),
-            viewedAt: $request->input('viewed_at'),
+            userId: $data['user_id'] ?? null,
+            viewableId: $data['viewable_id'] ?? null,
+            viewableType: $data['viewable_type'] ?? null,
+            viewedAt: $data['viewed_at'] ?? null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

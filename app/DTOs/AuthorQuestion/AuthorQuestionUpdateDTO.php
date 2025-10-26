@@ -2,37 +2,45 @@
 
 namespace App\DTOs\AuthorQuestion;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use App\Enums\QuestionStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних питання до автора.
- */
 class AuthorQuestionUpdateDTO
 {
-    /**
-     * Створює новий екземпляр AuthorQuestionUpdateDTO.
-     *
-     * @param string|null $body Текст питання
-     * @param string|null $status Статус питання
-     */
-    public function __construct(
-        public readonly ?string $body = null,
-        public readonly ?string $status = null,
-    ) {
-    }
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
+    public function __construct(
+        public readonly ?string $userId = null,
+        public readonly ?string $authorId = null,
+        public readonly ?string $content = null,
+        public readonly ?string $bookId = null,
+        public readonly ?QuestionStatus $status = null,
+        public readonly ?array $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
+
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            body: $request->input('body'),
-            status: $request->input('status'),
+            userId: $data['user_id'] ?? null,
+            authorId: $data['author_id'] ?? null,
+            content: $data['content'] ?? null,
+            bookId: $data['book_id'] ?? null,
+            status: !empty($data['status']) ? QuestionStatus::from($data['status']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

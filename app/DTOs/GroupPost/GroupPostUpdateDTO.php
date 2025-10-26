@@ -2,47 +2,50 @@
 
 namespace App\DTOs\GroupPost;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use App\Enums\PostCategory;
 use App\Enums\PostStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних поста групи.
- */
 class GroupPostUpdateDTO
 {
-    /**
-     * Створює новий екземпляр GroupPostUpdateDTO.
-     *
-     * @param string|null $title Назва поста
-     * @param string|null $body Текст поста
-     * @param bool|null $isPinned Статус закріплення
-     * @param string|null $category Категорія поста
-     * @param string|null $status Статус поста
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
+        public readonly ?string $groupId = null,
+        public readonly ?string $creatorId = null,
         public readonly ?string $title = null,
         public readonly ?string $body = null,
         public readonly ?bool $isPinned = null,
-        public readonly ?string $category = null,
-        public readonly ?string $status = null,
-    ) {
-    }
+        public readonly ?PostCategory $category = null,
+        public readonly ?PostStatus $status = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            title: $request->input('title'),
-            body: $request->input('body'),
-            isPinned: $request->has('is_pinned') ? $request->boolean('is_pinned') : null,
-            category: $request->input('category'),
-            status: $request->input('status'),
+            groupId: $data['group_id'] ?? null,
+            creatorId: $data['creator_id'] ?? null,
+            title: $data['title'] ?? null,
+            body: $data['body'] ?? null,
+            isPinned: isset($data['is_pinned']) ? (bool) $data['is_pinned'] : null,
+            category: !empty($data['category']) ? PostCategory::from($data['category']) : null,
+            status: !empty($data['status']) ? PostStatus::from($data['status']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

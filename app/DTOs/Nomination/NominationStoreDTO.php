@@ -2,33 +2,40 @@
 
 namespace App\DTOs\Nomination;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class NominationStoreDTO
 {
-    /**
-     * @param string $awardId ID нагороди
-     * @param string $name Назва номінації
-     * @param string|null $description Опис
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $awardId,
         public readonly string $name,
-        public readonly ?string $description = null
+        public readonly ?string $description = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити NominationStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            awardId: $request->input('award_id'),
-            name: $request->input('name'),
-            description: $request->input('description')
+            awardId: $data['award_id'],
+            name: $data['name'],
+            description: $data['description'] ?? null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

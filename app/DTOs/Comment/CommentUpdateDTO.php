@@ -2,36 +2,46 @@
 
 namespace App\DTOs\Comment;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних коментаря.
- */
 class CommentUpdateDTO
 {
-    /**
-     * Створює новий екземпляр CommentUpdateDTO.
-     *
-     * @param string|null $body Текст коментаря
-     * @param bool|null $isSpoiler Чи містить коментар спойлери
-     */
-    public function __construct(
-        public readonly ?string $body = null,
-        public readonly ?bool $isSpoiler = null,
-    ) {
-    }
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
+    public function __construct(
+        public readonly ?string $userId = null,
+        public readonly ?string $commentableType = null,
+        public readonly ?string $commentableId = null,
+        public readonly ?string $content = null,
+        public readonly ?string $parentId = null,
+        public readonly ?bool $isSpoiler = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
+
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            body: $request->input('body'),
-            isSpoiler: $request->has('is_spoiler') ? $request->boolean('is_spoiler') : null,
+            userId: $data['user_id'] ?? null,
+            commentableType: $data['commentable_type'] ?? null,
+            commentableId: $data['commentable_id'] ?? null,
+            content: $data['content'] ?? null,
+            parentId: $data['parent_id'] ?? null,
+            isSpoiler: isset($data['is_spoiler']) ? (bool) $data['is_spoiler'] : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

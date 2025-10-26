@@ -2,33 +2,40 @@
 
 namespace App\DTOs\Like;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class LikeStoreDTO
 {
-    /**
-     * @param string $userId ID користувача
-     * @param string $likeableId ID об'єкта, що лайкається
-     * @param string $likeableType Тип об'єкта, що лайкається
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $userId,
         public readonly string $likeableId,
-        public readonly string $likeableType
+        public readonly string $likeableType,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити LikeStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            userId: $request->input('user_id'),
-            likeableId: $request->input('likeable_id'),
-            likeableType: $request->input('likeable_type')
+            userId: $data['user_id'],
+            likeableId: $data['likeable_id'],
+            likeableType: $data['likeable_type'],
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

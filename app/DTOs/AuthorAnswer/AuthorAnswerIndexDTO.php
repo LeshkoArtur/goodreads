@@ -2,6 +2,7 @@
 
 namespace App\DTOs\AuthorAnswer;
 
+use App\DTOs\Traits\HandlesArrayInput;
 use Illuminate\Http\Request;
 
 /**
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
  */
 class AuthorAnswerIndexDTO
 {
+    use HandlesArrayInput;
     /**
      * Створює новий екземпляр AuthorAnswerIndexDTO.
      *

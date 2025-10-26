@@ -12,21 +12,6 @@ class UserStoreDTO
 {
     use HandlesJsonArrays;
 
-    /**
-     * @param string $username Ім'я користувача
-     * @param string $email Електронна пошта
-     * @param string $password Пароль
-     * @param string|null $emailVerifiedAt Дата верифікації email у форматі Y-m-d H:i:s
-     * @param string|null $profilePicture Фото профілю
-     * @param string|null $bio Біографія
-     * @param bool $isPublic Чи публічний профіль
-     * @param string|null $birthday Дата народження у форматі Y-m-d
-     * @param string|null $location Місцезнаходження
-     * @param string|null $lastLogin Останній вхід у форматі Y-m-d H:i:s
-     * @param array|Collection|null $socialMediaLinks Посилання на соцмережі
-     * @param Role|null $role Роль
-     * @param Gender|null $gender Стать
-     */
     public function __construct(
         public readonly string $username,
         public readonly string $email,
@@ -38,34 +23,39 @@ class UserStoreDTO
         public readonly ?string $birthday = null,
         public readonly ?string $location = null,
         public readonly ?string $lastLogin = null,
-        public readonly array|Collection|null $socialMediaLinks = null,
         public readonly ?Role $role = null,
-        public readonly ?Gender $gender = null
-    ) {
-    }
+        public readonly ?Gender $gender = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
 
-    /**
-     * Створити UserStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            username: $request->input('username'),
-            email: $request->input('email'),
-            password: $request->input('password'),
-            emailVerifiedAt: $request->input('email_verified_at'),
-            profilePicture: $request->input('profile_picture'),
-            bio: $request->input('bio'),
-            isPublic: $request->input('is_public', false),
-            birthday: $request->input('birthday'),
-            location: $request->input('location'),
-            lastLogin: $request->input('last_login'),
-            socialMediaLinks: self::processJsonArray($request->input('social_media_links')),
-            role: $request->input('role') ? Role::from($request->input('role')) : null,
-            gender: $request->input('gender') ? Gender::from($request->input('gender')) : null
+            username: $data['username'],
+            email: $data['email'],
+            password: $data['password'],
+            emailVerifiedAt: $data['email_verified_at'] ?? null,
+            profilePicture: $data['profile_picture'] ?? null,
+            bio: $data['bio'] ?? null,
+            isPublic: $data['is_public'] ?? false,
+            birthday: $data['birthday'] ?? null,
+            location: $data['location'] ?? null,
+            lastLogin: $data['last_login'] ?? null,
+            role: !empty($data['role']) ? Role::from($data['role']) : null,
+            gender: !empty($data['gender']) ? Gender::from($data['gender']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

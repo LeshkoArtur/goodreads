@@ -2,39 +2,46 @@
 
 namespace App\DTOs\GroupPoll;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних опитування групи.
- */
 class GroupPollUpdateDTO
 {
-    /**
-     * Створює новий екземпляр GroupPollUpdateDTO.
-     *
-     * @param string|null $title Назва опитування
-     * @param string|null $description Опис опитування
-     * @param bool|null $isActive Статус активності
-     */
-    public function __construct(
-        public readonly ?string $title = null,
-        public readonly ?string $description = null,
-        public readonly ?bool $isActive = null,
-    ) {
-    }
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
+    public function __construct(
+        public readonly ?string $groupId = null,
+        public readonly ?string $creatorId = null,
+        public readonly ?string $question = null,
+        public readonly ?bool $isActive = null,
+        public readonly ?string $description = null,
+        public readonly array|Collection|null $options = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
+
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            title: $request->input('title'),
-            description: $request->input('description'),
-            isActive: $request->has('is_active') ? $request->boolean('is_active') : null,
+            groupId: $data['group_id'] ?? null,
+            creatorId: $data['creator_id'] ?? null,
+            question: $data['question'] ?? null,
+            isActive: isset($data['is_active']) ? (bool) $data['is_active'] : null,
+            description: $data['description'] ?? null,
+            options: self::processJsonArray($data['options'] ?? null),
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

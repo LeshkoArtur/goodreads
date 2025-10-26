@@ -2,36 +2,40 @@
 
 namespace App\DTOs\Like;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних лайка.
- */
 class LikeUpdateDTO
 {
-    /**
-     * Створює новий екземпляр LikeUpdateDTO.
-     *
-     * @param string|null $likeableType Тип лайкнутого об’єкта
-     * @param string|null $likeableId ID лайкнутого об’єкта
-     */
-    public function __construct(
-        public readonly ?string $likeableType = null,
-        public readonly ?string $likeableId = null,
-    ) {
-    }
+    use HandlesJsonArrays;
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
+    public function __construct(
+        public readonly ?string $userId = null,
+        public readonly ?string $likeableId = null,
+        public readonly ?string $likeableType = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
+
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            likeableType: $request->input('likeable_type'),
-            likeableId: $request->input('likeable_id'),
+            userId: $data['user_id'] ?? null,
+            likeableId: $data['likeable_id'] ?? null,
+            likeableType: $data['likeable_type'] ?? null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

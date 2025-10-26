@@ -2,44 +2,48 @@
 
 namespace App\DTOs\Report;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use App\Enums\ReportStatus;
 use App\Enums\ReportType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class ReportStoreDTO
 {
-    /**
-     * @param string $userId ID користувача
-     * @param ReportType $type Тип репорту
-     * @param string $reportableId ID об'єкта репорту
-     * @param string $reportableType Тип об'єкта репорту
-     * @param string|null $description Опис
-     * @param ReportStatus|null $status Статус репорту
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $userId,
         public readonly ReportType $type,
         public readonly string $reportableId,
         public readonly string $reportableType,
         public readonly ?string $description = null,
-        public readonly ?ReportStatus $status = null
+        public readonly ?ReportStatus $status = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити ReportStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            userId: $request->input('user_id'),
-            type: ReportType::from($request->input('type')),
-            reportableId: $request->input('reportable_id'),
-            reportableType: $request->input('reportable_type'),
-            description: $request->input('description'),
-            status: $request->input('status') ? ReportStatus::from($request->input('status')) : null
+            userId: $data['user_id'],
+            type: ReportType::from($data['type']),
+            reportableId: $data['reportable_id'],
+            reportableType: $data['reportable_type'],
+            description: $data['description'] ?? null,
+            status: !empty($data['status']) ? ReportStatus::from($data['status']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

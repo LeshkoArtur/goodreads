@@ -2,37 +2,43 @@
 
 namespace App\DTOs\GroupInvitation;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use App\Enums\InvitationStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class GroupInvitationStoreDTO
 {
-    /**
-     * @param string $groupId ID групи
-     * @param string $inviterId ID запрошувача
-     * @param string $inviteeId ID запрошеного
-     * @param InvitationStatus|null $status Статус запрошення
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $groupId,
         public readonly string $inviterId,
         public readonly string $inviteeId,
-        public readonly ?InvitationStatus $status = null
+        public readonly ?InvitationStatus $status = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити GroupInvitationStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            groupId: $request->input('group_id'),
-            inviterId: $request->input('inviter_id'),
-            inviteeId: $request->input('invitee_id'),
-            status: $request->input('status') ? InvitationStatus::from($request->input('status')) : null
+            groupId: $data['group_id'],
+            inviterId: $data['inviter_id'],
+            inviteeId: $data['invitee_id'],
+            status: !empty($data['status']) ? InvitationStatus::from($data['status']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

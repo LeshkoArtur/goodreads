@@ -2,23 +2,15 @@
 
 namespace App\DTOs\UserBook;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use App\Enums\ReadingFormat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class UserBookStoreDTO
 {
-    /**
-     * @param string $userId ID користувача
-     * @param string $bookId ID книги
-     * @param string|null $shelfId ID полиці
-     * @param string|null $startDate Дата початку читання у форматі Y-m-d
-     * @param string|null $readDate Дата завершення читання у форматі Y-m-d
-     * @param int|null $progressPages Прогрес у сторінках
-     * @param bool $isPrivate Чи приватна
-     * @param int|null $rating Оцінка
-     * @param string|null $notes Нотатки
-     * @param ReadingFormat|null $readingFormat Формат читання
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $userId,
         public readonly string $bookId,
@@ -29,28 +21,36 @@ class UserBookStoreDTO
         public readonly bool $isPrivate = false,
         public readonly ?int $rating = null,
         public readonly ?string $notes = null,
-        public readonly ?ReadingFormat $readingFormat = null
+        public readonly ?ReadingFormat $readingFormat = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити UserBookStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            userId: $request->input('user_id'),
-            bookId: $request->input('book_id'),
-            shelfId: $request->input('shelf_id'),
-            startDate: $request->input('start_date'),
-            readDate: $request->input('read_date'),
-            progressPages: $request->input('progress_pages'),
-            isPrivate: $request->input('is_private', false),
-            rating: $request->input('rating'),
-            notes: $request->input('notes'),
-            readingFormat: $request->input('reading_format') ? ReadingFormat::from($request->input('reading_format')) : null
+            userId: $data['user_id'],
+            bookId: $data['book_id'],
+            shelfId: $data['shelf_id'] ?? null,
+            startDate: $data['start_date'] ?? null,
+            readDate: $data['read_date'] ?? null,
+            progressPages: isset($data['progress_pages']) ? (int) $data['progress_pages'] : null,
+            isPrivate: $data['is_private'] ?? false,
+            rating: isset($data['rating']) ? (int) $data['rating'] : null,
+            notes: $data['notes'] ?? null,
+            readingFormat: !empty($data['reading_format']) ? ReadingFormat::from($data['reading_format']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

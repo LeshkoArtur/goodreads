@@ -2,42 +2,46 @@
 
 namespace App\DTOs\GroupModerationLog;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class GroupModerationLogStoreDTO
 {
-    /**
-     * @param string $groupId ID групи
-     * @param string $moderatorId ID модератора
-     * @param string $action Дія
-     * @param string $targetableId ID цільового об'єкта
-     * @param string $targetableType Тип цільового об'єкта
-     * @param string|null $description Опис
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $groupId,
         public readonly string $moderatorId,
         public readonly string $action,
         public readonly string $targetableId,
         public readonly string $targetableType,
-        public readonly ?string $description = null
+        public readonly ?string $description = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити GroupModerationLogStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            groupId: $request->input('group_id'),
-            moderatorId: $request->input('moderator_id'),
-            action: $request->input('action'),
-            targetableId: $request->input('targetable_id'),
-            targetableType: $request->input('targetable_type'),
-            description: $request->input('description')
+            groupId: $data['group_id'],
+            moderatorId: $data['moderator_id'],
+            action: $data['action'],
+            targetableId: $data['targetable_id'],
+            targetableType: $data['targetable_type'],
+            description: $data['description'] ?? null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

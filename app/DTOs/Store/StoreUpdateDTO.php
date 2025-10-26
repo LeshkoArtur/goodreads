@@ -2,45 +2,48 @@
 
 namespace App\DTOs\Store;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * DTO для оновлення даних магазину.
- */
 class StoreUpdateDTO
 {
-    /**
-     * Створює новий екземпляр StoreUpdateDTO.
-     *
-     * @param string|null $name Назва магазину
-     * @param string|null $country Країна магазину
-     * @param string|null $type Тип магазину
-     * @param bool|null $isOnline Онлайн/офлайн статус
-     * @param string|null $website Вебсайт магазину
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly ?string $name = null,
+        public readonly ?string $logoUrl = null,
+        public readonly ?string $region = null,
+        public readonly ?string $websiteUrl = null,
         public readonly ?string $country = null,
         public readonly ?string $type = null,
         public readonly ?bool $isOnline = null,
-        public readonly ?string $website = null,
-    ) {
-    }
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
+    ) {}
 
-    /**
-     * Створює новий екземпляр DTO з запиту.
-     *
-     * @param Request $request HTTP-запит
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            name: $request->input('name'),
-            country: $request->input('country'),
-            type: $request->input('type'),
-            isOnline: $request->has('is_online') ? $request->boolean('is_online') : null,
-            website: $request->input('website'),
+            name: $data['name'] ?? null,
+            logoUrl: $data['logo_url'] ?? null,
+            region: $data['region'] ?? null,
+            websiteUrl: $data['website_url'] ?? null,
+            country: $data['country'] ?? null,
+            type: $data['type'] ?? null,
+            isOnline: isset($data['is_online']) ? (bool) $data['is_online'] : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }

@@ -2,20 +2,15 @@
 
 namespace App\DTOs\GroupEvent;
 
+use App\DTOs\Traits\HandlesJsonArrays;
 use App\Enums\EventStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class GroupEventStoreDTO
 {
-    /**
-     * @param string $groupId ID групи
-     * @param string $creatorId ID творця
-     * @param string $title Назва події
-     * @param string|null $description Опис
-     * @param string|null $eventDate Дата події у форматі Y-m-d H:i:s
-     * @param string|null $location Місце проведення
-     * @param EventStatus|null $status Статус події
-     */
+    use HandlesJsonArrays;
+
     public function __construct(
         public readonly string $groupId,
         public readonly string $creatorId,
@@ -23,25 +18,33 @@ class GroupEventStoreDTO
         public readonly ?string $description = null,
         public readonly ?string $eventDate = null,
         public readonly ?string $location = null,
-        public readonly ?EventStatus $status = null
+        public readonly ?EventStatus $status = null,
+        public readonly array|Collection|null $mediaImages = null,
+        public readonly array|Collection|null $socialMediaLinks = null
     ) {}
 
-    /**
-     * Створити GroupEventStoreDTO з HTTP-запиту
-     *
-     * @param Request $request
-     * @return static
-     */
     public static function fromRequest(Request $request): static
     {
+        return self::makeDTO($request->all());
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::makeDTO($data);
+    }
+
+    private static function makeDTO(array $data): static
+    {
         return new static(
-            groupId: $request->input('group_id'),
-            creatorId: $request->input('creator_id'),
-            title: $request->input('title'),
-            description: $request->input('description'),
-            eventDate: $request->input('event_date'),
-            location: $request->input('location'),
-            status: $request->input('status') ? EventStatus::from($request->input('status')) : null
+            groupId: $data['group_id'],
+            creatorId: $data['creator_id'],
+            title: $data['title'],
+            description: $data['description'] ?? null,
+            eventDate: $data['event_date'] ?? null,
+            location: $data['location'] ?? null,
+            status: !empty($data['status']) ? EventStatus::from($data['status']) : null,
+            mediaImages: self::processJsonArray($data['media_images'] ?? null),
+            socialMediaLinks: self::processJsonArray($data['social_media_links'] ?? null)
         );
     }
 }
