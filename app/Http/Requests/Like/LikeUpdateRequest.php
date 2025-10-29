@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Like;
 
-use App\Models\Like;
 use Illuminate\Foundation\Http\FormRequest;
 
 class LikeUpdateRequest extends FormRequest
@@ -10,7 +9,8 @@ class LikeUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $like = $this->route('like');
-        return $this->user()->can('update', $like);
+
+        return $this->user()?->can('update', $like) ?? false;
     }
 
     public function rules(): array
@@ -25,7 +25,7 @@ class LikeUpdateRequest extends FormRequest
     {
         return [
             'likeable_type' => [
-                'description' => 'Тип лайкнутого об’єкта (напр., App\Models\GroupPost).',
+                'description' => 'Тип лайкнутого об’єкта. Можливі значення: App\Models\GroupPost, App\Models\Comment.',
                 'example' => 'App\Models\GroupPost',
             ],
             'likeable_id' => [

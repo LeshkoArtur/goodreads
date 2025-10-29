@@ -3,9 +3,8 @@
 namespace App\Filament\Admin\Resources\CommentResource\Pages;
 
 use App\Actions\Comments\UpdateComment;
-use App\DTOs\Comment\CommentUpdateDTO;
+use App\Data\Comment\CommentUpdateData;
 use App\Filament\Admin\Resources\CommentResource;
-use App\Models\Comment;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -14,17 +13,30 @@ class EditComment extends EditRecord
 {
     protected static string $resource = CommentResource::class;
 
+    protected ?string $heading = 'Редагувати коментар';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Видалити'),
         ];
     }
 
-    protected function handleRecordUpdate(Comment|Model $record, array $data): Comment
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $dto = CommentUpdateDTO::fromArray($data);
+        $dto = CommentUpdateData::fromArray($data);
 
-        return UpdateComment::run($record, $dto);
+        return app(UpdateComment::class)->handle($record, $dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Коментар оновлено';
     }
 }

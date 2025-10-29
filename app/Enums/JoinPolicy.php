@@ -15,7 +15,7 @@ enum JoinPolicy: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('join_policy.' . $this->value);
+        return __('join_policy.'.$this->value);
     }
 
     // Colors for display in Filament
@@ -32,7 +32,7 @@ enum JoinPolicy: string implements HasColor, HasIcon, HasLabel
     public function getIcon(): ?string
     {
         return match ($this) {
-            self::OPEN => 'heroicon-o-door-open',
+            self::OPEN => 'heroicon-o-lock-open',
             self::REQUEST => 'heroicon-o-clipboard-document-check',
             self::INVITE_ONLY => 'heroicon-o-lock-closed',
         };

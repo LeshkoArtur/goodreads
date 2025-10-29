@@ -9,17 +9,17 @@ class CollectionStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Collection::class);
+        return $this->user()?->can('create', Collection::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'string', 'exists:users,id'],
+            'user_id' => ['required', 'uuid', 'exists:users,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'cover_image' => ['nullable', 'url'],
-            'is_public' => ['boolean'],
+            'cover_image' => ['nullable', 'url', 'max:255'],
+            'is_public' => ['nullable', 'boolean'],
         ];
     }
 

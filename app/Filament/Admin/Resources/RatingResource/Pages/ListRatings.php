@@ -10,10 +10,13 @@ class ListRatings extends ListRecords
 {
     protected static string $resource = RatingResource::class;
 
+    protected ?string $heading = 'Рейтинги';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити рейтинг'),
         ];
     }
 }

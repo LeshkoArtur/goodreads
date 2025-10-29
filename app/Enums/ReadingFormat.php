@@ -16,7 +16,7 @@ enum ReadingFormat: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('reading_format.' . $this->value);
+        return __('reading_format.'.$this->value);
     }
 
     // Colors for display in Filament
@@ -37,7 +37,7 @@ enum ReadingFormat: string implements HasColor, HasIcon, HasLabel
             self::PHYSICAL => 'heroicon-o-book-open',
             self::EBOOK => 'heroicon-o-device-tablet',
             self::AUDIOBOOK => 'heroicon-o-speaker-wave',
-            self::OTHER => 'heroicon-o-dots-horizontal',
+            self::OTHER => 'heroicon-o-ellipsis-horizontal',
         };
     }
 }

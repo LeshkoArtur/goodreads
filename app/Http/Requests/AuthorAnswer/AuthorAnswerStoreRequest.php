@@ -5,13 +5,13 @@ namespace App\Http\Requests\AuthorAnswer;
 use App\Enums\AnswerStatus;
 use App\Models\AuthorAnswer;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class AuthorAnswerStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', AuthorAnswer::class);
+        return $this->user()?->can('create', AuthorAnswer::class) ?? false;
     }
 
     public function rules(): array
@@ -19,9 +19,9 @@ class AuthorAnswerStoreRequest extends FormRequest
         return [
             'question_id' => ['required', 'string', 'exists:author_questions,id'],
             'author_id' => ['required', 'string', 'exists:authors,id'],
-            'content' => ['required', 'string'],
+            'content' => ['required', 'string', 'max:10000'],
             'published_at' => ['nullable', 'date'],
-            'status' => ['nullable', Rule::in(AnswerStatus::values())],
+            'status' => ['nullable', new Enum(AnswerStatus::class)],
         ];
     }
 

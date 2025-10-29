@@ -9,7 +9,7 @@ class PollOptionIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', PollOption::class);
+        return $this->user()?->can('viewAny', PollOption::class) ?? true;
     }
 
     public function rules(): array
@@ -18,11 +18,9 @@ class PollOptionIndexRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'sort' => ['nullable', 'string', 'in:text,vote_count,created_at'],
+            'sort' => ['nullable', 'string', 'in:created_at,vote_count'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'group_poll_id' => ['nullable', 'string', 'exists:group_polls,id'],
-            'min_vote_count' => ['nullable', 'integer', 'min:0'],
-            'max_vote_count' => ['nullable', 'integer', 'min:0', 'gte:min_vote_count'],
+            'group_poll_id' => ['nullable', 'uuid', 'exists:group_polls,id'],
         ];
     }
 
@@ -30,8 +28,8 @@ class PollOptionIndexRequest extends FormRequest
     {
         return [
             'q' => [
-                'description' => 'Пошуковий запит для тексту варіанту опитування.',
-                'example' => 'Варіант 1',
+                'description' => 'Пошуковий запит для тексту варіанта.',
+                'example' => 'Варіант',
             ],
             'page' => [
                 'description' => 'Номер сторінки для пагінації.',
@@ -42,7 +40,7 @@ class PollOptionIndexRequest extends FormRequest
                 'example' => 15,
             ],
             'sort' => [
-                'description' => 'Поле для сортування (text, vote_count, created_at).',
+                'description' => 'Поле для сортування (created_at, vote_count).',
                 'example' => 'vote_count',
             ],
             'direction' => [
@@ -50,16 +48,8 @@ class PollOptionIndexRequest extends FormRequest
                 'example' => 'desc',
             ],
             'group_poll_id' => [
-                'description' => 'Фільтр за ID опитування.',
-                'example' => 'poll-uuid123',
-            ],
-            'min_vote_count' => [
-                'description' => 'Мінімальна кількість голосів для фільтрації.',
-                'example' => 0,
-            ],
-            'max_vote_count' => [
-                'description' => 'Максимальна кількість голосів для фільтрації.',
-                'example' => 100,
+                'description' => 'Фільтр за UUID опитування.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

@@ -2,32 +2,26 @@
 
 namespace App\Actions\GroupPosts;
 
-use App\DTOs\GroupPost\GroupPostStoreDTO;
+use App\Data\GroupPost\GroupPostStoreData;
 use App\Models\GroupPost;
+use App\Models\User;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateGroupPost
 {
     use AsAction;
 
-    /**
-     * Створити новий пост групи.
-     *
-     * @param GroupPostStoreDTO $dto
-     * @return GroupPost
-     */
-    public function handle(GroupPostStoreDTO $dto): GroupPost
+    public function handle(GroupPostStoreData $data, User $user): GroupPost
     {
-        $post = new GroupPost();
-        $post->group_id = $dto->groupId;
-        $post->user_id = $dto->userId;
-        $post->content = $dto->content;
-        $post->is_pinned = $dto->isPinned;
-        $post->category = $dto->category?->value;
-        $post->post_status = $dto->postStatus?->value;
+        $groupPost = new GroupPost;
+        $groupPost->group_id = $data->group_id;
+        $groupPost->user_id = $user->id;
+        $groupPost->content = $data->content;
+        $groupPost->is_pinned = $data->is_pinned ?? false;
+        $groupPost->category = $data->category;
+        $groupPost->post_status = $data->post_status;
+        $groupPost->save();
 
-        $post->save();
-
-        return $post->load(['group', 'user', 'comments', 'likes', 'favorites', 'moderationLogs']);
+        return $groupPost->fresh(['group', 'user']);
     }
 }

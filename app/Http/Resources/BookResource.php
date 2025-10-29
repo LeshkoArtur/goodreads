@@ -11,12 +11,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class BookResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @param  Request  $request
-     * @return array
-     */
     public function toArray(Request $request): array
     {
         return [
@@ -43,21 +37,21 @@ class BookResource extends JsonResource
             }),
 
             'authors' => $this->whenLoaded('authors', function () {
-                return $this->authors->map(fn($author) => [
+                return $this->authors->map(fn ($author) => [
                     'id' => $author->id,
                     'name' => $author->name,
                 ]);
             }),
 
             'genres' => $this->whenLoaded('genres', function () {
-                return $this->genres->map(fn($genre) => [
+                return $this->genres->map(fn ($genre) => [
                     'id' => $genre->id,
                     'name' => $genre->name,
                 ]);
             }),
 
             'publishers' => $this->whenLoaded('publishers', function () {
-                return $this->publishers->map(fn($publisher) => [
+                return $this->publishers->map(fn ($publisher) => [
                     'id' => $publisher->id,
                     'name' => $publisher->name,
                     'pivot' => [
@@ -70,7 +64,7 @@ class BookResource extends JsonResource
                         'edition' => $publisher->pivot->edition,
                         'price' => $publisher->pivot->price,
                         'binding' => $publisher->pivot->binding,
-                    ]
+                    ],
                 ]);
             }),
 

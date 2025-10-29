@@ -2,29 +2,23 @@
 
 namespace App\Actions\Likes;
 
-use App\DTOs\Like\LikeStoreDTO;
+use App\Data\Like\LikeStoreData;
 use App\Models\Like;
+use App\Models\User;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateLike
 {
     use AsAction;
 
-    /**
-     * Створити новий лайк.
-     *
-     * @param LikeStoreDTO $dto
-     * @return Like
-     */
-    public function handle(LikeStoreDTO $dto): Like
+    public function handle(LikeStoreData $data, User $user): Like
     {
-        $like = new Like();
-        $like->user_id = $dto->userId;
-        $like->likeable_id = $dto->likeableId;
-        $like->likeable_type = $dto->likeableType;
-
+        $like = new Like;
+        $like->user_id = $user->id;
+        $like->likeable_type = $data->likeable_type;
+        $like->likeable_id = $data->likeable_id;
         $like->save();
 
-        return $like->load(['user', 'likeable']);
+        return $like->fresh(['user', 'likeable']);
     }
 }

@@ -16,7 +16,7 @@ enum AnswerStatus: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('answer_status.' . $this->value);
+        return __('answer_status.'.$this->value);
     }
 
     // Colors for display in Filament

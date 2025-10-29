@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Store;
 
-use App\Models\Store;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,7 +10,8 @@ class StoreUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $store = $this->route('store');
-        return $this->user()->can('update', $store);
+
+        return $this->user()?->can('update', $store) ?? false;
     }
 
     public function rules(): array
@@ -20,10 +20,9 @@ class StoreUpdateRequest extends FormRequest
 
         return [
             'name' => ['nullable', 'string', 'max:255', Rule::unique('stores', 'name')->ignore($storeId)],
-            'country' => ['nullable', 'string', 'max:100'],
-            'type' => ['nullable', 'string', 'in:BOOKSTORE,LIBRARY,MARKETPLACE'],
-            'is_online' => ['nullable', 'boolean'],
-            'website' => ['nullable', 'url', 'max:255'],
+            'logo_url' => ['nullable', 'url', 'max:255'],
+            'region' => ['nullable', 'string', 'max:100'],
+            'website_url' => ['nullable', 'url', 'max:255'],
         ];
     }
 
@@ -34,19 +33,15 @@ class StoreUpdateRequest extends FormRequest
                 'description' => 'Назва магазину.',
                 'example' => 'Оновлена Книгарня Є',
             ],
-            'country' => [
-                'description' => 'Країна магазину.',
-                'example' => 'Україна',
+            'logo_url' => [
+                'description' => 'URL логотипу магазину.',
+                'example' => 'https://example.com/logo.png',
             ],
-            'type' => [
-                'description' => 'Тип магазину (BOOKSTORE, LIBRARY, MARKETPLACE).',
-                'example' => 'BOOKSTORE',
+            'region' => [
+                'description' => 'Регіон розташування магазину.',
+                'example' => 'Київ',
             ],
-            'is_online' => [
-                'description' => 'Онлайн/офлайн статус магазину.',
-                'example' => true,
-            ],
-            'website' => [
+            'website_url' => [
                 'description' => 'URL вебсайту магазину.',
                 'example' => 'https://book-ye.com.ua',
             ],

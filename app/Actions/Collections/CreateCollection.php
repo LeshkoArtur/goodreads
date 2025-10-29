@@ -2,7 +2,7 @@
 
 namespace App\Actions\Collections;
 
-use App\DTOs\Collection\CollectionStoreDTO;
+use App\Data\Collection\CollectionStoreData;
 use App\Models\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,26 +10,18 @@ class CreateCollection
 {
     use AsAction;
 
-    /**
-     * Створити нову колекцію.
-     *
-     * @param CollectionStoreDTO $dto
-     * @return Collection
-     */
-    public function handle(CollectionStoreDTO $dto): Collection
+    public function handle(CollectionStoreData $data): Collection
     {
-        $collection = new Collection();
-        $collection->user_id = $dto->userId;
-        $collection->title = $dto->title;
-        $collection->description = $dto->description;
-        $collection->is_public = $dto->isPublic;
-
-        if ($dto->coverImage) {
-            $collection->cover_image = $collection->handleFileUpload($dto->coverImage, 'collection_covers');
-        }
-
+        $collection = new Collection;
+        $collection->user_id = $data->user_id;
+        $collection->title = $data->title;
+        $collection->description = $data->description;
+        $collection->cover_image = $data->cover_image;
+        $collection->is_public = $data->is_public;
         $collection->save();
 
-        return $collection->load(['user', 'books']);
+        when($data->book_ids, fn () => $collection->books()->sync($data->book_ids));
+
+        return $collection->fresh(['user', 'books']);
     }
 }

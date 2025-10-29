@@ -2,76 +2,50 @@
 
 namespace App\Actions\Notes;
 
-use App\DTOs\Note\NoteIndexDTO;
+use App\Data\Note\NoteIndexData;
 use App\Models\Note;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetNotes
 {
     use AsAction;
 
-    /**
-     * Отримати список нотаток із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param NoteIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(NoteIndexDTO $dto): LengthAwarePaginator
+    public function handle(NoteIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Note::search($dto->query ?? '');
+        $searchQuery = Note::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at', 'page_number'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['created_at', 'page_number']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/notes');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param NoteIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, NoteIndexDTO $dto): void
+    private function applyFilters(Builder $query, NoteIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"))
+                ->when($data->book_id, fn ($collection) => $collection->push("book_id = '{$data->book_id}'"))
+                ->when($data->contains_spoilers !== null, fn ($collection) => $collection->push('contains_spoilers = '.($data->contains_spoilers ? 'true' : 'false')))
+                ->when($data->is_private !== null, fn ($collection) => $collection->push('is_private = '.($data->is_private ? 'true' : 'false')))
+                ->when($data->min_page_number !== null, fn ($collection) => $collection->push("page_number >= {$data->min_page_number}"))
+                ->when($data->max_page_number !== null, fn ($collection) => $collection->push("page_number <= {$data->max_page_number}"))
+                ;
 
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = {$dto->userId}";
-            }
-
-            if ($dto->bookId) {
-                $options['filter'][] = "book_id = {$dto->bookId}";
-            }
-
-            if ($dto->containsSpoilers !== null) {
-                $options['filter'][] = "contains_spoilers = " . ($dto->containsSpoilers ? 'true' : 'false');
-            }
-
-            if ($dto->isPrivate !== null) {
-                $options['filter'][] = "is_private = " . ($dto->isPrivate ? 'true' : 'false');
-            }
-
-            if ($dto->minPageNumber !== null) {
-                $options['filter'][] = "page_number >= {$dto->minPageNumber}";
-            }
-
-            if ($dto->maxPageNumber !== null) {
-                $options['filter'][] = "page_number <= {$dto->maxPageNumber}";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

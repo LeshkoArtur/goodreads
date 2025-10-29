@@ -2,10 +2,7 @@
 
 namespace Tests\Unit\Models;
 
-use App\Enums\NominationStatus;
-use App\Models\Author;
 use App\Models\Award;
-use App\Models\Book;
 use App\Models\Nomination;
 use App\Models\NominationEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,7 +16,7 @@ class NominationTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_fields()
     {
-        $nomination = new Nomination();
+        $nomination = new Nomination;
 
         $this->assertEquals([
             'award_id',
@@ -31,7 +28,7 @@ class NominationTest extends TestCase
     /** @test */
     public function it_uses_expected_table_name()
     {
-        $nomination = new Nomination();
+        $nomination = new Nomination;
 
         $this->assertEquals('nominations', $nomination->getTable());
     }
@@ -39,7 +36,7 @@ class NominationTest extends TestCase
     /** @test */
     public function it_has_uuid_as_primary_key()
     {
-        $nomination = new Nomination();
+        $nomination = new Nomination;
 
         $this->assertEquals('id', $nomination->getKeyName());
         $this->assertFalse($nomination->getIncrementing());

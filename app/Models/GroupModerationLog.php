@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ModerationAction;
 use App\Models\Builders\GroupModerationLogQueryBuilder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,6 +25,15 @@ class GroupModerationLog extends Model
         'targetable_id',
         'targetable_type',
         'description',
+    ];
+
+    protected $casts = [
+        'group_id' => 'string',
+        'moderator_id' => 'string',
+        'action' => ModerationAction::class,
+        'targetable_id' => 'string',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     public function newEloquentBuilder($query): GroupModerationLogQueryBuilder

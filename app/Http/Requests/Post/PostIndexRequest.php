@@ -10,7 +10,7 @@ class PostIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Post::class);
+        return $this->user()?->can('viewAny', Post::class) ?? true;
     }
 
     public function rules(): array
@@ -24,8 +24,8 @@ class PostIndexRequest extends FormRequest
             'user_id' => ['nullable', 'string', 'exists:users,id'],
             'book_id' => ['nullable', 'string', 'exists:books,id'],
             'author_id' => ['nullable', 'string', 'exists:authors,id'],
-            'type' => ['nullable', Rule::in(\App\Enums\PostType::values())],
-            'status' => ['nullable', Rule::in(\App\Enums\PostStatus::values())],
+            'type' => ['nullable', Rule::in(\App\Enums\PostType::cases())],
+            'status' => ['nullable', Rule::in(\App\Enums\PostStatus::cases())],
             'min_published_at' => ['nullable', 'date'],
             'max_published_at' => ['nullable', 'date', 'after_or_equal:min_published_at'],
             'tag_ids' => ['nullable', 'array'],

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Shelf;
 
-use App\Models\Shelf;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ShelfDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class ShelfDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $shelf = $this->route('shelf');
-        return $this->user()->can('delete', $shelf);
+
+        return $this->user()?->can('delete', $shelf) ?? false;
     }
 
     public function rules(): array

@@ -2,7 +2,7 @@
 
 namespace App\Actions\Reports;
 
-use App\DTOs\Report\ReportUpdateDTO;
+use App\Data\Report\ReportUpdateData;
 use App\Models\Report;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,25 +10,17 @@ class UpdateReport
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий звіт.
-     *
-     * @param Report $report
-     * @param ReportUpdateDTO $dto
-     * @return Report
-     */
-    public function handle(Report $report, ReportUpdateDTO $dto): Report
+    public function handle(Report $report, ReportUpdateData $data): Report
     {
-        $attributes = [
-            'type' => $dto->reason,
-            'description' => $dto->description,
-            'status' => $dto->status,
-        ];
+        $report->update(array_filter([
+            'user_id' => $data->user_id,
+            'type' => $data->type,
+            'reportable_id' => $data->reportable_id,
+            'reportable_type' => $data->reportable_type,
+            'description' => $data->description,
+            'status' => $data->status,
+        ], fn ($value) => $value !== null));
 
-        $report->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $report->save();
-
-        return $report->load(['user', 'reportable']);
+        return $report->fresh(['user', 'reportable']);
     }
 }

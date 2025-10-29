@@ -9,7 +9,8 @@ class BookDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $book = $this->route('book');
-        return $this->user()->can('delete', $book);
+
+        return $this->user()?->can('delete', $book) ?? false;
     }
 
     public function rules(): array

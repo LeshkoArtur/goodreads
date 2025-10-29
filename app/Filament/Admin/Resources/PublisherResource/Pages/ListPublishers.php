@@ -10,10 +10,13 @@ class ListPublishers extends ListRecords
 {
     protected static string $resource = PublisherResource::class;
 
+    protected ?string $heading = 'Видавництва';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити видавництво'),
         ];
     }
 }

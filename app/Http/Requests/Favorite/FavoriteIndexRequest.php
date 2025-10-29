@@ -4,12 +4,13 @@ namespace App\Http\Requests\Favorite;
 
 use App\Models\Favorite;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class FavoriteIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Favorite::class);
+        return $this->user()?->can('viewAny', Favorite::class) ?? false;
     }
 
     public function rules(): array
@@ -18,11 +19,22 @@ class FavoriteIndexRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'sort' => ['nullable', 'string', 'in:created_at'],
+            'sort' => ['nullable', 'string', 'in:created_at,updated_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'user_id' => ['nullable', 'string', 'exists:users,id'],
-            'favoriteable_type' => ['nullable', 'string', 'in:App\Models\Book,App\Models\Author,App\Models\Series'],
-            'favoriteable_id' => ['nullable', 'string'],
+            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'favoriteable_type' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::in([
+                    'App\\Models\\Book',
+                    'App\\Models\\Post',
+                    'App\\Models\\GroupPost',
+                    'App\\Models\\Quote',
+                    'App\\Models\\Rating',
+                ]),
+            ],
+            'favoriteable_id' => ['nullable', 'uuid'],
         ];
     }
 
@@ -30,8 +42,8 @@ class FavoriteIndexRequest extends FormRequest
     {
         return [
             'q' => [
-                'description' => 'Пошуковий запит для улюблених об’єктів.',
-                'example' => 'Улюблені книги',
+                'description' => 'Пошуковий запит.',
+                'example' => '',
             ],
             'page' => [
                 'description' => 'Номер сторінки для пагінації.',
@@ -50,16 +62,16 @@ class FavoriteIndexRequest extends FormRequest
                 'example' => 'desc',
             ],
             'user_id' => [
-                'description' => 'Фільтр за ID користувача.',
-                'example' => 'user-uuid123',
+                'description' => 'Фільтр за UUID користувача.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'favoriteable_type' => [
-                'description' => 'Фільтр за типом улюбленого об’єкта (напр., App\Models\Book).',
-                'example' => 'App\Models\Book',
+                'description' => 'Фільтр за типом об\'єкта улюбленого. Можливі значення: App\\Models\\Book, App\\Models\\Post, App\\Models\\GroupPost, App\\Models\\Quote, App\\Models\\Rating.',
+                'example' => 'App\\Models\\Book',
             ],
             'favoriteable_id' => [
-                'description' => 'Фільтр за ID улюбленого об’єкта.',
-                'example' => 'book-uuid123',
+                'description' => 'Фільтр за UUID об\'єкта улюбленого.',
+                'example' => '8c6d7e2b-1a9c-3d4e-8f2b-1c2d3e4f5a6b',
             ],
         ];
     }

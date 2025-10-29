@@ -2,63 +2,94 @@
 
 namespace App\Filament\Admin\Resources;
 
-use App\Filament\Admin\Resources\ShelfResource\Pages\CreateShelf;
-use App\Filament\Admin\Resources\ShelfResource\Pages\EditShelf;
-use App\Filament\Admin\Resources\ShelfResource\Pages\ListShelves;
-use App\Filament\Admin\Resources\ShelfResource\Pages\ViewShelf;
-use App\Filament\Admin\Resources\ShelfResource\RelationManagers\UserBooksRelationManager;
+use App\Filament\Admin\Resources\ShelfResource\Pages;
 use App\Models\Shelf;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class ShelfResource extends Resource
 {
     protected static ?string $model = Shelf::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-book-open';
+    protected static ?string $navigationIcon = 'heroicon-o-archive-box';
 
-    protected static ?string $navigationGroup = 'Полиці';
+    protected static ?string $navigationGroup = 'Взаємодія користувача';
 
-    protected static ?int $navigationSort = 7;
-
-    public static function getNavigationLabel(): string
-    {
-        return __('Полиці');
-    }
+    protected static ?int $navigationSort = 12;
 
     public static function getModelLabel(): string
     {
-        return __('Полиця');
+        return 'Полиця';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Полиці');
+        return 'Полиці';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Полиці';
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'user.username'];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->name;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Користувач' => $record->user->username,
+            'Книг' => $record->user_books_count ?? 0,
+        ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withCount(['userBooks']);
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Select::make('user_id')
-                    ->label(__('Користувач'))
-                    ->relationship('user', 'username')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
-
-                TextInput::make('name')
-                    ->label(__('Назва'))
-                    ->required()
-                    ->maxLength(255)
-                    ->unique(Shelf::class, 'name', ignoreRecord: true),
+                Section::make('Інформація про полицю')
+                    ->description('Персональна полиця користувача для організації книг')
+                    ->schema([
+                        Select::make('user_id')
+                            ->label('Власник полиці')
+                            ->helperText('Користувач, якому належить полиця')
+                            ->relationship('user', 'username')
+                            ->required()
+                            ->searchable()
+                            ->preload(),
+                        TextInput::make('name')
+                            ->label('Назва полиці')
+                            ->required()
+                            ->maxLength(255)
+                            ->helperText('Наприклад: "Хочу прочитати", "Улюблені", "Прочитано 2024"'),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -66,79 +97,70 @@ class ShelfResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
                 TextColumn::make('name')
-                    ->label(__('Назва'))
+                    ->label('Назва полиці')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record) => route('filament.admin.resources.shelves.view', $record->id)),
-
+                    ->weight('bold'),
                 TextColumn::make('user.username')
-                    ->label(__('Користувач'))
+                    ->label('Користувач')
                     ->searchable()
-                    ->sortable()
-                    ->url(fn ($record) => $record->user ? route('filament.admin.resources.users.view', $record->user_id) : null),
-
-                TextColumn::make('userBooks_count')
-                    ->label(__('Кількість книг'))
-                    ->counts('userBooks')
-                    ->sortable()
-                    ->toggleable(),
-
+                    ->sortable(),
+                TextColumn::make('user_books_count')
+                    ->label('Книг на полиці')
+                    ->badge()
+                    ->color('success')
+                    ->sortable(),
                 TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
+                    ->label('Створено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-
                 TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                    ->label('Оновлено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('user_id')
-                    ->label(__('Користувач'))
+                SelectFilter::make('user')
+                    ->label('Користувач')
                     ->relationship('user', 'username')
-                    ->multiple()
-                    ->indicator(__('Користувач')),
+                    ->searchable()
+                    ->preload()
+                    ->multiple(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('name', 'asc')
-            ->groups([
-                'user_id',
-            ]);
+            ->defaultSort('created_at', 'desc')
+            ->striped()
+            ->persistSortInSession()
+            ->persistSearchInSession()
+            ->persistFiltersInSession();
     }
 
     public static function getRelations(): array
     {
         return [
-            UserBooksRelationManager::class,
+            ShelfResource\RelationManagers\BooksRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListShelves::route('/'),
-            'create' => CreateShelf::route('/create'),
-            'view' => ViewShelf::route('/{record}'),
-            'edit' => EditShelf::route('/{record}/edit'),
+            'index' => Pages\ListShelves::route('/'),
+            'create' => Pages\CreateShelf::route('/create'),
+            'view' => Pages\ViewShelf::route('/{record}'),
+            'edit' => Pages\EditShelf::route('/{record}/edit'),
         ];
     }
 }

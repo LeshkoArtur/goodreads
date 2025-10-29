@@ -2,7 +2,7 @@
 
 namespace App\Actions\Authors;
 
-use App\DTOs\Author\AuthorStoreDTO;
+use App\Data\Author\AuthorStoreData;
 use App\Models\Author;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,40 +10,28 @@ class CreateAuthor
 {
     use AsAction;
 
-    /**
-     * Створити нового автора.
-     *
-     * @param AuthorStoreDTO $dto
-     * @return Author
-     */
-    public function handle(AuthorStoreDTO $dto): Author
+    public function handle(AuthorStoreData $data): Author
     {
-        $author = new Author();
-        $author->name = $dto->name;
-        $author->bio = $dto->bio;
-        $author->birth_date = $dto->birthDate;
-        $author->birth_place = $dto->birthPlace;
-        $author->nationality = $dto->nationality;
-        $author->website = $dto->website;
-        $author->profile_picture = $dto->profilePicture;
-        $author->death_date = $dto->deathDate;
-        $author->social_media_links = $dto->socialMediaLinks;
-        $author->media_images = $dto->mediaImages;
-        $author->media_videos = $dto->mediaVideos;
-        $author->fun_facts = $dto->funFacts;
-        $author->type_of_work = $dto->typeOfWork;
-
-        if ($dto->profilePicture) {
-            $author->profile_picture = $author->handleFileUpload($dto->profilePicture, 'author_profiles');
-        }
-
+        $author = new Author;
+        $author->name = $data->name;
+        $author->bio = $data->bio;
+        $author->birth_date = $data->birth_date;
+        $author->birth_place = $data->birth_place ? substr($data->birth_place, 0, 50) : null;
+        $author->nationality = $data->nationality ? substr($data->nationality, 0, 50) : null;
+        $author->website = $data->website;
+        $author->profile_picture = $data->profile_picture;
+        $author->death_date = $data->death_date;
+        $author->social_media_links = $data->social_media_links;
+        $author->media_images = $data->media_images;
+        $author->media_videos = $data->media_videos;
+        $author->fun_facts = $data->fun_facts;
+        $author->type_of_work = $data->type_of_work;
         $author->save();
 
-        if ($dto->userIds) {
-            $author->users()->sync($dto->userIds);
+        if ($data->user_ids) {
+            $author->users()->sync($data->user_ids);
         }
 
-
-        return $author->load(['users']);
+        return $author->fresh(['users', 'books']);
     }
 }

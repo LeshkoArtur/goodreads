@@ -2,90 +2,56 @@
 
 namespace App\Actions\Users;
 
-use App\DTOs\User\UserIndexDTO;
+use App\Data\User\UserIndexData;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetUsers
 {
     use AsAction;
 
-    /**
-     * Отримати список користувачів із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param UserIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(UserIndexDTO $dto): LengthAwarePaginator
+    public function handle(UserIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = User::search($dto->query ?? '');
+        $searchQuery = User::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at', 'username', 'last_login'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if (in_array($data->sort, ['username', 'created_at', 'last_login'])) {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/users');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param UserIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, UserIndexDTO $dto): void
+    private function applyFilters(Builder $query, UserIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->location, fn ($collection) => $collection->push("location = '{$data->location}'"))
+            ->when($data->min_birthday !== null, fn ($collection) => $collection->push("birthday >= '{$data->min_birthday}'"))
+            ->when($data->max_birthday !== null, fn ($collection) => $collection->push("birthday <= '{$data->max_birthday}'"))
+            ->when($data->role, fn ($collection) => $collection->push("role = '{$data->role->value}'"))
+            ->when($data->gender, fn ($collection) => $collection->push("gender = '{$data->gender->value}'"))
+            ->when($data->is_public !== null, fn ($collection) => $collection->push('is_public = '.($data->is_public ? 'true' : 'false')))
+            ->when($data->social_media_links, function ($collection) use ($data) {
+                $socialMediaFilters = collect($data->social_media_links)
+                    ->map(fn ($link) => "social_media_links = '{$link}'")
+                    ->implode(' OR ');
+                return $collection->push("({$socialMediaFilters})");
+            })
+            ->when($data->author_ids, fn ($collection) => $collection->push('author_ids IN ['.collect($data->author_ids)->implode(',').']'))
+            ->when($data->group_ids, fn ($collection) => $collection->push('group_ids IN ['.collect($data->group_ids)->implode(',').']'));
 
-            if ($dto->role) {
-                $options['filter'][] = "role = '{$dto->role}'";
-            }
-
-            if ($dto->gender) {
-                $options['filter'][] = "gender = '{$dto->gender}'";
-            }
-
-            if ($dto->isPublic !== null) {
-                $options['filter'][] = "is_public = " . ($dto->isPublic ? 'true' : 'false');
-            }
-
-            if ($dto->location) {
-                $options['filter'][] = "location = '{$dto->location}'";
-            }
-
-            if ($dto->socialMediaLinks) {
-                foreach ($dto->socialMediaLinks as $link) {
-                    $options['filter'][] = "social_media_links = '{$link}'";
-                }
-            }
-
-            if ($dto->minBirthday) {
-                $options['filter'][] = "birthday >= {$dto->minBirthday}";
-            }
-
-            if ($dto->maxBirthday) {
-                $options['filter'][] = "birthday <= {$dto->maxBirthday}";
-            }
-
-            if ($dto->minLastLogin) {
-                $options['filter'][] = "last_login >= {$dto->minLastLogin}";
-            }
-
-            if ($dto->maxLastLogin) {
-                $options['filter'][] = "last_login <= {$dto->maxLastLogin}";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

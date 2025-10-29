@@ -9,7 +9,7 @@ class ShelfIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Shelf::class);
+        return $this->user()?->can('viewAny', Shelf::class) ?? false;
     }
 
     public function rules(): array
@@ -20,9 +20,7 @@ class ShelfIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:name,created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'user_id' => ['nullable', 'string', 'exists:users,id'],
-            'type' => ['nullable', 'string', 'in:READING,PLANNED,FINISHED'],
-            'is_public' => ['nullable', 'boolean'],
+            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
         ];
     }
 
@@ -52,14 +50,6 @@ class ShelfIndexRequest extends FormRequest
             'user_id' => [
                 'description' => 'Фільтр за ID користувача, якому належить полиця.',
                 'example' => 'user-uuid123',
-            ],
-            'type' => [
-                'description' => 'Фільтр за типом полиці (READING, PLANNED, FINISHED).',
-                'example' => 'READING',
-            ],
-            'is_public' => [
-                'description' => 'Фільтр за видимістю полиці.',
-                'example' => true,
             ],
         ];
     }

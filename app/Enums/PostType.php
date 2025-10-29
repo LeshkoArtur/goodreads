@@ -15,7 +15,7 @@ enum PostType: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('post_type.' . $this->value);
+        return __('post_type.'.$this->value);
     }
 
     // Colors for display in Filament

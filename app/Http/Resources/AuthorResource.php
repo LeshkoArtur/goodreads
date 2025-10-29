@@ -11,12 +11,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class AuthorResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @param  Request  $request
-     * @return array
-     */
     public function toArray(Request $request): array
     {
         return [
@@ -35,21 +29,21 @@ class AuthorResource extends JsonResource
             'fun_facts' => $this->fun_facts ?? [],
             'type_of_work' => $this->type_of_work?->value,
             'books' => $this->whenLoaded('books', function () {
-                return $this->books->map(fn($book) => [
+                return $this->books->map(fn ($book) => [
                     'id' => $book->id,
                     'title' => $book->title,
                     'slug' => $book->slug ?? null,
                 ]);
             }),
             'users' => $this->whenLoaded('users', function () {
-                return $this->users->map(fn($user) => [
+                return $this->users->map(fn ($user) => [
                     'id' => $user->id,
                     'name' => $user->name,
                 ]);
             }),
-            'questions_count' => $this->whenLoaded('questions', fn() => $this->questions->count()),
-            'answers_count' => $this->whenLoaded('answers', fn() => $this->answers->count()),
-            'posts_count' => $this->whenLoaded('posts', fn() => $this->posts->count()),
+            'questions_count' => $this->whenLoaded('questions', fn () => $this->questions->count()),
+            'answers_count' => $this->whenLoaded('answers', fn () => $this->answers->count()),
+            'posts_count' => $this->whenLoaded('posts', fn () => $this->posts->count()),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

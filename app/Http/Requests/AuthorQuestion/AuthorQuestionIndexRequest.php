@@ -5,13 +5,20 @@ namespace App\Http\Requests\AuthorQuestion;
 use App\Enums\QuestionStatus;
 use App\Models\AuthorQuestion;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class AuthorQuestionIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', AuthorQuestion::class);
+        return $this->user()?->can('viewAny', AuthorQuestion::class) ?? true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'query' => $this->input('q'),
+        ]);
     }
 
     public function rules(): array
@@ -25,7 +32,7 @@ class AuthorQuestionIndexRequest extends FormRequest
             'user_id' => ['nullable', 'string', 'exists:users,id'],
             'author_id' => ['nullable', 'string', 'exists:authors,id'],
             'book_id' => ['nullable', 'string', 'exists:books,id'],
-            'status' => ['nullable', Rule::in(QuestionStatus::values())],
+            'status' => ['nullable', new Enum(QuestionStatus::class)],
         ];
     }
 

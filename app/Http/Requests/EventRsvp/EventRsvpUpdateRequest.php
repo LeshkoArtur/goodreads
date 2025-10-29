@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\EventRsvp;
 
-use App\Models\EventRsvp;
+use App\Enums\EventResponse;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,14 +10,13 @@ class EventRsvpUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $eventRsvp = $this->route('event_rsvp');
-        return $this->user()->can('update', $eventRsvp);
+        return $this->user()?->can('update', $this->route('eventRsvp')) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'response' => ['nullable', Rule::in(\App\Enums\EventResponse::values())],
+            'response' => ['required', Rule::enum(EventResponse::class)],
         ];
     }
 
@@ -25,8 +24,8 @@ class EventRsvpUpdateRequest extends FormRequest
     {
         return [
             'response' => [
-                'description' => 'Відповідь на подію.',
-                'example' => 'GOING',
+                'description' => 'Оновлена відповідь на запрошення (going, maybe, not_going).',
+                'example' => 'maybe',
             ],
         ];
     }
@@ -34,9 +33,9 @@ class EventRsvpUpdateRequest extends FormRequest
     public function urlParameters(): array
     {
         return [
-            'event_rsvp' => [
-                'description' => 'ID RSVP на подію для оновлення.',
-                'example' => 'rsvp-uuid123',
+            'eventRsvp' => [
+                'description' => 'UUID RSVP.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

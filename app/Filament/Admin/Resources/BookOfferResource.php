@@ -4,224 +4,213 @@ namespace App\Filament\Admin\Resources;
 
 use App\Enums\Currency;
 use App\Enums\OfferStatus;
-use App\Filament\Admin\Resources\BookOfferResource\Pages\CreateBookOffer;
-use App\Filament\Admin\Resources\BookOfferResource\Pages\EditBookOffer;
-use App\Filament\Admin\Resources\BookOfferResource\Pages\ListBookOffers;
-use App\Filament\Admin\Resources\BookOfferResource\Pages\ViewBookOffer;
+use App\Filament\Admin\Resources\BookOfferResource\Pages;
 use App\Models\BookOffer;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class BookOfferResource extends Resource
 {
     protected static ?string $model = BookOffer::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
+    protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Магазини';
+    protected static ?string $navigationGroup = 'Електронна комерція';
 
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 36;
 
-    public static function getNavigationLabel(): string
-    {
-        return __('Пропозиції книг');
-    }
+    protected static ?string $recordTitleAttribute = 'id';
 
     public static function getModelLabel(): string
     {
-        return __('Пропозиція книги');
+        return 'Пропозиція книги';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Пропозиції книг');
+        return 'Пропозиції книг';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Пропозиції книг';
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->book->title.' - '.$record->store->name;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['book', 'store']);
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Section::make(__('Пропозиція книги'))
+                Section::make('Деталі пропозиції')
+                    ->description('Інформація про комерційну пропозицію книги')
                     ->schema([
                         Select::make('book_id')
-                            ->label(__('Книга'))
                             ->relationship('book', 'title')
                             ->required()
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->label('Книга')
+                            ->helperText('Книга, яка пропонується'),
                         Select::make('store_id')
-                            ->label(__('Магазин'))
                             ->relationship('store', 'name')
                             ->required()
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->label('Магазин')
+                            ->helperText('Магазин, що пропонує книгу'),
                         TextInput::make('price')
-                            ->label(__('Ціна'))
+                            ->required()
                             ->numeric()
-                            ->minValue(0)
-                            ->required(),
+                            ->prefix('₴')
+                            ->label('Ціна')
+                            ->helperText('Ціна в обраній валюті'),
                         Select::make('currency')
-                            ->label(__('Валюта'))
                             ->options(Currency::class)
-                            ->required(),
+                            ->required()
+                            ->native(false)
+                            ->label('Валюта'),
                         TextInput::make('referral_url')
-                            ->label(__('Реферальне посилання'))
                             ->url()
                             ->maxLength(255)
-                            ->nullable(),
+                            ->label('Посилання на книгу')
+                            ->helperText('Пряме посилання на книгу в магазині')
+                            ->columnSpanFull(),
                         Toggle::make('availability')
-                            ->label(__('В наявності'))
-                            ->default(true),
+                            ->required()
+                            ->default(true)
+                            ->label('В наявності')
+                            ->helperText('Чи є книга в наявності зараз'),
                         Select::make('status')
-                            ->label(__('Статус'))
                             ->options(OfferStatus::class)
-                            ->required(),
-                    ]),
+                            ->required()
+                            ->native(false)
+                            ->label('Статус пропозиції')
+                            ->helperText('Поточний статус активності'),
+                        DateTimePicker::make('last_updated_at')
+                            ->label('Останнє оновлення')
+                            ->native(false),
+                    ])->columns(2),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->query(BookOffer::query()->with(['book', 'store']))
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('book.title')
-                    ->label(__('Книга'))
+                    ->label('Книга')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record): ?string => $record->book ? route('filament.admin.resources.books.view', $record->book_id) : null),
+                    ->limit(40)
+                    ->tooltip(fn (BookOffer $record): ?string => $record->book->title),
                 TextColumn::make('store.name')
-                    ->label(__('Магазин'))
+                    ->label('Магазин')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record): ?string => $record->store ? route('filament.admin.resources.stores.view', $record->store_id) : null),
+                    ->badge()
+                    ->color('info'),
                 TextColumn::make('price')
-                    ->label(__('Ціна'))
-                    ->money(fn ($record) => $record->currency?->value)
+                    ->label('Ціна')
+                    ->money(fn ($record) => $record->currency->value)
                     ->sortable()
-                    ->toggleable(),
-                TextColumn::make('currency')
-                    ->label(__('Валюта'))
-                    ->badge()
-                    ->formatStateUsing(fn (?Currency $state) => $state?->getLabel())
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('referral_url')
-                    ->label(__('Реферальне посилання'))
-                    ->url(fn ($record) => $record->referral_url)
-                    ->openUrlInNewTab()
-                    ->sortable()
-                    ->toggleable(),
+                    ->searchable(),
                 IconColumn::make('availability')
-                    ->label(__('В наявності'))
+                    ->label('Наявність')
                     ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->sortable()
-                    ->toggleable(),
+                    ->sortable(),
                 TextColumn::make('status')
-                    ->label(__('Статус'))
+                    ->label('Статус')
                     ->badge()
-                    ->formatStateUsing(fn (?OfferStatus $state) => $state?->getLabel())
                     ->sortable()
-                    ->toggleable(),
+                    ->searchable(),
                 TextColumn::make('last_updated_at')
-                    ->label(__('Останнє оновлення'))
-                    ->dateTime()
+                    ->label('Оновлено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                    ->label('Створено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('book')
-                    ->label(__('Книга'))
                     ->relationship('book', 'title')
                     ->searchable()
+                    ->preload()
                     ->multiple()
-                    ->indicator(__('Книга')),
+                    ->label('Книга'),
                 SelectFilter::make('store')
-                    ->label(__('Магазин'))
                     ->relationship('store', 'name')
                     ->searchable()
+                    ->preload()
                     ->multiple()
-                    ->indicator(__('Магазин')),
-                SelectFilter::make('currency')
-                    ->label(__('Валюта'))
-                    ->options(Currency::class)
-                    ->multiple()
-                    ->indicator(__('Валюта')),
-                TernaryFilter::make('availability')
-                    ->label(__('В наявності'))
-                    ->placeholder(__('Всі'))
-                    ->trueLabel(__('В наявності'))
-                    ->falseLabel(__('Немає в наявності'))
-                    ->indicator(__('В наявності')),
+                    ->label('Магазин'),
                 SelectFilter::make('status')
-                    ->label(__('Статус'))
                     ->options(OfferStatus::class)
+                    ->native(false)
                     ->multiple()
-                    ->indicator(__('Статус')),
+                    ->label('Статус'),
+                SelectFilter::make('currency')
+                    ->options(Currency::class)
+                    ->native(false)
+                    ->multiple()
+                    ->label('Валюта'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->label(__('Переглянути')),
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
-                Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
-            ->groups([
-                'book_id',
-                'store_id',
-                'currency',
-                'status',
-            ]);
+            ->striped();
     }
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            //
+        ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListBookOffers::route('/'),
-            'create' => CreateBookOffer::route('/create'),
-            'view' => ViewBookOffer::route('/{record}'),
-            'edit' => EditBookOffer::route('/{record}/edit'),
+            'index' => Pages\ListBookOffers::route('/'),
+            'create' => Pages\CreateBookOffer::route('/create'),
+            'view' => Pages\ViewBookOffer::route('/{record}'),
+            'edit' => Pages\EditBookOffer::route('/{record}/edit'),
         ];
     }
 }

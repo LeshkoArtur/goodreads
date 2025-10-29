@@ -2,60 +2,45 @@
 
 namespace App\Actions\Tags;
 
-use App\DTOs\Tag\TagIndexDTO;
+use App\Data\Tag\TagIndexData;
 use App\Models\Tag;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetTags
 {
     use AsAction;
 
-    /**
-     * Отримати список тегів із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param TagIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(TagIndexDTO $dto): LengthAwarePaginator
+    public function handle(TagIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Tag::search($dto->query ?? '');
+        $searchQuery = Tag::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at', 'name'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['created_at', 'name', 'taggable_count']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/tags');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param TagIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, TagIndexDTO $dto): void
+    private function applyFilters(Builder $query, TagIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->min_taggable_count !== null, fn ($collection) => $collection->push("taggable_count >= {$data->min_taggable_count}"))
+            ->when($data->max_taggable_count !== null, fn ($collection) => $collection->push("taggable_count <= {$data->max_taggable_count}"));
 
-            if ($dto->minUsageCount !== null) {
-                $options['filter'][] = "taggable_count >= {$dto->minUsageCount}";
-            }
-
-            if ($dto->maxUsageCount !== null) {
-                $options['filter'][] = "taggable_count <= {$dto->maxUsageCount}";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

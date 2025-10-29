@@ -43,7 +43,7 @@ class EventRsvpTest extends TestCase
         $data = EventRsvp::factory()->make(['event_response' => 'INVALID'])->toArray();
 
         $validator = Validator::make($data, [
-            'event_response' => 'in:' . implode(',', array_map(fn($case) => $case->value, EventResponse::cases())),
+            'event_response' => 'in:'.implode(',', array_map(fn ($case) => $case->value, EventResponse::cases())),
         ]);
 
         $this->assertTrue($validator->fails());
@@ -56,7 +56,7 @@ class EventRsvpTest extends TestCase
             $data = EventRsvp::factory()->make(['event_response' => $case->value])->toArray();
 
             $validator = Validator::make($data, [
-                'event_response' => 'in:' . implode(',', array_map(fn($c) => $c->value, EventResponse::cases())),
+                'event_response' => 'in:'.implode(',', array_map(fn ($c) => $c->value, EventResponse::cases())),
             ]);
 
             $this->assertFalse($validator->fails(), "Failed asserting enum case '{$case->value}' is valid.");

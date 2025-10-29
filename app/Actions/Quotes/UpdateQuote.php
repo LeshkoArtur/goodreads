@@ -2,7 +2,7 @@
 
 namespace App\Actions\Quotes;
 
-use App\DTOs\Quote\QuoteUpdateDTO;
+use App\Data\Quote\QuoteUpdateData;
 use App\Models\Quote;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,28 +10,17 @@ class UpdateQuote
 {
     use AsAction;
 
-    /**
-     * Оновити існуючу цитату.
-     *
-     * @param Quote $quote
-     * @param QuoteUpdateDTO $dto
-     * @return Quote
-     */
-    public function handle(Quote $quote, QuoteUpdateDTO $dto): Quote
+    public function handle(Quote $quote, QuoteUpdateData $data): Quote
     {
-        $attributes = [
-            'text' => $dto->body,
-            'is_public' => $dto->status === 'public' ? true : ($dto->status === 'private' ? false : null),
-        ];
+        $quote->update(array_filter([
+            'user_id' => $data->user_id,
+            'book_id' => $data->book_id,
+            'text' => $data->text,
+            'page_number' => $data->page_number,
+            'contains_spoilers' => $data->contains_spoilers,
+            'is_public' => $data->is_public,
+        ], fn ($value) => $value !== null));
 
-        $quote->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $quote->save();
-
-        if ($dto->tagIds !== null) {
-            $quote->tags()->sync($dto->tagIds);
-        }
-
-        return $quote->load(['user', 'book', 'comments', 'likes', 'favorites']);
+        return $quote->fresh(['user', 'book']);
     }
 }

@@ -2,12 +2,10 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\{
-    Group,
-    GroupModerationLog,
-    Post,
-    User
-};
+use App\Models\Group;
+use App\Models\GroupModerationLog;
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -41,7 +39,7 @@ class GroupModerationLogTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_attributes()
     {
-        $log = new GroupModerationLog();
+        $log = new GroupModerationLog;
 
         $this->assertEquals([
             'group_id',

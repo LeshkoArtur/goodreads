@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Post;
 
-use App\Models\Post;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,7 +10,8 @@ class PostUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $post = $this->route('post');
-        return $this->user()->can('update', $post);
+
+        return $this->user()?->can('update', $post) ?? false;
     }
 
     public function rules(): array
@@ -19,8 +19,8 @@ class PostUpdateRequest extends FormRequest
         return [
             'title' => ['nullable', 'string', 'max:255'],
             'body' => ['nullable', 'string'],
-            'type' => ['nullable', Rule::in(\App\Enums\PostType::values())],
-            'status' => ['nullable', Rule::in(\App\Enums\PostStatus::values())],
+            'type' => ['nullable', Rule::in(\App\Enums\PostType::cases())],
+            'status' => ['nullable', Rule::in(\App\Enums\PostStatus::cases())],
             'published_at' => ['nullable', 'date'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['string', 'exists:tags,id'],

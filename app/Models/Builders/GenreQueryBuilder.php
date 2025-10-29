@@ -11,13 +11,13 @@ class GenreQueryBuilder extends Builder
      */
     public function withName(string $name): static
     {
-        return $this->where('name', 'like', '%' . $name . '%');
+        return $this->where('name', 'like', '%'.$name.'%');
     }
 
     /**
      * Піджанри певного батьківського жанру.
      */
-    public function subGenres(string $parentId): static
+    public function whereParentId(string $parentId): static
     {
         return $this->where('parent_id', $parentId);
     }

@@ -2,16 +2,11 @@
 
 namespace App\Filament\Admin\Resources\PostResource\RelationManagers;
 
-use App\Models\Post;
 use Filament\Forms;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class TagsRelationManager extends RelationManager
 {
@@ -19,75 +14,72 @@ class TagsRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Теги до публікації') . ' ' . \Str::limit($ownerRecord->title, 50);
-    }
+    protected static ?string $title = 'Теги';
 
-    public function form(Forms\Form $form): Forms\Form
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
-                Section::make(__('Тег'))
-                    ->schema([
-                        TextInput::make('name')
-                            ->label(__('Назва'))
-                            ->required()
-                            ->maxLength(255)
-                            ->unique('tags', 'name', ignoreRecord: true),
-                    ]),
+                Forms\Components\TextInput::make('name')
+                    ->label('Назва тегу')
+                    ->required()
+                    ->maxLength(50),
+                Forms\Components\Textarea::make('description')
+                    ->label('Опис')
+                    ->rows(2)
+                    ->maxLength(255),
             ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('name')
-                    ->label(__('Назва'))
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Тег')
                     ->searchable()
                     ->sortable()
-                    ->badge(),
-                TextColumn::make('posts_count')
-                    ->label(__('Кількість публікацій'))
+                    ->weight('bold')
+                    ->badge()
+                    ->color('primary'),
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Опис')
+                    ->limit(80)
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('posts_count')
+                    ->label('Використань')
                     ->counts('posts')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                    ->badge()
+                    ->color('success')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('name')
-                    ->label(__('Назва'))
-                    ->relationship('posts', 'title')
-                    ->searchable()
-                    ->multiple()
-                    ->indicator(__('Назва')),
+                //
             ])
             ->headerActions([
+                Tables\Actions\AttachAction::make()
+                    ->label('Додати тег')
+                    ->preloadRecordSelect()
+                    ->multiple()
+                    ->modalHeading('Додати теги до поста'),
                 Tables\Actions\CreateAction::make()
-                    ->label(__('Додати тег')),
+                    ->label('Створити тег')
+                    ->modalHeading('Створити новий тег'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
-                Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                Tables\Actions\DetachAction::make()->label('Видалити')->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                    Tables\Actions\DetachBulkAction::make()->label('Видалити обрані')->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->emptyStateHeading('Немає тегів')
+            ->emptyStateDescription('Додайте теги до цього поста.')
+            ->emptyStateActions([
+                Tables\Actions\AttachAction::make()->label('Додати тег')->preloadRecordSelect()->multiple(),
+            ]);
     }
 }

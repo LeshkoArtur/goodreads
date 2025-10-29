@@ -2,7 +2,8 @@
 
 namespace App\Http\Requests\Group;
 
-use App\Models\Group;
+use App\Enums\JoinPolicy;
+use App\Enums\PostPolicy;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,18 +12,21 @@ class GroupUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $group = $this->route('group');
-        return $this->user()->can('update', $group);
+
+        return $this->user()?->can('update', $group) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'name' => ['nullable', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'min:3', 'max:128'],
+            'description' => ['nullable', 'string', 'max:5000'],
             'is_public' => ['nullable', 'boolean'],
+            'cover_image' => ['nullable', 'string', 'url', 'max:248'],
+            'rules' => ['nullable', 'string', 'max:10000'],
             'is_active' => ['nullable', 'boolean'],
-            'join_policy' => ['nullable', Rule::in(\App\Enums\JoinPolicy::values())],
-            'post_policy' => ['nullable', Rule::in(\App\Enums\PostPolicy::values())],
-            'description' => ['nullable', 'string'],
+            'join_policy' => ['nullable', Rule::enum(JoinPolicy::class)],
+            'post_policy' => ['nullable', Rule::enum(PostPolicy::class)],
         ];
     }
 

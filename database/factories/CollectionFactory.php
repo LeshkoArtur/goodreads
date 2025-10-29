@@ -19,7 +19,7 @@ class CollectionFactory extends Factory
             'user_id' => User::factory(),
             'title' => $this->faker->sentence(3),
             'description' => $this->faker->paragraph(),
-            'cover_image' => $this->faker->imageUrl(),
+            'cover_image' => 'https://placehold.co/600x400',
             'is_public' => $this->faker->boolean(),
         ];
     }

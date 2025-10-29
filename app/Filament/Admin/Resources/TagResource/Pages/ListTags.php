@@ -10,10 +10,13 @@ class ListTags extends ListRecords
 {
     protected static string $resource = TagResource::class;
 
+    protected ?string $heading = 'Теги';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити тег'),
         ];
     }
 }

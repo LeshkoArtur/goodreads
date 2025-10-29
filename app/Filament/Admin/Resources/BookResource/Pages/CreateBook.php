@@ -2,20 +2,32 @@
 
 namespace App\Filament\Admin\Resources\BookResource\Pages;
 
-use App\DTOs\Book\BookStoreDTO;
-use App\Filament\Admin\Resources\BookResource;
-use App\Models\Book;
 use App\Actions\Books\CreateBook as CreateBookAction;
+use App\Data\Book\BookStoreData;
+use App\Filament\Admin\Resources\BookResource;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateBook extends CreateRecord
 {
     protected static string $resource = BookResource::class;
 
-    protected function handleRecordCreation(array $data): Book
-    {
-        $dto = BookStoreDTO::fromArray($data);
+    protected ?string $heading = 'Створити книгу';
 
-        return CreateBookAction::run($dto);
+    protected function handleRecordCreation(array $data): Model
+    {
+        $dto = BookStoreData::fromArray($data);
+
+        return app(CreateBookAction::class)->handle($dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Книгу створено';
     }
 }

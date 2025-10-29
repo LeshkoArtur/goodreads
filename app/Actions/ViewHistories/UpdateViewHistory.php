@@ -2,7 +2,7 @@
 
 namespace App\Actions\ViewHistories;
 
-use App\DTOs\ViewHistory\ViewHistoryUpdateDTO;
+use App\Data\ViewHistory\ViewHistoryUpdateData;
 use App\Models\ViewHistory;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,28 +10,14 @@ class UpdateViewHistory
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий запис історії переглядів.
-     *
-     * @param ViewHistory $viewHistory
-     * @param ViewHistoryUpdateDTO $dto
-     * @return ViewHistory
-     */
-    public function handle(ViewHistory $viewHistory, ViewHistoryUpdateDTO $dto): ViewHistory
+    public function handle(ViewHistory $viewHistory, ViewHistoryUpdateData $data): ViewHistory
     {
-        $attributes = [
-            'viewable_type' => $dto->viewableType,
-            'viewable_id' => $dto->viewableId,
-        ];
+        $viewHistory->update(array_filter([
+            'user_id' => $data->user_id,
+            'viewable_id' => $data->viewable_id,
+            'viewable_type' => $data->viewable_type,
+        ], fn ($value) => $value !== null));
 
-        $viewHistory->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        if ($dto->viewedAt) {
-            $viewHistory->created_at = $dto->viewedAt;
-        }
-
-        $viewHistory->save();
-
-        return $viewHistory->load(['user', 'viewable']);
+        return $viewHistory->fresh(['user', 'viewable']);
     }
 }

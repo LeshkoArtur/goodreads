@@ -2,7 +2,8 @@
 
 namespace App\Actions\NominationEntries;
 
-use App\DTOs\NominationEntry\NominationEntryStoreDTO;
+use App\Data\NominationEntry\NominationEntryStoreData;
+use App\Enums\NominationStatus;
 use App\Models\NominationEntry;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,22 +11,15 @@ class CreateNominationEntry
 {
     use AsAction;
 
-    /**
-     * Створити новий запис номінації.
-     *
-     * @param NominationEntryStoreDTO $dto
-     * @return NominationEntry
-     */
-    public function handle(NominationEntryStoreDTO $dto): NominationEntry
+    public function handle(NominationEntryStoreData $data): NominationEntry
     {
-        $nominationEntry = new NominationEntry();
-        $nominationEntry->nomination_id = $dto->nominationId;
-        $nominationEntry->book_id = $dto->bookId;
-        $nominationEntry->author_id = $dto->authorId;
-        $nominationEntry->status = $dto->status?->value;
+        $entry = new NominationEntry;
+        $entry->nomination_id = $data->nomination_id;
+        $entry->book_id = $data->book_id;
+        $entry->author_id = $data->author_id;
+        $entry->status = NominationStatus::PENDING;
+        $entry->save();
 
-        $nominationEntry->save();
-
-        return $nominationEntry->load(['nomination', 'book', 'author']);
+        return $entry->fresh(['nomination', 'book', 'author']);
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Character;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
@@ -15,24 +15,18 @@ class CharacterPolicy
 
     /**
      * Виконується перед усіма перевірками авторизації.
-     *
-     * @param User $user
-     * @param string $ability
-     * @return bool|null
      */
     public function before(User $user, string $ability): ?bool
     {
         if ($user->isAdmin()) {
             return true;
         }
+
         return null;
     }
 
     /**
      * Визначає, чи може користувач переглядати будь-які персонажі.
-     *
-     * @param User $user
-     * @return bool
      */
     public function viewAny(User $user): bool
     {
@@ -41,10 +35,6 @@ class CharacterPolicy
 
     /**
      * Визначає, чи може користувач переглядати персонажа.
-     *
-     * @param User $user
-     * @param Character $character
-     * @return bool
      */
     public function view(User $user, Character $character): bool
     {
@@ -53,9 +43,6 @@ class CharacterPolicy
 
     /**
      * Визначає, чи може користувач створювати персонажів.
-     *
-     * @param User $user
-     * @return bool
      */
     public function create(User $user): bool
     {
@@ -64,10 +51,6 @@ class CharacterPolicy
 
     /**
      * Визначає, чи може користувач оновлювати персонажа.
-     *
-     * @param User $user
-     * @param Character $character
-     * @return bool
      */
     public function update(User $user, Character $character): bool
     {
@@ -76,10 +59,6 @@ class CharacterPolicy
 
     /**
      * Визначає, чи може користувач видаляти персонажа.
-     *
-     * @param User $user
-     * @param Character $character
-     * @return bool
      */
     public function delete(User $user, Character $character): bool
     {

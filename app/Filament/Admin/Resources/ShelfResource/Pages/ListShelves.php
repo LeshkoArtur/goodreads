@@ -10,10 +10,13 @@ class ListShelves extends ListRecords
 {
     protected static string $resource = ShelfResource::class;
 
+    protected ?string $heading = 'Полиці';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити полицю'),
         ];
     }
 }

@@ -2,30 +2,31 @@
 
 namespace App\Actions\GroupPolls;
 
-use App\DTOs\GroupPoll\GroupPollStoreDTO;
+use App\Data\GroupPoll\GroupPollStoreData;
 use App\Models\GroupPoll;
+use App\Models\User;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateGroupPoll
 {
     use AsAction;
 
-    /**
-     * Створити нове опитування групи.
-     *
-     * @param GroupPollStoreDTO $dto
-     * @return GroupPoll
-     */
-    public function handle(GroupPollStoreDTO $dto): GroupPoll
+    public function handle(GroupPollStoreData $data, User $user): GroupPoll
     {
-        $groupPoll = new GroupPoll();
-        $groupPoll->group_id = $dto->groupId;
-        $groupPoll->creator_id = $dto->creatorId;
-        $groupPoll->question = $dto->question;
-        $groupPoll->is_active = $dto->isActive;
-
+        $groupPoll = new GroupPoll;
+        $groupPoll->group_id = $data->group_id;
+        $groupPoll->creator_id = $user->id;
+        $groupPoll->question = $data->question;
+        $groupPoll->is_active = $data->is_active ?? true;
         $groupPoll->save();
 
-        return $groupPoll->load(['group', 'creator', 'options', 'votes']);
+        // Create poll options
+        foreach ($data->options as $optionText) {
+            $groupPoll->options()->create([
+                'text' => $optionText,
+            ]);
+        }
+
+        return $groupPoll->fresh(['group', 'creator', 'options']);
     }
 }

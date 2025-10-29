@@ -10,11 +10,13 @@ class ViewGroupPost extends ViewRecord
 {
     protected static string $resource = GroupPostResource::class;
 
+    protected ?string $heading = 'Перегляд поста групи';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
-            Actions\DeleteAction::make(),
+            Actions\EditAction::make()->label('Редагувати'),
+            Actions\DeleteAction::make()->label('Видалити'),
         ];
     }
 }

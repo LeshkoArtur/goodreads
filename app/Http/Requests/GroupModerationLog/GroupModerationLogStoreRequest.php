@@ -2,25 +2,26 @@
 
 namespace App\Http\Requests\GroupModerationLog;
 
+use App\Enums\ModerationAction;
 use App\Models\GroupModerationLog;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class GroupModerationLogStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', GroupModerationLog::class);
+        return $this->user()?->can('create', GroupModerationLog::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'group_id' => ['required', 'string', 'exists:groups,id'],
-            'moderator_id' => ['required', 'string', 'exists:users,id'],
-            'action' => ['required', 'string', 'max:255'],
-            'targetable_id' => ['required', 'string'],
-            'targetable_type' => ['required', 'string', 'in:App\Models\GroupPost,App\Models\Comment,App\Models\User'],
-            'description' => ['nullable', 'string'],
+            'group_id' => ['required', 'uuid', 'exists:groups,id'],
+            'action' => ['required', Rule::enum(ModerationAction::class)],
+            'targetable_type' => ['required', 'string'],
+            'targetable_id' => ['required', 'uuid'],
+            'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
@@ -28,28 +29,24 @@ class GroupModerationLogStoreRequest extends FormRequest
     {
         return [
             'group_id' => [
-                'description' => 'ID групи, в якій відбулася дія модерації.',
-                'example' => 'group-uuid123',
-            ],
-            'moderator_id' => [
-                'description' => 'ID модератора, який виконав дію.',
-                'example' => 'user-uuid123',
+                'description' => 'UUID групи.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'action' => [
-                'description' => 'Дія модерації.',
-                'example' => 'DELETE_POST',
-            ],
-            'targetable_id' => [
-                'description' => 'ID цільового об’єкта модерації.',
-                'example' => 'post-uuid123',
+                'description' => 'Тип дії модерації. Можливі значення: delete, approve, reject, warning, ban, unban, pin, unpin, edit, move.',
+                'example' => 'delete',
             ],
             'targetable_type' => [
-                'description' => 'Тип цільового об’єкта модерації (напр., App\Models\GroupPost).',
-                'example' => 'App\Models\GroupPost',
+                'description' => 'Тип об\'єкта модерації. Можливі значення: залежить від контексту (наприклад, App\\Models\\GroupPost, App\\Models\\User, App\\Models\\GroupEvent, тощо).',
+                'example' => 'App\\Models\\GroupPost',
+            ],
+            'targetable_id' => [
+                'description' => 'UUID об\'єкта модерації.',
+                'example' => '8c6d7e2b-1a9c-3d4e-8f2b-1c2d3e4f5a6b',
             ],
             'description' => [
-                'description' => 'Опис дії модерації.',
-                'example' => 'Пост видалено через порушення правил.',
+                'description' => 'Додатковий опис дії модерації.',
+                'example' => 'Пост видалено за порушення правил спільноти.',
             ],
         ];
     }

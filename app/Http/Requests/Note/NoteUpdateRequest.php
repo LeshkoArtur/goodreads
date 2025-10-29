@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Note;
 
-use App\Models\Note;
 use Illuminate\Foundation\Http\FormRequest;
 
 class NoteUpdateRequest extends FormRequest
@@ -10,13 +9,14 @@ class NoteUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $note = $this->route('note');
-        return $this->user()->can('update', $note);
+
+        return $this->user()?->can('update', $note) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'body' => ['nullable', 'string'],
+            'text' => ['nullable', 'string'],
             'contains_spoilers' => ['nullable', 'boolean'],
             'is_private' => ['nullable', 'boolean'],
             'page_number' => ['nullable', 'integer', 'min:1'],
@@ -26,9 +26,9 @@ class NoteUpdateRequest extends FormRequest
     public function bodyParameters(): array
     {
         return [
-            'body' => [
+            'text' => [
                 'description' => 'Текст нотатки.',
-                'example' => 'Оновлена цитата зі сторінки 42.',
+                'example' => 'Оновлена нотатка зі сторінки 42.',
             ],
             'contains_spoilers' => [
                 'description' => 'Чи містить нотатка спойлери.',

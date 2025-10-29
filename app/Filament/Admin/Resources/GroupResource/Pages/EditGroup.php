@@ -3,9 +3,8 @@
 namespace App\Filament\Admin\Resources\GroupResource\Pages;
 
 use App\Actions\Groups\UpdateGroup;
-use App\DTOs\Group\GroupUpdateDTO;
+use App\Data\Group\GroupUpdateData;
 use App\Filament\Admin\Resources\GroupResource;
-use App\Models\Group;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -14,17 +13,32 @@ class EditGroup extends EditRecord
 {
     protected static string $resource = GroupResource::class;
 
+    protected ?string $heading = 'Редагувати групу';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\ViewAction::make()
+                ->label('Переглянути'),
+            Actions\DeleteAction::make()
+                ->label('Видалити'),
         ];
     }
 
-    protected function handleRecordUpdate(Group|Model $record, array $data): Group
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $dto = GroupUpdateDTO::fromArray($data);
+        $dto = GroupUpdateData::fromArray($data);
 
-        return UpdateGroup::run($record, $dto);
+        return app(UpdateGroup::class)->handle($record, $dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Групу оновлено';
     }
 }

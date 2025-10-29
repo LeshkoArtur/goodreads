@@ -11,8 +11,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('book_publisher', function (Blueprint $table) {
-            $table->foreignUuid("book_id")->constrained()->cascadeOnDelete();
-            $table->foreignUuid("publisher_id")->constrained()->cascadeOnDelete();
+            $table->foreignUuid('book_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('publisher_id')->constrained()->cascadeOnDelete();
             $table->date('published_date')->nullable();
             $table->string('isbn', 13)->unique()->nullable();
             $table->integer('circulation')->nullable();

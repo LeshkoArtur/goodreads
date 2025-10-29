@@ -50,13 +50,12 @@ class GroupInvitationTest extends TestCase
         $data['status'] = 'not_a_status';
 
         $validator = Validator::make($data, [
-            'status' => ['required', Rule::in(array_map(fn($e) => $e->value, InvitationStatus::cases()))],
+            'status' => ['required', Rule::in(array_map(fn ($e) => $e->value, InvitationStatus::cases()))],
         ]);
 
         $this->assertTrue($validator->fails(), 'Validation should fail for invalid enum value.');
         $this->assertArrayHasKey('status', $validator->errors()->toArray(), 'Validation error should exist for status.');
     }
-
 
     public function test_valid_status_passes_validation()
     {
@@ -65,7 +64,7 @@ class GroupInvitationTest extends TestCase
         $data = GroupInvitation::factory()->make(['status' => $status])->toArray();
 
         $validator = Validator::make($data, [
-            'status' => 'required|in:' . implode(',', array_map(fn($e) => $e->value, InvitationStatus::cases())),
+            'status' => 'required|in:'.implode(',', array_map(fn ($e) => $e->value, InvitationStatus::cases())),
         ]);
 
         $this->assertFalse($validator->fails());

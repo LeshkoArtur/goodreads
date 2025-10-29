@@ -16,7 +16,7 @@ class ShelfTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_fields()
     {
-        $shelf = new Shelf();
+        $shelf = new Shelf;
         $this->assertEquals(['user_id', 'name'], $shelf->getFillable());
     }
 

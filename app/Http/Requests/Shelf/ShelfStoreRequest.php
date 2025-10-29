@@ -9,14 +9,14 @@ class ShelfStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Shelf::class);
+        return $this->user()?->can('create', Shelf::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'string', 'exists:users,id'],
-            'name' => ['required', 'string', 'max:255', 'unique:shelves,name,NULL,id,user_id,' . $this->input('user_id')],
+            'user_id' => ['required', 'uuid', 'exists:users,id'],
+            'name' => ['required', 'string', 'max:50', 'unique:shelves,name,NULL,id,user_id,'.$this->input('user_id')],
         ];
     }
 

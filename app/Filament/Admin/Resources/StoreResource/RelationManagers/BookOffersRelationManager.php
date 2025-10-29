@@ -2,166 +2,74 @@
 
 namespace App\Filament\Admin\Resources\StoreResource\RelationManagers;
 
-use App\Enums\Currency;
 use App\Enums\OfferStatus;
-use App\Models\Store;
-use Filament\Forms;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class BookOffersRelationManager extends RelationManager
 {
     protected static string $relationship = 'bookOffers';
 
-    protected static ?string $recordTitleAttribute = 'book_id';
-
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Пропозиції книг у магазині') . ' ' . $ownerRecord->name;
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                Section::make(__('Пропозиція книги'))
-                    ->schema([
-                        Select::make('book_id')
-                            ->label(__('Книга'))
-                            ->relationship('book', 'title')
-                            ->required()
-                            ->searchable()
-                            ->preload(),
-                        TextInput::make('price')
-                            ->label(__('Ціна'))
-                            ->numeric()
-                            ->minValue(0)
-                            ->required(),
-                        Select::make('currency')
-                            ->label(__('Валюта'))
-                            ->options(Currency::class)
-                            ->required(),
-                        TextInput::make('referral_url')
-                            ->label(__('Реферальне посилання'))
-                            ->url()
-                            ->maxLength(255)
-                            ->nullable(),
-                        Toggle::make('availability')
-                            ->label(__('В наявності'))
-                            ->default(true),
-                        Select::make('status')
-                            ->label(__('Статус'))
-                            ->options(OfferStatus::class)
-                            ->required(),
-                    ]),
-            ]);
-    }
+    protected static ?string $title = 'Пропозиції книг';
 
     public function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('book.title')
-                    ->label(__('Книга'))
+                Tables\Columns\ImageColumn::make('book.cover_image')
+                    ->label('Обкладинка')
+                    ->size(50),
+                Tables\Columns\TextColumn::make('book.title')
+                    ->label('Книга')
                     ->searchable()
                     ->sortable()
-                    ->url(fn (Model $record): ?string => $record->book ? route('filament.admin.resources.books.view', $record->book_id) : null),
-                TextColumn::make('price')
-                    ->label(__('Ціна'))
-                    ->money(fn ($record) => $record->currency?->value)
+                    ->limit(40)
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('price')
+                    ->label('Ціна')
+                    ->money('UAH')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('discount_price')
+                    ->label('Ціна зі знижкою')
+                    ->money('UAH')
                     ->sortable()
+                    ->placeholder('—')
                     ->toggleable(),
-                TextColumn::make('currency')
-                    ->label(__('Валюта'))
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Статус')
                     ->badge()
-                    ->formatStateUsing(fn (?Currency $state) => $state?->getLabel())
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('referral_url')
-                    ->label(__('Реферальне посилання'))
-                    ->url(fn ($record) => $record->referral_url)
+                    ->color(fn (?OfferStatus $state) => match ($state) {
+                        OfferStatus::ACTIVE => 'success',
+                        OfferStatus::INACTIVE => 'gray',
+                        OfferStatus::EXPIRED => 'danger',
+                        OfferStatus::OUT_OF_STOCK => 'warning',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('url')
+                    ->label('Посилання')
+                    ->url(fn ($record) => $record->url)
                     ->openUrlInNewTab()
-                    ->sortable()
+                    ->icon('heroicon-o-arrow-top-right-on-square')
+                    ->limit(30)
                     ->toggleable(),
-                IconColumn::make('availability')
-                    ->label(__('В наявності'))
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('status')
-                    ->label(__('Статус'))
-                    ->badge()
-                    ->formatStateUsing(fn (?OfferStatus $state) => $state?->getLabel())
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('last_updated_at')
-                    ->label(__('Останнє оновлення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Додано')
+                    ->dateTime('d.m.Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('book')
-                    ->label(__('Книга'))
-                    ->relationship('book', 'title')
-                    ->searchable()
-                    ->multiple()
-                    ->indicator(__('Книга')),
-                SelectFilter::make('currency')
-                    ->label(__('Валюта'))
-                    ->options(Currency::class)
-                    ->multiple()
-                    ->indicator(__('Валюта')),
-                TernaryFilter::make('availability')
-                    ->label(__('В наявності'))
-                    ->placeholder(__('Всі'))
-                    ->trueLabel(__('В наявності'))
-                    ->falseLabel(__('Немає в наявності'))
-                    ->indicator(__('В наявності')),
-                SelectFilter::make('status')
-                    ->label(__('Статус'))
-                    ->options(OfferStatus::class)
-                    ->multiple()
-                    ->indicator(__('Статус')),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label(__('Додати пропозицію книги')),
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Статус')
+                    ->options(OfferStatus::class),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
-                Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                Tables\Actions\ViewAction::make()->label('Переглянути'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
-                ]),
-            ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->emptyStateHeading('Немає пропозицій')
+            ->emptyStateDescription('У цьому магазині ще немає пропозицій книг.');
     }
 }

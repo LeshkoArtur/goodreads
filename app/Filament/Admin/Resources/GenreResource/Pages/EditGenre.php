@@ -3,9 +3,8 @@
 namespace App\Filament\Admin\Resources\GenreResource\Pages;
 
 use App\Actions\Genres\UpdateGenre;
-use App\DTOs\Genre\GenreUpdateDTO;
+use App\Data\Genre\GenreUpdateData;
 use App\Filament\Admin\Resources\GenreResource;
-use App\Models\Genre;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -14,17 +13,32 @@ class EditGenre extends EditRecord
 {
     protected static string $resource = GenreResource::class;
 
+    protected ?string $heading = 'Редагувати жанр';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\ViewAction::make()
+                ->label('Переглянути'),
+            Actions\DeleteAction::make()
+                ->label('Видалити'),
         ];
     }
 
-    protected function handleRecordUpdate(Genre|Model $record, array $data): Genre
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $dto = GenreUpdateDTO::fromArray($data);
+        $dto = GenreUpdateData::fromArray($data);
 
-        return UpdateGenre::run($record, $dto);
+        return app(UpdateGenre::class)->handle($record, $dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Жанр оновлено';
     }
 }

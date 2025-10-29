@@ -15,7 +15,7 @@ class StoreTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_fields()
     {
-        $store = new Store();
+        $store = new Store;
         $this->assertEquals(['name', 'logo_url', 'region', 'website_url'], $store->getFillable());
     }
 

@@ -2,64 +2,46 @@
 
 namespace App\Actions\GroupPolls;
 
-use App\DTOs\GroupPoll\GroupPollIndexDTO;
+use App\Data\GroupPoll\GroupPollIndexData;
 use App\Models\GroupPoll;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetGroupPolls
 {
     use AsAction;
 
-    /**
-     * Отримати список опитувань груп із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param GroupPollIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(GroupPollIndexDTO $dto): LengthAwarePaginator
+    public function handle(GroupPollIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = GroupPoll::search($dto->query ?? '');
+        $searchQuery = GroupPoll::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['question', 'created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if (in_array($data->sort, ['question', 'created_at'])) {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/group-polls');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param GroupPollIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, GroupPollIndexDTO $dto): void
+    private function applyFilters(Builder $query, GroupPollIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->group_id, fn ($collection) => $collection->push("group_id = '{$data->group_id}'"))
+                ->when($data->creator_id, fn ($collection) => $collection->push("creator_id = '{$data->creator_id}'"))
+                ->when($data->is_active !== null, fn ($collection) => $collection->push('is_active = '.($data->is_active ? 'true' : 'false')))
+                ;
 
-            if ($dto->groupId) {
-                $options['filter'][] = "group_id = '{$dto->groupId}'";
-            }
-
-            if ($dto->creatorId) {
-                $options['filter'][] = "creator_id = '{$dto->creatorId}'";
-            }
-
-            if ($dto->isActive !== null) {
-                $options['filter'][] = "is_active = " . ($dto->isActive ? 'true' : 'false');
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

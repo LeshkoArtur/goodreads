@@ -2,90 +2,128 @@
 
 namespace App\Filament\Admin\Resources;
 
-use App\Filament\Admin\Resources\QuoteResource\Pages\CreateQuote;
-use App\Filament\Admin\Resources\QuoteResource\Pages\EditQuote;
-use App\Filament\Admin\Resources\QuoteResource\Pages\ListQuotes;
-use App\Filament\Admin\Resources\QuoteResource\Pages\ViewQuote;
-use App\Filament\Admin\Resources\QuoteResource\RelationManagers\CommentsRelationManager;
+use App\Filament\Admin\Resources\QuoteResource\Pages;
 use App\Models\Quote;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class QuoteResource extends Resource
 {
     protected static ?string $model = Quote::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-ellipsis';
+    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static ?string $navigationGroup = 'Цитати';
+    protected static ?string $navigationGroup = 'Деталізація книги';
 
-    protected static ?int $navigationSort = 9;
-
-    public static function getNavigationLabel(): string
-    {
-        return __('Цитати');
-    }
+    protected static ?int $navigationSort = 8;
 
     public static function getModelLabel(): string
     {
-        return __('Цитата');
+        return 'Цитата';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Цитати');
+        return 'Цитати';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Цитати';
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['text', 'user.username', 'book.title'];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return substr($record->text, 0, 60).'...';
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Книга' => $record->book->title,
+            'Користувач' => $record->user->username,
+            'Сторінка' => $record->page_number ?: '—',
+        ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withCount(['comments', 'likes']);
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Select::make('user_id')
-                    ->label(__('Користувач'))
-                    ->relationship('user', 'username')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
+                Section::make('Основна інформація')
+                    ->description('Інформація про автора та книгу')
+                    ->schema([
+                        Select::make('user_id')
+                            ->label('Користувач')
+                            ->relationship('user', 'username')
+                            ->required()
+                            ->searchable()
+                            ->preload(),
+                        Select::make('book_id')
+                            ->label('Книга')
+                            ->relationship('book', 'title')
+                            ->required()
+                            ->searchable()
+                            ->preload(),
+                        TextInput::make('page_number')
+                            ->label('Номер сторінки')
+                            ->numeric()
+                            ->minValue(1),
+                    ])
+                    ->columns(3),
 
-                Select::make('book_id')
-                    ->label(__('Книга'))
-                    ->relationship('book', 'title')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
+                Section::make('Текст цитати')
+                    ->description('Зміст цитати')
+                    ->schema([
+                        Textarea::make('text')
+                            ->label('Цитата')
+                            ->required()
+                            ->rows(5)
+                            ->maxLength(2000)
+                            ->columnSpanFull(),
+                    ]),
 
-                Textarea::make('text')
-                    ->label(__('Текст цитати'))
-                    ->required()
-                    ->maxLength(65535)
-                    ->rows(5)
-                    ->columnSpanFull(),
-
-                TextInput::make('page_number')
-                    ->label(__('Номер сторінки'))
-                    ->numeric()
-                    ->minValue(1)
-                    ->nullable(),
-
-                Toggle::make('contains_spoilers')
-                    ->label(__('Містить спойлери'))
-                    ->default(false),
-
-                Toggle::make('is_public')
-                    ->label(__('Публічна цитата'))
-                    ->default(true),
+                Section::make('Налаштування')
+                    ->description('Параметри видимості')
+                    ->schema([
+                        Toggle::make('is_public')
+                            ->label('Публічна')
+                            ->default(true)
+                            ->helperText('Чи може ця цитата бути видима іншим користувачам'),
+                        Toggle::make('contains_spoilers')
+                            ->label('Містить спойлери')
+                            ->default(false)
+                            ->helperText('Позначте, якщо цитата розкриває сюжет'),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -93,147 +131,108 @@ class QuoteResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
+                TextColumn::make('text')
+                    ->label('Цитата')
                     ->searchable()
+                    ->limit(80)
+                    ->wrap()
+                    ->weight('medium'),
+                TextColumn::make('user.username')
+                    ->label('Користувач')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('book.title')
+                    ->label('Книга')
+                    ->searchable()
+                    ->sortable()
+                    ->limit(30)
+                    ->toggleable(),
+                TextColumn::make('page_number')
+                    ->label('Стор.')
+                    ->sortable()
+                    ->alignCenter()
+                    ->toggleable(),
+                IconColumn::make('is_public')
+                    ->label('Публічна')
+                    ->boolean()
+                    ->toggleable(),
+                IconColumn::make('contains_spoilers')
+                    ->label('Спойлер')
+                    ->boolean()
+                    ->toggleable(),
+                TextColumn::make('comments_count')
+                    ->label('Коментарів')
+                    ->badge()
+                    ->color('info')
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('likes_count')
+                    ->label('Лайків')
+                    ->badge()
+                    ->color('success')
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('created_at')
+                    ->label('Створено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-
-                ImageColumn::make('book.cover_image')
-                    ->label(__('Обкладинка'))
-                    ->getStateUsing(fn ($record) => $record->book ? $record->book->getFirstMediaUrl('cover_image') : null)
-                    ->circular()
-                    ->defaultImageUrl(url('path/to/default-book-image.jpg')),
-
-                TextColumn::make('book.title')
-                    ->label(__('Книга'))
-                    ->searchable()
-                    ->sortable()
-                    ->url(fn ($record) => $record->book ? route('filament.admin.resources.books.view', $record->book_id) : null),
-
-                TextColumn::make('user.username')
-                    ->label(__('Користувач'))
-                    ->searchable()
-                    ->sortable()
-                    ->url(fn ($record) => $record->user ? route('filament.admin.resources.users.view', $record->user_id) : null),
-
-                TextColumn::make('text')
-                    ->label(__('Текст цитати'))
-                    ->limit(50)
-                    ->tooltip(fn ($record) => $record->text)
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('page_number')
-                    ->label(__('Сторінка'))
-                    ->sortable()
-                    ->toggleable(),
-
-                IconColumn::make('contains_spoilers')
-                    ->label(__('Спойлери'))
-                    ->boolean()
-                    ->trueIcon('heroicon-o-exclamation-circle')
-                    ->falseIcon('heroicon-o-check-circle')
-                    ->sortable()
-                    ->toggleable(),
-
-                IconColumn::make('is_public')
-                    ->label(__('Публічність'))
-                    ->boolean()
-                    ->trueIcon('heroicon-o-lock-open')
-                    ->falseIcon('heroicon-o-lock-closed')
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('comments_count')
-                    ->label(__('Кількість коментарів'))
-                    ->counts('comments')
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('likes_count')
-                    ->label(__('Кількість лайків'))
-                    ->counts('likes')
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('favorites_count')
-                    ->label(__('Кількість у вибране'))
-                    ->counts('favorites')
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-
                 TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                    ->label('Оновлено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('user_id')
-                    ->label(__('Користувач'))
-                    ->relationship('user', 'username')
-                    ->multiple()
-                    ->indicator(__('Користувач')),
-
-                SelectFilter::make('book_id')
-                    ->label(__('Книга'))
-                    ->relationship('book', 'title')
-                    ->multiple()
-                    ->indicator(__('Книга')),
-
-                TernaryFilter::make('contains_spoilers')
-                    ->label(__('Спойлери'))
-                    ->placeholder(__('Всі'))
-                    ->trueLabel(__('Містять спойлери'))
-                    ->falseLabel(__('Без спойлерів'))
-                    ->indicator(__('Спойлери')),
-
                 TernaryFilter::make('is_public')
-                    ->label(__('Публічність'))
-                    ->placeholder(__('Всі'))
-                    ->trueLabel(__('Публічні'))
-                    ->falseLabel(__('Приватні'))
-                    ->indicator(__('Публічність')),
+                    ->label('Публічна'),
+                TernaryFilter::make('contains_spoilers')
+                    ->label('Містить спойлери'),
+                SelectFilter::make('user')
+                    ->label('Користувач')
+                    ->relationship('user', 'username')
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('book')
+                    ->label('Книга')
+                    ->relationship('book', 'title')
+                    ->searchable()
+                    ->preload()
+                    ->multiple(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
-            ->groups([
-                'book_id',
-                'user_id',
-            ]);
+            ->striped()
+            ->persistSortInSession()
+            ->persistSearchInSession()
+            ->persistFiltersInSession();
     }
 
     public static function getRelations(): array
     {
         return [
-            CommentsRelationManager::class,
+            QuoteResource\RelationManagers\CommentsRelationManager::class,
+            QuoteResource\RelationManagers\LikesRelationManager::class,
         ];
-
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListQuotes::route('/'),
-            'create' => CreateQuote::route('/create'),
-            'view' => ViewQuote::route('/{record}'),
-            'edit' => EditQuote::route('/{record}/edit'),
+            'index' => Pages\ListQuotes::route('/'),
+            'create' => Pages\CreateQuote::route('/create'),
+            'view' => Pages\ViewQuote::route('/{record}'),
+            'edit' => Pages\EditQuote::route('/{record}/edit'),
         ];
     }
 }

@@ -2,14 +2,16 @@
 
 namespace App\Http\Requests\GroupModerationLog;
 
+use App\Enums\ModerationAction;
 use App\Models\GroupModerationLog;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class GroupModerationLogIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', GroupModerationLog::class);
+        return $this->user()?->can('viewAny', GroupModerationLog::class) ?? false;
     }
 
     public function rules(): array
@@ -20,11 +22,11 @@ class GroupModerationLogIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:created_at,action'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'group_id' => ['nullable', 'string', 'exists:groups,id'],
-            'moderator_id' => ['nullable', 'string', 'exists:users,id'],
-            'action' => ['nullable', 'string', 'max:255'],
-            'targetable_type' => ['nullable', 'string', 'in:App\Models\GroupPost,App\Models\Comment,App\Models\User'],
-            'targetable_id' => ['nullable', 'string'],
+            'group_id' => ['nullable', 'uuid', 'exists:groups,id'],
+            'moderator_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'action' => ['nullable', Rule::enum(ModerationAction::class)],
+            'targetable_type' => ['nullable', 'string'],
+            'targetable_id' => ['nullable', 'uuid'],
         ];
     }
 
@@ -32,15 +34,15 @@ class GroupModerationLogIndexRequest extends FormRequest
     {
         return [
             'q' => [
-                'description' => 'Пошуковий запит для дії або опису логу модерації.',
-                'example' => 'Видалення коментаря',
+                'description' => 'Пошуковий запит для опису.',
+                'example' => 'Видалено пост',
             ],
             'page' => [
                 'description' => 'Номер сторінки для пагінації.',
                 'example' => 1,
             ],
             'per_page' => [
-                'description' => 'Кількість логів на сторінці.',
+                'description' => 'Кількість записів на сторінці.',
                 'example' => 15,
             ],
             'sort' => [
@@ -52,24 +54,24 @@ class GroupModerationLogIndexRequest extends FormRequest
                 'example' => 'desc',
             ],
             'group_id' => [
-                'description' => 'Фільтр за ID групи.',
-                'example' => 'group-uuid123',
+                'description' => 'Фільтр за UUID групи.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'moderator_id' => [
-                'description' => 'Фільтр за ID модератора.',
-                'example' => 'user-uuid123',
+                'description' => 'Фільтр за UUID модератора.',
+                'example' => '8c6d7e2b-1a9c-3d4e-8f2b-1c2d3e4f5a6b',
             ],
             'action' => [
-                'description' => 'Фільтр за дією модерації.',
-                'example' => 'DELETE_POST',
+                'description' => 'Фільтр за типом дії модерації. Можливі значення: delete, approve, reject, warning, ban, unban, pin, unpin, edit, move.',
+                'example' => 'delete',
             ],
             'targetable_type' => [
-                'description' => 'Фільтр за типом цільового об’єкта (напр., App\Models\GroupPost).',
-                'example' => 'App\Models\GroupPost',
+                'description' => 'Фільтр за типом об\'єкта модерації. Можливі значення: залежить від контексту (наприклад, App\\Models\\GroupPost, App\\Models\\User, App\\Models\\GroupEvent, тощо).',
+                'example' => 'App\\Models\\GroupPost',
             ],
             'targetable_id' => [
-                'description' => 'Фільтр за ID цільового об’єкта.',
-                'example' => 'post-uuid123',
+                'description' => 'Фільтр за UUID об\'єкта модерації.',
+                'example' => '7b5c6d1a-2c3d-4e5f-6a7b-8c9d0e1f2a3b',
             ],
         ];
     }

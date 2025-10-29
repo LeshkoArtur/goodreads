@@ -12,9 +12,9 @@ return new class extends Migration
     {
         Schema::create('nomination_entries', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid("nomination_id")->constrained()->cascadeOnDelete();
-            $table->foreignUuid("book_id")->nullable()->constrained()->nullOnDelete();
-            $table->foreignUuid("author_id")->nullable()->constrained()->nullOnDelete();
+            $table->foreignUuid('nomination_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('book_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignUuid('author_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
         });
 
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->enumAlterColumn('status', 'nomination_status', NominationStatus::class);
         });
 
-        DB::statement("ALTER TABLE nomination_entries ADD CONSTRAINT check_book_or_author CHECK (book_id IS NOT NULL OR author_id IS NOT NULL)");
+        DB::statement('ALTER TABLE nomination_entries ADD CONSTRAINT check_book_or_author CHECK (book_id IS NOT NULL OR author_id IS NOT NULL)');
     }
 
     public function down(): void

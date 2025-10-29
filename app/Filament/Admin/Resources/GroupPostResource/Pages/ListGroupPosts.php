@@ -10,10 +10,10 @@ class ListGroupPosts extends ListRecords
 {
     protected static string $resource = GroupPostResource::class;
 
+    protected ?string $heading = 'Пости груп';
+
     protected function getHeaderActions(): array
     {
-        return [
-            Actions\CreateAction::make(),
-        ];
+        return [Actions\CreateAction::make()->label('Створити пост')];
     }
 }

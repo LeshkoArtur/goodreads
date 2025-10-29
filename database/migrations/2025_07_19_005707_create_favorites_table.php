@@ -14,8 +14,10 @@ return new class extends Migration
             $table->uuidMorphs('favoriteable');
             $table->timestamps();
             $table->unique(['user_id', 'favoriteable_id', 'favoriteable_type']);
+            $table->index('user_id');
         });
     }
+
     public function down(): void
     {
         Schema::dropIfExists('favorites');

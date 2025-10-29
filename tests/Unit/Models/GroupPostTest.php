@@ -89,13 +89,12 @@ class GroupPostTest extends TestCase
         $data['category'] = 'invalid';
 
         $validator = Validator::make($data, [
-            'category' => 'required|in:' . implode(',', array_map(fn($c) => $c->value, PostCategory::cases())),
+            'category' => 'required|in:'.implode(',', array_map(fn ($c) => $c->value, PostCategory::cases())),
         ]);
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('category', $validator->errors()->toArray());
     }
-
 
     public function test_post_status_must_be_valid_enum_value()
     {
@@ -103,13 +102,12 @@ class GroupPostTest extends TestCase
         $data['post_status'] = 'invalid';
 
         $validator = Validator::make($data, [
-            'post_status' => 'required|in:' . implode(',', array_map(fn($s) => $s->value, PostStatus::cases())),
+            'post_status' => 'required|in:'.implode(',', array_map(fn ($s) => $s->value, PostStatus::cases())),
         ]);
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('post_status', $validator->errors()->toArray());
     }
-
 
     public function test_is_pinned_must_be_boolean()
     {
@@ -123,5 +121,4 @@ class GroupPostTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('is_pinned', $validator->errors()->toArray());
     }
-
 }

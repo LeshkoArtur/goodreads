@@ -8,32 +8,25 @@ class ViewHistoryIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', \App\Models\ViewHistory::class);
+        return $this->user()?->can('viewAny', \App\Models\ViewHistory::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'q' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'sort' => ['nullable', 'string', 'max:255'],
+            'sort' => ['nullable', 'string', 'in:created_at'],
             'direction' => ['nullable', 'in:asc,desc'],
-            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
-            'viewable_type' => ['nullable', 'string', 'max:255'],
-            'viewable_id' => ['nullable', 'uuid'],
-            'min_viewed_at' => ['nullable', 'date'],
-            'max_viewed_at' => ['nullable', 'date'],
+            'user_id' => ['nullable', 'string', 'exists:users,id'],
+            'viewable_type' => ['nullable', 'string'],
+            'viewable_id' => ['nullable', 'string'],
         ];
     }
 
     public function queryParameters(): array
     {
         return [
-            'q' => [
-                'description' => 'Пошуковий запит',
-                'example' => 'Some search text',
-            ],
             'page' => [
                 'description' => 'Номер сторінки пагінації',
                 'example' => 1,
@@ -55,7 +48,7 @@ class ViewHistoryIndexRequest extends FormRequest
                 'example' => 'uuid-of-user',
             ],
             'viewable_type' => [
-                'description' => 'Тип переглянутого об’єкта',
+                'description' => 'Тип переглянутого об’єкта. Можливі значення: залежить від вашої моделі (наприклад, App\\Models\\Post, App\\Models\\Book, тощо)',
                 'example' => 'App\\Models\\Post',
             ],
             'viewable_id' => [

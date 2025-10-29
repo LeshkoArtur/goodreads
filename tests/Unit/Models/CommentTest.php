@@ -2,7 +2,12 @@
 
 namespace Tests\Unit;
 
-use App\Models\{Comment, GroupPost, Post, Quote, Rating, User};
+use App\Models\Comment;
+use App\Models\GroupPost;
+use App\Models\Post;
+use App\Models\Quote;
+use App\Models\Rating;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;

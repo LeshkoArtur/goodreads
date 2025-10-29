@@ -2,118 +2,153 @@
 
 namespace App\Filament\Admin\Resources;
 
-use App\Filament\Admin\Resources\GroupResource\Pages\CreateGroup;
-use App\Filament\Admin\Resources\GroupResource\Pages\EditGroup;
-use App\Filament\Admin\Resources\GroupResource\Pages\ListGroups;
-use App\Filament\Admin\Resources\GroupResource\Pages\ViewGroup;
-use App\Filament\Admin\Resources\GroupResource\RelationManagers\GroupPostsRelationManager;
-use App\Filament\Admin\Resources\GroupResource\RelationManagers\GroupEventsRelationManager;
-use App\Filament\Admin\Resources\GroupResource\RelationManagers\GroupInvitationsRelationManager;
-use App\Filament\Admin\Resources\GroupResource\RelationManagers\GroupPollsRelationManager;
-use App\Filament\Admin\Resources\GroupResource\RelationManagers\GroupModerationLogsRelationManager;
 use App\Enums\JoinPolicy;
 use App\Enums\PostPolicy;
+use App\Filament\Admin\Resources\GroupResource\Pages;
 use App\Models\Group;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class GroupResource extends Resource
 {
     protected static ?string $model = Group::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?string $navigationGroup = 'Групи';
+    protected static ?string $navigationGroup = 'Функціонал груп';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 21;
 
-    public static function getNavigationLabel(): string
-    {
-        return __('Групи');
-    }
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function getModelLabel(): string
     {
-        return __('Група');
+        return 'Група';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Групи');
+        return 'Групи';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Групи';
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'description', 'creator.username'];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->name;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Створив' => $record->creator->username,
+            'Учасників' => $record->member_count ?? 0,
+            'Статус' => $record->is_active ? 'Активна' : 'Неактивна',
+        ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withCount(['members', 'posts', 'events']);
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->label(__('Назва'))
-                    ->required()
-                    ->maxLength(255)
-                    ->unique(Group::class, 'name', ignoreRecord: true),
+                Section::make('Основна інформація')
+                    ->description('Назва та опис групи')
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Назва групи')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(2),
+                        FileUpload::make('cover_image')
+                            ->label('Обкладинка')
+                            ->image()
+                            ->disk('public')
+                            ->directory('groups')
+                            ->imageEditor()
+                            ->columnSpan(1),
+                        Select::make('creator_id')
+                            ->label('Створив')
+                            ->relationship('creator', 'username')
+                            ->required()
+                            ->searchable()
+                            ->preload(),
+                        Textarea::make('description')
+                            ->label('Опис')
+                            ->rows(4)
+                            ->maxLength(2000)
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(3),
 
-                Textarea::make('description')
-                    ->label(__('Опис'))
-                    ->maxLength(65535)
-                    ->nullable()
-                    ->columnSpanFull(),
+                Section::make('Налаштування')
+                    ->description('Параметри доступу та публікації')
+                    ->schema([
+                        Toggle::make('is_public')
+                            ->label('Публічна група')
+                            ->default(false)
+                            ->helperText('Публічна група видима всім користувачам'),
+                        Toggle::make('is_active')
+                            ->label('Активна')
+                            ->default(true)
+                            ->helperText('Неактивні групи приховані'),
+                        Select::make('join_policy')
+                            ->label('Політика приєднання')
+                            ->options(JoinPolicy::class)
+                            ->native(false)
+                            ->default(JoinPolicy::OPEN)
+                            ->required(),
+                        Select::make('post_policy')
+                            ->label('Хто може публікувати')
+                            ->options(PostPolicy::class)
+                            ->native(false)
+                            ->default(PostPolicy::ALL)
+                            ->required(),
+                    ])
+                    ->columns(4),
 
-                Select::make('creator_id')
-                    ->label(__('Творець'))
-                    ->relationship('creator', 'username')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
-
-                Toggle::make('is_public')
-                    ->label(__('Публічна група'))
-                    ->default(true),
-
-                Forms\Components\FileUpload::make('cover_image')
-                    ->label(__('Обкладинка'))
-                    ->directory('cover_image')
-                    ->image()
-                    ->maxSize(2048)
-                    ->nullable(),
-
-                Textarea::make('rules')
-                    ->label(__('Правила'))
-                    ->maxLength(65535)
-                    ->nullable()
-                    ->columnSpanFull(),
-
-                TextInput::make('member_count')
-                    ->label(__('Кількість учасників'))
-                    ->numeric()
-                    ->minValue(0)
-                    ->disabled()
-                    ->dehydrated(false),
-
-                Toggle::make('is_active')
-                    ->label(__('Активна'))
-                    ->default(true),
-
-                Select::make('join_policy')
-                    ->label(__('Політика приєднання'))
-                    ->options(JoinPolicy::class)
-                    ->required(),
-
-                Select::make('post_policy')
-                    ->label(__('Політика публікацій'))
-                    ->options(PostPolicy::class)
-                    ->required(),
+                Section::make('Правила групи')
+                    ->schema([
+                        RichEditor::make('rules')
+                            ->label('Правила')
+                            ->toolbarButtons(['bold', 'italic', 'link', 'bulletList', 'orderedList'])
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsed()
+                    ->collapsible(),
             ]);
     }
 
@@ -121,159 +156,110 @@ class GroupResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
                 ImageColumn::make('cover_image')
-                    ->label(__('Обкладинка'))
-                    ->getStateUsing(fn ($record) => $record->getFirstMediaUrl('cover_image'))
-                    ->circular()
-                    ->defaultImageUrl(url('path/to/default-group-image.jpg')),
-
+                    ->label('Обкладинка')
+                    ->disk('public')
+                    ->size(50)
+                    ->circular(),
                 TextColumn::make('name')
-                    ->label(__('Назва'))
+                    ->label('Назва')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record) => route('filament.admin.resources.groups.view', $record->id)),
-
+                    ->weight('bold'),
                 TextColumn::make('creator.username')
-                    ->label(__('Творець'))
+                    ->label('Створив')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record) => $record->creator ? route('filament.admin.resources.users.view', $record->creator_id) : null),
-
-                TextColumn::make('member_count')
-                    ->label(__('Кількість учасників'))
-                    ->sortable()
                     ->toggleable(),
-
                 IconColumn::make('is_public')
-                    ->label(__('Публічність'))
+                    ->label('Публічна')
                     ->boolean()
-                    ->trueIcon('heroicon-o-lock-open')
-                    ->falseIcon('heroicon-o-lock-closed')
-                    ->sortable()
                     ->toggleable(),
-
-                IconColumn::make('is_active')
-                    ->label(__('Активність'))
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->sortable()
-                    ->toggleable(),
-
                 TextColumn::make('join_policy')
-                    ->label(__('Політика приєднання'))
+                    ->label('Приєднання')
                     ->badge()
-                    ->formatStateUsing(fn (?JoinPolicy $state) => $state?->getLabel())
-                    ->sortable()
+                    ->color(fn (?JoinPolicy $state): string|array|null => $state?->getColor())
                     ->toggleable(),
-
                 TextColumn::make('post_policy')
-                    ->label(__('Політика публікацій'))
+                    ->label('Постинг')
                     ->badge()
-                    ->formatStateUsing(fn (?PostPolicy $state) => $state?->getLabel())
-                    ->sortable()
+                    ->color(fn (?PostPolicy $state): string|array|null => $state?->getColor())
                     ->toggleable(),
-
+                TextColumn::make('member_count')
+                    ->label('Учасників')
+                    ->badge()
+                    ->color('success')
+                    ->sortable()
+                    ->default(0),
                 TextColumn::make('posts_count')
-                    ->label(__('Кількість публікацій'))
-                    ->counts('posts')
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('events_count')
-                    ->label(__('Кількість подій'))
-                    ->counts('events')
-                    ->sortable()
-                    ->toggleable(),
-
+                    ->label('Постів')
+                    ->badge()
+                    ->color('info')
+                    ->sortable(),
+                IconColumn::make('is_active')
+                    ->label('Активна')
+                    ->boolean()
+                    ->sortable(),
                 TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                    ->label('Створено')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('creator_id')
-                    ->label(__('Творець'))
-                    ->relationship('creator', 'username')
-                    ->multiple()
-                    ->indicator(__('Творець')),
-
                 TernaryFilter::make('is_public')
-                    ->label(__('Публічність'))
-                    ->placeholder(__('Всі'))
-                    ->trueLabel(__('Публічні'))
-                    ->falseLabel(__('Приватні'))
-                    ->indicator(__('Публічність')),
-
+                    ->label('Публічна група'),
                 TernaryFilter::make('is_active')
-                    ->label(__('Активність'))
-                    ->placeholder(__('Всі'))
-                    ->trueLabel(__('Активні'))
-                    ->falseLabel(__('Неактивні'))
-                    ->indicator(__('Активність')),
-
+                    ->label('Активна'),
                 SelectFilter::make('join_policy')
-                    ->label(__('Політика приєднання'))
+                    ->label('Політика приєднання')
                     ->options(JoinPolicy::class)
-                    ->multiple()
-                    ->indicator(__('Політика приєднання')),
-
+                    ->native(false),
                 SelectFilter::make('post_policy')
-                    ->label(__('Політика публікацій'))
+                    ->label('Політика постів')
                     ->options(PostPolicy::class)
-                    ->multiple()
-                    ->indicator(__('Політика публікацій')),
+                    ->native(false),
+                SelectFilter::make('creator')
+                    ->label('Створив')
+                    ->relationship('creator', 'username')
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc')
-            ->groups([
-                'creator_id',
-                'is_public',
-                'is_active',
-            ]);
+            ->defaultSort('member_count', 'desc')
+            ->persistSortInSession()
+            ->persistSearchInSession()
+            ->persistFiltersInSession();
     }
 
     public static function getRelations(): array
     {
         return [
-            GroupPostsRelationManager::class,
-            GroupEventsRelationManager::class,
-            GroupInvitationsRelationManager::class,
-            GroupPollsRelationManager::class,
-            GroupModerationLogsRelationManager::class,
-
+            GroupResource\RelationManagers\MembersRelationManager::class,
+            GroupResource\RelationManagers\GroupPostsRelationManager::class,
+            GroupResource\RelationManagers\GroupEventsRelationManager::class,
+            GroupResource\RelationManagers\GroupInvitationsRelationManager::class,
+            GroupResource\RelationManagers\GroupPollsRelationManager::class,
+            GroupResource\RelationManagers\ModerationLogsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListGroups::route('/'),
-            'create' => CreateGroup::route('/create'),
-            'view' => ViewGroup::route('/{record}'),
-            'edit' => EditGroup::route('/{record}/edit'),
+            'index' => Pages\ListGroups::route('/'),
+            'create' => Pages\CreateGroup::route('/create'),
+            'view' => Pages\ViewGroup::route('/{record}'),
+            'edit' => Pages\EditGroup::route('/{record}/edit'),
         ];
     }
 }

@@ -17,7 +17,7 @@ class ViewHistoryTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_fields()
     {
-        $model = new ViewHistory();
+        $model = new ViewHistory;
 
         $this->assertEquals([
             'user_id',

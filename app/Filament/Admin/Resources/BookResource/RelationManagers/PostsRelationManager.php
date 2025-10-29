@@ -4,18 +4,9 @@ namespace App\Filament\Admin\Resources\BookResource\RelationManagers;
 
 use App\Enums\PostStatus;
 use App\Enums\PostType;
-use Filament\Forms;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class PostsRelationManager extends RelationManager
 {
@@ -23,178 +14,80 @@ class PostsRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'title';
 
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Публікації книги') . ' ' . $ownerRecord->title;
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                Select::make('user_id')
-                    ->label(__('Користувач'))
-                    ->relationship('user', 'username')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
-
-                Select::make('author_id')
-                    ->label(__('Автор'))
-                    ->relationship('author', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->nullable(),
-
-                TextInput::make('title')
-                    ->label(__('Заголовок'))
-                    ->required()
-                    ->maxLength(255),
-
-                Textarea::make('content')
-                    ->label(__('Контент'))
-                    ->required()
-                    ->maxLength(65535)
-                    ->columnSpanFull(),
-
-                Forms\Components\FileUpload::make('cover_image')
-                    ->label(__('Обкладинка'))
-                    ->directory('cover_image')
-                    ->image()
-                    ->maxSize(2048)
-                    ->nullable(),
-
-                DateTimePicker::make('published_at')
-                    ->label(__('Дата публікації'))
-                    ->nullable(),
-
-                Select::make('type')
-                    ->label(__('Тип публікації'))
-                    ->options(PostType::class)
-                    ->required(),
-
-                Select::make('status')
-                    ->label(__('Статус'))
-                    ->options(PostStatus::class)
-                    ->required(),
-
-                Select::make('tags')
-                    ->label(__('Теги'))
-                    ->relationship('tags', 'name')
-                    ->multiple()
-                    ->searchable()
-                    ->preload()
-                    ->nullable(),
-            ]);
-    }
+    protected static ?string $title = 'Пости';
 
     public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('title')
             ->columns([
-                ImageColumn::make('cover_image')
-                    ->label(__('Обкладинка'))
-                    ->getStateUsing(fn ($record) => $record->getFirstMediaUrl('cover_image'))
-                    ->circular()
-                    ->defaultImageUrl(url('path/to/default-post-image.jpg')),
-
-                TextColumn::make('title')
-                    ->label(__('Заголовок'))
+                Tables\Columns\ImageColumn::make('cover_image')
+                    ->label('Обкладинка')
+                    ->size(50),
+                Tables\Columns\TextColumn::make('title')
+                    ->label('Назва')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record) => route('filament.admin.resources.posts.view', $record->id)),
-
-                TextColumn::make('user.username')
-                    ->label(__('Користувач'))
+                    ->limit(50)
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('user.username')
+                    ->label('Автор')
                     ->searchable()
-                    ->sortable()
-                    ->url(fn ($record) => $record->user ? route('filament.admin.resources.users.view', $record->user_id) : null),
-
-                TextColumn::make('author.name')
-                    ->label(__('Автор'))
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('type')
-                    ->label(__('Тип публікації'))
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Тип')
                     ->badge()
-                    ->formatStateUsing(fn (?PostType $state) => $state?->getLabel())
-                    ->sortable()
                     ->toggleable(),
-
-                TextColumn::make('status')
-                    ->label(__('Статус'))
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Статус')
                     ->badge()
-                    ->formatStateUsing(fn (?PostStatus $state) => $state?->getLabel())
+                    ->color(fn (PostStatus $state) => match ($state) {
+                        PostStatus::PUBLISHED => 'success',
+                        PostStatus::DRAFT => 'warning',
+                        PostStatus::ARCHIVED => 'danger',
+                        PostStatus::PENDING => 'warning',
+                    }),
+                Tables\Columns\TextColumn::make('published_at')
+                    ->label('Опубліковано')
+                    ->dateTime('d.m.Y')
                     ->sortable()
                     ->toggleable(),
-
-                TextColumn::make('published_at')
-                    ->label(__('Дата публікації'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('comments_count')
-                    ->label(__('Кількість коментарів'))
+                Tables\Columns\TextColumn::make('comments_count')
+                    ->label('Коментарі')
                     ->counts('comments')
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('likes_count')
-                    ->label(__('Кількість лайків'))
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('likes_count')
+                    ->label('Лайки')
                     ->counts('likes')
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
-                    ->sortable()
+                    ->badge()
+                    ->color('success')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('type')
-                    ->label(__('Тип публікації'))
-                    ->options(PostType::class)
-                    ->multiple()
-                    ->indicator(__('Тип публікації')),
-
-                SelectFilter::make('status')
-                    ->label(__('Статус'))
-                    ->options(PostStatus::class)
-                    ->multiple()
-                    ->indicator(__('Статус')),
-
-                SelectFilter::make('user_id')
-                    ->label(__('Користувач'))
-                    ->relationship('user', 'username')
-                    ->multiple()
-                    ->indicator(__('Користувач')),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label(__('Додати публікацію')),
+                Tables\Filters\SelectFilter::make('type')
+                    ->label('Тип')
+                    ->options(PostType::class),
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Статус')
+                    ->options(PostStatus::class),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
+                Tables\Actions\ViewAction::make()
+                    ->label('Переглянути'),
                 Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                    ->label('Видалити')
+                    ->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                        ->label('Видалити обрані')
+                        ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('published_at', 'desc')
+            ->emptyStateHeading('Немає постів')
+            ->emptyStateDescription('Поки що немає постів про цю книгу.');
     }
 }

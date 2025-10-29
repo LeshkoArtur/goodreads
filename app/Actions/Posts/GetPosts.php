@@ -2,84 +2,49 @@
 
 namespace App\Actions\Posts;
 
-use App\DTOs\Post\PostIndexDTO;
+use App\Data\Post\PostIndexData;
 use App\Models\Post;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetPosts
 {
     use AsAction;
 
-    /**
-     * Отримати список постів із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param PostIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(PostIndexDTO $dto): LengthAwarePaginator
+    public function handle(PostIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Post::search($dto->query ?? '');
+        $searchQuery = Post::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at', 'published_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['created_at', 'published_at']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/posts');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param PostIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, PostIndexDTO $dto): void
+    private function applyFilters(Builder $query, PostIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"))
+            ->when($data->book_id, fn ($collection) => $collection->push("book_id = '{$data->book_id}'"))
+            ->when($data->author_id, fn ($collection) => $collection->push("author_id = '{$data->author_id}'"))
+            ->when($data->type, fn ($collection) => $collection->push("type = '{$data->type->value}'"))
+            ->when($data->status, fn ($collection) => $collection->push("status = '{$data->status->value}'"))
+            ->when($data->tag_ids, fn ($collection) => $collection->push('tag_ids IN ['.collect($data->tag_ids)->implode(',').']'));
 
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = {$dto->userId}";
-            }
-
-            if ($dto->bookId) {
-                $options['filter'][] = "book_id = {$dto->bookId}";
-            }
-
-            if ($dto->authorId) {
-                $options['filter'][] = "author_id = {$dto->authorId}";
-            }
-
-            if ($dto->type) {
-                $options['filter'][] = "type = '{$dto->type}'";
-            }
-
-            if ($dto->status) {
-                $options['filter'][] = "status = '{$dto->status}'";
-            }
-
-            if ($dto->minPublishedAt) {
-                $options['filter'][] = "published_at >= {$dto->minPublishedAt}";
-            }
-
-            if ($dto->maxPublishedAt) {
-                $options['filter'][] = "published_at <= {$dto->maxPublishedAt}";
-            }
-
-            if ($dto->tagIds) {
-                $options['filter'][] = "tag_ids IN [" . implode(',', $dto->tagIds) . "]";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

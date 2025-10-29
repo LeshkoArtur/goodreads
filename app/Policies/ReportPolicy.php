@@ -2,9 +2,8 @@
 
 namespace App\Policies;
 
-use App\Enums\Role;
-use App\Models\User;
 use App\Models\Report;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
@@ -16,24 +15,18 @@ class ReportPolicy
 
     /**
      * Виконується перед усіма перевірками авторизації.
-     *
-     * @param User $user
-     * @param string $ability
-     * @return bool|null
      */
     public function before(User $user, string $ability): ?bool
     {
         if ($user->isAdmin()) {
             return true;
         }
+
         return null;
     }
 
     /**
      * Визначає, чи може користувач переглядати будь-які звіти.
-     *
-     * @param User $user
-     * @return bool
      */
     public function viewAny(User $user): bool
     {
@@ -42,10 +35,6 @@ class ReportPolicy
 
     /**
      * Визначає, чи може користувач переглядати звіт.
-     *
-     * @param User $user
-     * @param Report $report
-     * @return bool
      */
     public function view(User $user, Report $report): bool
     {
@@ -54,9 +43,6 @@ class ReportPolicy
 
     /**
      * Визначає, чи може користувач створювати звіти.
-     *
-     * @param User $user
-     * @return bool
      */
     public function create(User $user): bool
     {
@@ -65,10 +51,6 @@ class ReportPolicy
 
     /**
      * Визначає, чи може користувач оновлювати звіт.
-     *
-     * @param User $user
-     * @param Report $report
-     * @return bool
      */
     public function update(User $user, Report $report): bool
     {
@@ -77,10 +59,6 @@ class ReportPolicy
 
     /**
      * Визначає, чи може користувач видаляти звіт.
-     *
-     * @param User $user
-     * @param Report $report
-     * @return bool
      */
     public function delete(User $user, Report $report): bool
     {

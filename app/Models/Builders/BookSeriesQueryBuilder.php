@@ -11,7 +11,7 @@ class BookSeriesQueryBuilder extends Builder
      */
     public function withTitle(string $title): static
     {
-        return $this->where('title', 'like', '%' . $title . '%');
+        return $this->where('title', 'like', '%'.$title.'%');
     }
 
     /**

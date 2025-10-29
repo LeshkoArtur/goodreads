@@ -2,84 +2,55 @@
 
 namespace App\Actions\ReadingStats;
 
-use App\DTOs\ReadingStat\ReadingStatIndexDTO;
+use App\Data\ReadingStat\ReadingStatIndexData;
 use App\Models\ReadingStat;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetReadingStats
 {
     use AsAction;
 
-    /**
-     * Отримати список статистик читання із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param ReadingStatIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(ReadingStatIndexDTO $dto): LengthAwarePaginator
+    public function handle(ReadingStatIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = ReadingStat::search($dto->query ?? '');
+        $searchQuery = ReadingStat::search('');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at', 'year', 'books_read', 'pages_read'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['created_at', 'year', 'books_read', 'pages_read']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/reading-stats');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param ReadingStatIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, ReadingStatIndexDTO $dto): void
+    private function applyFilters(Builder $query, ReadingStatIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"))
+            ->when($data->year !== null, fn ($collection) => $collection->push("year = {$data->year}"))
+            ->when($data->min_books_read !== null, fn ($collection) => $collection->push("books_read >= {$data->min_books_read}"))
+            ->when($data->max_books_read !== null, fn ($collection) => $collection->push("books_read <= {$data->max_books_read}"))
+            ->when($data->min_pages_read !== null, fn ($collection) => $collection->push("pages_read >= {$data->min_pages_read}"))
+            ->when($data->max_pages_read !== null, fn ($collection) => $collection->push("pages_read <= {$data->max_pages_read}"))
+            ->when($data->genres_read, function ($collection) use ($data) {
+                $genreFilters = collect($data->genres_read)
+                    ->map(fn ($genre) => "genres_read = '{$genre}'")
+                    ->implode(' OR ');
+                return $collection->push("({$genreFilters})");
+            });
 
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = {$dto->userId}";
-            }
-
-            if ($dto->bookId) {
-                $options['filter'][] = "book_id = {$dto->bookId}";
-            }
-
-            if ($dto->minPagesRead !== null) {
-                $options['filter'][] = "pages_read >= {$dto->minPagesRead}";
-            }
-
-            if ($dto->maxPagesRead !== null) {
-                $options['filter'][] = "pages_read <= {$dto->maxPagesRead}";
-            }
-
-            if ($dto->minStartDate) {
-                $options['filter'][] = "created_at >= {$dto->minStartDate}";
-            }
-
-            if ($dto->maxStartDate) {
-                $options['filter'][] = "created_at <= {$dto->maxStartDate}";
-            }
-
-            if ($dto->minFinishDate) {
-                $options['filter'][] = "updated_at >= {$dto->minFinishDate}";
-            }
-
-            if ($dto->maxFinishDate) {
-                $options['filter'][] = "updated_at <= {$dto->maxFinishDate}";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

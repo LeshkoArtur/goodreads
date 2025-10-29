@@ -15,7 +15,7 @@ return new class extends Migration
             $table->text('question');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-        });;
+        });
     }
 
     public function down(): void

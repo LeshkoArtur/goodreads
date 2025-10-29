@@ -2,88 +2,56 @@
 
 namespace App\Actions\Authors;
 
-use App\DTOs\Author\AuthorIndexDTO;
+use App\Data\Author\AuthorIndexData;
 use App\Models\Author;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetAuthors
 {
     use AsAction;
 
-    /**
-     * Отримати список авторів із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param AuthorIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(AuthorIndexDTO $dto): LengthAwarePaginator
+    public function handle(AuthorIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Author::search($dto->query ?? '');
+        $searchQuery = Author::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['name', 'birth_date', 'created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if (in_array($data->sort, ['name', 'birth_date', 'created_at'])) {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/authors');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param AuthorIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, AuthorIndexDTO $dto): void
+    private function applyFilters(Builder $query, AuthorIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->nationality, fn ($collection) => $collection->push("nationality = '{$data->nationality}'"))
+            ->when($data->min_birth_date !== null, fn ($collection) => $collection->push("birth_date >= '{$data->min_birth_date}'"))
+            ->when($data->max_birth_date !== null, fn ($collection) => $collection->push("birth_date <= '{$data->max_birth_date}'"))
+            ->when($data->min_death_date !== null, fn ($collection) => $collection->push("death_date >= '{$data->min_death_date}'"))
+            ->when($data->max_death_date !== null, fn ($collection) => $collection->push("death_date <= '{$data->max_death_date}'"))
+            ->when($data->type_of_work, fn ($collection) => $collection->push("type_of_work = '{$data->type_of_work->value}'"))
+            ->when($data->social_media_links, function ($collection) use ($data) {
+                $socialMediaFilters = collect($data->social_media_links)
+                    ->map(fn ($link) => "social_media_links = '{$link}'")
+                    ->implode(' OR ');
+                return $collection->push("({$socialMediaFilters})");
+            })
+            ->when($data->user_ids, fn ($collection) => $collection->push('user_ids IN ['.collect($data->user_ids)->implode(',').']'))
+            ->when($data->book_ids, fn ($collection) => $collection->push('book_ids IN ['.collect($data->book_ids)->implode(',').']'));
 
-            if ($dto->nationality) {
-                $options['filter'][] = "nationality = '{$dto->nationality}'";
-            }
-
-            if ($dto->minBirthDate !== null) {
-                $options['filter'][] = "birth_date >= '{$dto->minBirthDate}'";
-            }
-            if ($dto->maxBirthDate !== null) {
-                $options['filter'][] = "birth_date <= '{$dto->maxBirthDate}'";
-            }
-
-            if ($dto->minDeathDate !== null) {
-                $options['filter'][] = "death_date >= '{$dto->minDeathDate}'";
-            }
-            if ($dto->maxDeathDate !== null) {
-                $options['filter'][] = "death_date <= '{$dto->maxDeathDate}'";
-            }
-
-            if ($dto->typeOfWork) {
-                $options['filter'][] = "type_of_work = '{$dto->typeOfWork}'";
-            }
-
-            if ($dto->socialMediaLinks) {
-                foreach ($dto->socialMediaLinks as $link) {
-                    $options['filter'][] = "social_media_links = '{$link}'";
-                }
-            }
-
-            if ($dto->userIds) {
-                $options['filter'][] = 'user_ids IN [' . implode(',', $dto->userIds) . ']';
-            }
-
-            if ($dto->bookIds) {
-                $options['filter'][] = 'book_ids IN [' . implode(',', $dto->bookIds) . ']';
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

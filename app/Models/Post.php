@@ -20,7 +20,7 @@ use Spatie\Sluggable\SlugOptions;
  */
 class Post extends Model
 {
-    use HasFactory, HasUuids, HasSlug, Searchable;
+    use HasFactory, HasSlug, HasUuids, Searchable;
 
     protected $fillable = [
         'user_id',

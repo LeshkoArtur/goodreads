@@ -2,20 +2,32 @@
 
 namespace App\Filament\Admin\Resources\PublisherResource\Pages;
 
-use App\DTOs\Publisher\PublisherStoreDTO;
-use App\Filament\Admin\Resources\PublisherResource;
-use App\Models\Publisher;
 use App\Actions\Publishers\CreatePublisher as CreatePublisherAction;
+use App\Data\Publisher\PublisherStoreData;
+use App\Filament\Admin\Resources\PublisherResource;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class CreatePublisher extends CreateRecord
 {
     protected static string $resource = PublisherResource::class;
 
-    protected function handleRecordCreation(array $data): Publisher
-    {
-        $dto = PublisherStoreDTO::fromArray($data);
+    protected ?string $heading = 'Створити видавництво';
 
-        return CreatePublisherAction::run($dto);
+    protected function handleRecordCreation(array $data): Model
+    {
+        $dto = PublisherStoreData::fromArray($data);
+
+        return app(CreatePublisherAction::class)->handle($dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Видавництво створено';
     }
 }

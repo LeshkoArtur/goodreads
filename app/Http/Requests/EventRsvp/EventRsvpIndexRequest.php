@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\EventRsvp;
 
+use App\Enums\EventResponse;
 use App\Models\EventRsvp;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,7 +11,7 @@ class EventRsvpIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', EventRsvp::class);
+        return $this->user()?->can('viewAny', EventRsvp::class) ?? false;
     }
 
     public function rules(): array
@@ -21,9 +22,9 @@ class EventRsvpIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'group_event_id' => ['nullable', 'string', 'exists:group_events,id'],
-            'user_id' => ['nullable', 'string', 'exists:users,id'],
-            'response' => ['nullable', Rule::in(\App\Enums\EventResponse::values())],
+            'group_event_id' => ['nullable', 'uuid', 'exists:group_events,id'],
+            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'response' => ['nullable', Rule::enum(EventResponse::class)],
         ];
     }
 
@@ -31,8 +32,8 @@ class EventRsvpIndexRequest extends FormRequest
     {
         return [
             'q' => [
-                'description' => 'Пошуковий запит для RSVP на подію.',
-                'example' => 'Відвідування події',
+                'description' => 'Пошуковий запит.',
+                'example' => '',
             ],
             'page' => [
                 'description' => 'Номер сторінки для пагінації.',
@@ -51,16 +52,16 @@ class EventRsvpIndexRequest extends FormRequest
                 'example' => 'desc',
             ],
             'group_event_id' => [
-                'description' => 'Фільтр за ID події групи.',
-                'example' => 'event-uuid123',
+                'description' => 'Фільтр за UUID події групи.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'user_id' => [
-                'description' => 'Фільтр за ID користувача.',
-                'example' => 'user-uuid123',
+                'description' => 'Фільтр за UUID користувача.',
+                'example' => '8c6d7e2b-1a9c-3d4e-8f2b-1c2d3e4f5a6b',
             ],
             'response' => [
-                'description' => 'Фільтр за типом відповіді на подію.',
-                'example' => 'GOING',
+                'description' => 'Фільтр за відповіддю на запрошення.',
+                'example' => 'going',
             ],
         ];
     }

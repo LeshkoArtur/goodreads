@@ -2,76 +2,49 @@
 
 namespace App\Actions\GroupEvents;
 
-use App\DTOs\GroupEvent\GroupEventIndexDTO;
+use App\Data\GroupEvent\GroupEventIndexData;
 use App\Models\GroupEvent;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetGroupEvents
 {
     use AsAction;
 
-    /**
-     * Отримати список подій груп із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param GroupEventIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(GroupEventIndexDTO $dto): LengthAwarePaginator
+    public function handle(GroupEventIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = GroupEvent::search($dto->query ?? '');
+        $searchQuery = GroupEvent::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['title', 'event_date', 'created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if (in_array($data->sort, ['title', 'event_date', 'created_at'])) {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/group-events');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param GroupEventIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, GroupEventIndexDTO $dto): void
+    private function applyFilters(Builder $query, GroupEventIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->group_id, fn ($collection) => $collection->push("group_id = '{$data->group_id}'"))
+                ->when($data->creator_id, fn ($collection) => $collection->push("creator_id = '{$data->creator_id}'"))
+                ->when($data->status, fn ($collection) => $collection->push("status = '{$data->status->value}'"))
+                ->when($data->location, fn ($collection) => $collection->push("location = '{$data->location}'"))
+                ->when($data->min_event_date, fn ($collection) => $collection->push("event_date >= '{$data->min_event_date}'"))
+                ->when($data->max_event_date, fn ($collection) => $collection->push("event_date <= '{$data->max_event_date}'"))
+                ;
 
-            if ($dto->groupId) {
-                $options['filter'][] = "group_id = '{$dto->groupId}'";
-            }
-
-            if ($dto->creatorId) {
-                $options['filter'][] = "creator_id = '{$dto->creatorId}'";
-            }
-
-            if ($dto->status) {
-                $options['filter'][] = "status = '{$dto->status}'";
-            }
-
-            if ($dto->minEventDate) {
-                $options['filter'][] = "event_date >= '{$dto->minEventDate}'";
-            }
-
-            if ($dto->maxEventDate) {
-                $options['filter'][] = "event_date <= '{$dto->maxEventDate}'";
-            }
-
-            if ($dto->location) {
-                $options['filter'][] = "location = '{$dto->location}'";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

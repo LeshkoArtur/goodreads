@@ -38,7 +38,7 @@ class EventRsvp extends Model
 
     public function event(): BelongsTo
     {
-        return $this->belongsTo(GroupEvent::class);
+        return $this->belongsTo(GroupEvent::class, 'group_event_id');
     }
 
     public function user(): BelongsTo

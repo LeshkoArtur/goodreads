@@ -39,8 +39,8 @@ class BookOfferTest extends TestCase
             'book_id' => 'required|uuid|exists:books,id',
             'store_id' => 'required|uuid|exists:stores,id',
             'price' => 'required|numeric|min:0',
-            'currency' => 'required|in:' . implode(',', array_column(Currency::cases(), 'value')),
-            'status' => 'required|in:' . implode(',', array_column(OfferStatus::cases(), 'value')),
+            'currency' => 'required|in:'.implode(',', array_column(Currency::cases(), 'value')),
+            'status' => 'required|in:'.implode(',', array_column(OfferStatus::cases(), 'value')),
             'last_updated_at' => 'required|date',
         ]);
 
@@ -102,5 +102,4 @@ class BookOfferTest extends TestCase
 
         $this->assertTrue($validator->fails());
     }
-
 }

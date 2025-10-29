@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\AuthorQuestion;
 
-use App\Models\AuthorQuestion;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AuthorQuestionDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class AuthorQuestionDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $authorQuestion = $this->route('author_question');
-        return $this->user()->can('delete', $authorQuestion);
+
+        return $this->user()?->can('delete', $authorQuestion) ?? false;
     }
 
     public function rules(): array

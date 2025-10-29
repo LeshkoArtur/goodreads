@@ -2,72 +2,46 @@
 
 namespace App\Actions\Awards;
 
-use App\DTOs\Award\AwardIndexDTO;
+use App\Data\Award\AwardIndexData;
 use App\Models\Award;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetAwards
 {
     use AsAction;
 
-    /**
-     * Отримати список нагород із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param AwardIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(AwardIndexDTO $dto): LengthAwarePaginator
+    public function handle(AwardIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Award::search($dto->query ?? '');
+        $searchQuery = Award::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['name', 'year', 'ceremony_date', 'created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if (in_array($data->sort, ['name', 'year', 'ceremony_date', 'created_at'])) {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/awards');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param AwardIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, AwardIndexDTO $dto): void
+    private function applyFilters(Builder $query, AwardIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->year, fn ($collection) => $collection->push("year = {$data->year}"))
+                ->when($data->organizer, fn ($collection) => $collection->push("organizer = '{$data->organizer}'"))
+                ->when($data->country, fn ($collection) => $collection->push("country = '{$data->country}'"))
+                ;
 
-            if ($dto->year !== null) {
-                $options['filter'][] = "year = {$dto->year}";
-            }
-
-            if ($dto->organizer) {
-                $options['filter'][] = "organizer = '{$dto->organizer}'";
-            }
-
-            if ($dto->country) {
-                $options['filter'][] = "country = '{$dto->country}'";
-            }
-
-            if ($dto->minCeremonyDate !== null) {
-                $options['filter'][] = "ceremony_date >= '{$dto->minCeremonyDate}'";
-            }
-
-            if ($dto->maxCeremonyDate !== null) {
-                $options['filter'][] = "ceremony_date <= '{$dto->maxCeremonyDate}'";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

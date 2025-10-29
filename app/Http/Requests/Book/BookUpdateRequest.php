@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Book;
 
 use App\Enums\AgeRestriction;
-use App\Models\Book;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,7 +11,8 @@ class BookUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $book = $this->route('book');
-        return $this->user()->can('update', $book);
+
+        return $this->user()?->can('update', $book) ?? false;
     }
 
     public function rules(): array
@@ -22,19 +22,34 @@ class BookUpdateRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'plot' => ['nullable', 'string'],
             'history' => ['nullable', 'string'],
-            'series_id' => ['nullable', 'string', 'exists:book_series,id'],
+            'series_id' => ['nullable', 'uuid', 'exists:book_series,id'],
             'number_in_series' => ['nullable', 'integer', 'min:1'],
             'page_count' => ['nullable', 'integer', 'min:1'],
-            'languages' => ['nullable', 'json'],
-            'cover_image' => ['nullable', 'url'],
-            'fun_facts' => ['nullable', 'json'],
-            'adaptations' => ['nullable', 'json'],
+            'languages' => ['nullable', 'array'],
+            'languages.*' => ['string', 'max:10'],
+            'cover_image' => ['nullable', 'url', 'max:255'],
+            'fun_facts' => ['nullable', 'array'],
+            'fun_facts.*' => ['string', 'max:500'],
+            'adaptations' => ['nullable', 'array'],
+            'adaptations.*' => ['string', 'max:500'],
             'is_bestseller' => ['nullable', 'boolean'],
             'average_rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
-            'age_restriction' => ['nullable', Rule::in(AgeRestriction::values())],
-            'author_ids' => ['nullable', 'json'],
-            'genre_ids' => ['nullable', 'json'],
-            'publisher_ids' => ['nullable', 'json'],
+            'age_restriction' => ['nullable', Rule::enum(AgeRestriction::class)],
+            'author_ids' => ['nullable', 'array'],
+            'author_ids.*' => ['uuid', 'exists:authors,id'],
+            'genre_ids' => ['nullable', 'array'],
+            'genre_ids.*' => ['uuid', 'exists:genres,id'],
+            'publishers' => ['nullable', 'array'],
+            'publishers.*.id' => ['required', 'uuid', 'exists:publishers,id'],
+            'publishers.*.published_date' => ['nullable', 'date'],
+            'publishers.*.isbn' => ['nullable', 'string', 'max:20'],
+            'publishers.*.circulation' => ['nullable', 'integer', 'min:0'],
+            'publishers.*.format' => ['nullable', 'string', 'max:50'],
+            'publishers.*.cover_type' => ['nullable', 'string', 'max:50'],
+            'publishers.*.translator' => ['nullable', 'string', 'max:255'],
+            'publishers.*.edition' => ['nullable', 'integer', 'min:1'],
+            'publishers.*.price' => ['nullable', 'numeric', 'min:0'],
+            'publishers.*.binding' => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -105,7 +120,7 @@ class BookUpdateRequest extends FormRequest
                 'description' => 'ID жанрів (JSON масив).',
                 'example' => '["genre-uuid1", "genre-uuid2"]',
             ],
-            'publisher_ids' => [
+            'publishers' => [
                 'description' => 'ID видавців із додатковими даними (JSON масив об’єктів).',
                 'example' => '[{"id":"publisher-uuid1","published_date":"2020-01-01","isbn":"978-3-16-148410-0","circulation":1000,"format":"Hardcover","cover_type":"Glossy","translator":"John Smith","edition":1,"price":29.99,"binding":"Sewn"},{"id":"publisher-uuid2","published_date":"2021-06-15","isbn":"978-1-23-456789-0","circulation":500,"format":"Paperback","cover_type":"Matte","translator":null,"edition":2,"price":19.99,"binding":"Glued"}]',
             ],

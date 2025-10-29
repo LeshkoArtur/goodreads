@@ -13,8 +13,10 @@ class ViewAward extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
-            Actions\DeleteAction::make(),
+            Actions\EditAction::make()
+                ->label('Редагувати'),
+            Actions\DeleteAction::make()
+                ->label('Видалити'),
         ];
     }
 }

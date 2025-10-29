@@ -2,31 +2,25 @@
 
 namespace App\Actions\Comments;
 
-use App\DTOs\Comment\CommentStoreDTO;
+use App\Data\Comment\CommentStoreData;
 use App\Models\Comment;
+use App\Models\User;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateComment
 {
     use AsAction;
 
-    /**
-     * Створити новий коментар.
-     *
-     * @param CommentStoreDTO $dto
-     * @return Comment
-     */
-    public function handle(CommentStoreDTO $dto): Comment
+    public function handle(CommentStoreData $data, User $user): Comment
     {
-        $comment = new Comment();
-        $comment->user_id = $dto->userId;
-        $comment->commentable_type = $dto->commentableType;
-        $comment->commentable_id = $dto->commentableId;
-        $comment->content = $dto->content;
-        $comment->parent_id = $dto->parentId;
-
+        $comment = new Comment;
+        $comment->user_id = $user->id;
+        $comment->content = $data->content;
+        $comment->commentable_type = $data->commentable_type;
+        $comment->commentable_id = $data->commentable_id;
+        $comment->parent_id = $data->parent_id;
         $comment->save();
 
-        return $comment->load(['user', 'commentable', 'replies', 'parent', 'moderationLogs']);
+        return $comment->fresh(['user', 'commentable']);
     }
 }

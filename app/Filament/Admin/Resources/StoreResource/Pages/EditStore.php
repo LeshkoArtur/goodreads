@@ -2,10 +2,9 @@
 
 namespace App\Filament\Admin\Resources\StoreResource\Pages;
 
-use App\Actions\Stores\UpdateStore;
-use App\DTOs\Store\StoreUpdateDTO;
+use App\Actions\Stores\UpdateStore as UpdateAction;
+use App\Data\Store\StoreUpdateData;
 use App\Filament\Admin\Resources\StoreResource;
-use App\Models\Store;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -14,17 +13,30 @@ class EditStore extends EditRecord
 {
     protected static string $resource = StoreResource::class;
 
+    protected ?string $heading = 'Редагувати магазин';
+
     protected function getHeaderActions(): array
     {
         return [
+            Actions\ViewAction::make(),
             Actions\DeleteAction::make(),
         ];
     }
 
-    protected function handleRecordUpdate(Store|Model $record, array $data): Store
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $dto = StoreUpdateDTO::fromArray($data);
+        $dto = StoreUpdateData::fromArray($data);
 
-        return UpdateStore::run($record, $dto);
+        return app(UpdateAction::class)->handle($record, $dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Магазин оновлено';
     }
 }

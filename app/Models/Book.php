@@ -9,7 +9,10 @@ use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, BelongsToMany, HasMany, MorphMany};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Scout\Searchable;
 
 /**
@@ -17,7 +20,7 @@ use Laravel\Scout\Searchable;
  */
 class Book extends Model
 {
-    use HasFactory, HasUuids, Searchable, HasFiles;
+    use HasFactory, HasFiles, HasUuids, Searchable;
 
     protected $fillable = [
         'title',
@@ -158,7 +161,6 @@ class Book extends Model
         ];
     }
 
-
     public function searchableAs(): string
     {
         return 'books';
@@ -181,5 +183,4 @@ class Book extends Model
             'sortableAttributes' => ['average_rating', 'page_count', 'created_at'],
         ];
     }
-
 }

@@ -9,7 +9,7 @@ class ViewHistoryStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', ViewHistory::class);
+        return $this->user()?->can('create', ViewHistory::class) ?? false;
     }
 
     public function rules(): array
@@ -33,7 +33,7 @@ class ViewHistoryStoreRequest extends FormRequest
                 'example' => 'post-uuid123',
             ],
             'viewable_type' => [
-                'description' => 'Тип переглянутого об’єкта (наприклад, App\\Models\\Post).',
+                'description' => 'Тип переглянутого об’єкта. Можливі значення: залежить від вашої моделі (наприклад, App\\Models\\Post, App\\Models\\Book, тощо).',
                 'example' => 'App\\Models\\Post',
             ],
         ];

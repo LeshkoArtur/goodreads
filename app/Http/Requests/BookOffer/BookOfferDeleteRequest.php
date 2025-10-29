@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\BookOffer;
 
-use App\Models\BookOffer;
 use Illuminate\Foundation\Http\FormRequest;
 
 class BookOfferDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class BookOfferDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $bookOffer = $this->route('book_offer');
-        return $this->user()->can('delete', $bookOffer);
+
+        return $this->user()?->can('delete', $bookOffer) ?? false;
     }
 
     public function rules(): array

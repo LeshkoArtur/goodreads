@@ -9,7 +9,7 @@ class NominationIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Nomination::class);
+        return $this->user()?->can('viewAny', Nomination::class) ?? true;
     }
 
     public function rules(): array
@@ -18,9 +18,9 @@ class NominationIndexRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'sort' => ['nullable', 'string', 'in:name,created_at'],
+            'sort' => ['nullable', 'string', 'in:created_at,updated_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'award_id' => ['nullable', 'string', 'exists:awards,id'],
+            'award_id' => ['nullable', 'uuid', 'exists:awards,id'],
         ];
     }
 
@@ -40,16 +40,16 @@ class NominationIndexRequest extends FormRequest
                 'example' => 15,
             ],
             'sort' => [
-                'description' => 'Поле для сортування (name, created_at).',
-                'example' => 'name',
+                'description' => 'Поле для сортування (created_at).',
+                'example' => 'created_at',
             ],
             'direction' => [
                 'description' => 'Напрямок сортування (asc або desc).',
-                'example' => 'asc',
+                'example' => 'desc',
             ],
             'award_id' => [
-                'description' => 'Фільтр за ID нагороди.',
-                'example' => 'award-uuid123',
+                'description' => 'Фільтр за UUID нагороди.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

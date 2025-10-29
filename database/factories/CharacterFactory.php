@@ -25,7 +25,7 @@ class CharacterFactory extends Factory
             'biography' => $this->faker->paragraph(),
             'fun_facts' => collect([$this->faker->sentence(), $this->faker->sentence()]),
             'links' => collect([$this->faker->url(), $this->faker->url()]),
-            'media_images' => collect([$this->faker->imageUrl(), $this->faker->imageUrl()]),
+            'media_images' => collect(['https://placehold.co/400x600', 'https://placehold.co/400x600']),
         ];
     }
 }

@@ -2,29 +2,23 @@
 
 namespace App\Actions\PollVotes;
 
-use App\DTOs\PollVote\PollVoteStoreDTO;
+use App\Data\PollVote\PollVoteStoreData;
 use App\Models\PollVote;
+use App\Models\User;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreatePollVote
 {
     use AsAction;
 
-    /**
-     * Створити новий голос в опитуванні.
-     *
-     * @param PollVoteStoreDTO $dto
-     * @return PollVote
-     */
-    public function handle(PollVoteStoreDTO $dto): PollVote
+    public function handle(PollVoteStoreData $data, User $user): PollVote
     {
-        $pollVote = new PollVote();
-        $pollVote->group_poll_id = $dto->groupPollId;
-        $pollVote->poll_option_id = $dto->pollOptionId;
-        $pollVote->user_id = $dto->userId;
-
+        $pollVote = new PollVote;
+        $pollVote->group_poll_id = $data->group_poll_id;
+        $pollVote->poll_option_id = $data->poll_option_id;
+        $pollVote->user_id = $user->id;
         $pollVote->save();
 
-        return $pollVote->load(['poll', 'option', 'user']);
+        return $pollVote->fresh(['poll', 'option', 'user']);
     }
 }

@@ -3,9 +3,8 @@
 namespace App\Filament\Admin\Resources\PostResource\Pages;
 
 use App\Actions\Posts\UpdatePost;
-use App\DTOs\Post\PostUpdateDTO;
+use App\Data\Post\PostUpdateData;
 use App\Filament\Admin\Resources\PostResource;
-use App\Models\Post;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -14,17 +13,32 @@ class EditPost extends EditRecord
 {
     protected static string $resource = PostResource::class;
 
+    protected ?string $heading = 'Редагувати пост';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\ViewAction::make()
+                ->label('Переглянути'),
+            Actions\DeleteAction::make()
+                ->label('Видалити'),
         ];
     }
 
-    protected function handleRecordUpdate(Post|Model $record, array $data): Post
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $dto = PostUpdateDTO::fromArray($data);
+        $dto = PostUpdateData::fromArray($data);
 
-        return UpdatePost::run($record, $dto);
+        return app(UpdatePost::class)->handle($record, $dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Пост оновлено';
     }
 }

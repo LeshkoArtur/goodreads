@@ -2,11 +2,11 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\Nomination;
-use App\Models\Book;
-use App\Models\Author;
-use App\Models\NominationEntry;
 use App\Enums\NominationStatus;
+use App\Models\Author;
+use App\Models\Book;
+use App\Models\Nomination;
+use App\Models\NominationEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
@@ -63,7 +63,7 @@ class NominationEntryTest extends TestCase
             'status' => NominationStatus::WINNER,
         ];
 
-        $entry = new NominationEntry();
+        $entry = new NominationEntry;
         $entry->fill($data);
 
         $this->assertEquals($data['nomination_id'], $entry->nomination_id);
@@ -80,7 +80,7 @@ class NominationEntryTest extends TestCase
 
         $validator = Validator::make($data, [
             'status' => function ($attribute, $value, $fail) {
-                if (!NominationStatus::tryFrom($value)) {
+                if (! NominationStatus::tryFrom($value)) {
                     $fail("The $attribute must be a valid NominationStatus.");
                 }
             },

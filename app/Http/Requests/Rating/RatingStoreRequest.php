@@ -9,18 +9,16 @@ class RatingStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Rating::class);
+        return $this->user()?->can('create', Rating::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'string', 'exists:users,id'],
-            'book_id' => ['required', 'string', 'exists:books,id'],
+            'user_id' => ['required', 'uuid', 'exists:users,id'],
+            'book_id' => ['required', 'uuid', 'exists:books,id'],
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
             'review' => ['nullable', 'string'],
-            // Ensure unique combination of user_id and book_id
-            'user_id' => ['unique:ratings,user_id,NULL,id,book_id,' . $this->input('book_id')],
         ];
     }
 

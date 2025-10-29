@@ -17,7 +17,7 @@ class UserBookTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_fields()
     {
-        $userBook = new UserBook();
+        $userBook = new UserBook;
         $this->assertEquals([
             'user_id',
             'book_id',

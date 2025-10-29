@@ -2,7 +2,7 @@
 
 namespace App\Actions\Awards;
 
-use App\DTOs\Award\AwardStoreDTO;
+use App\Data\Award\AwardStoreData;
 use App\Models\Award;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,24 +10,17 @@ class CreateAward
 {
     use AsAction;
 
-    /**
-     * Створити нову нагороду.
-     *
-     * @param AwardStoreDTO $dto
-     * @return Award
-     */
-    public function handle(AwardStoreDTO $dto): Award
+    public function handle(AwardStoreData $data): Award
     {
-        $award = new Award();
-        $award->name = $dto->name;
-        $award->year = $dto->year;
-        $award->description = $dto->description;
-        $award->organizer = $dto->organizer;
-        $award->country = $dto->country;
-        $award->ceremony_date = $dto->ceremonyDate;
-
+        $award = new Award;
+        $award->name = $data->name;
+        $award->year = $data->year;
+        $award->description = $data->description;
+        $award->organizer = $data->organizer;
+        $award->country = $data->country;
+        $award->ceremony_date = $data->ceremony_date;
         $award->save();
 
-        return $award->load(['nominations']);
+        return $award->fresh();
     }
 }

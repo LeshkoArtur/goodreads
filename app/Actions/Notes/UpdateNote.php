@@ -2,7 +2,7 @@
 
 namespace App\Actions\Notes;
 
-use App\DTOs\Note\NoteUpdateDTO;
+use App\Data\Note\NoteUpdateData;
 use App\Models\Note;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,26 +10,17 @@ class UpdateNote
 {
     use AsAction;
 
-    /**
-     * Оновити існуючу нотатку.
-     *
-     * @param Note $note
-     * @param NoteUpdateDTO $dto
-     * @return Note
-     */
-    public function handle(Note $note, NoteUpdateDTO $dto): Note
+    public function handle(Note $note, NoteUpdateData $data): Note
     {
-        $attributes = [
-            'text' => $dto->body,
-            'contains_spoilers' => $dto->containsSpoilers,
-            'is_private' => $dto->isPrivate,
-            'page_number' => $dto->pageNumber,
-        ];
+        $note->update(array_filter([
+            'user_id' => $data->user_id,
+            'book_id' => $data->book_id,
+            'text' => $data->text,
+            'page_number' => $data->page_number,
+            'contains_spoilers' => $data->contains_spoilers,
+            'is_private' => $data->is_private,
+        ], fn ($value) => $value !== null));
 
-        $note->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $note->save();
-
-        return $note->load(['user', 'book']);
+        return $note->fresh(['user', 'book']);
     }
 }

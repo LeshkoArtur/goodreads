@@ -10,10 +10,13 @@ class ListAwards extends ListRecords
 {
     protected static string $resource = AwardResource::class;
 
+    protected ?string $heading = 'Нагороди';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити нагороду'),
         ];
     }
 }

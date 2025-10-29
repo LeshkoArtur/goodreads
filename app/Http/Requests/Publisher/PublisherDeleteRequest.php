@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Publisher;
 
-use App\Models\Publisher;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PublisherDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class PublisherDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $publisher = $this->route('publisher');
-        return $this->user()->can('delete', $publisher);
+
+        return $this->user()?->can('delete', $publisher) ?? false;
     }
 
     public function rules(): array

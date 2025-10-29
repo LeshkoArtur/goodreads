@@ -2,30 +2,28 @@
 
 namespace App\Http\Requests\PollOption;
 
-use App\Models\PollOption;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PollOptionUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $pollOption = $this->route('poll_option');
-        return $this->user()->can('update', $pollOption);
+        return $this->user()?->can('update', $this->route('pollOption')) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'title' => ['nullable', 'string', 'max:255'],
+            'text' => ['required', 'string', 'max:255'],
         ];
     }
 
     public function bodyParameters(): array
     {
         return [
-            'title' => [
-                'description' => 'Назва варіанту опитування.',
-                'example' => 'Оновлений варіант 1',
+            'text' => [
+                'description' => 'Оновлений текст варіанта відповіді.',
+                'example' => 'Варіант відповіді 1 (оновлено)',
             ],
         ];
     }
@@ -33,9 +31,9 @@ class PollOptionUpdateRequest extends FormRequest
     public function urlParameters(): array
     {
         return [
-            'poll_option' => [
-                'description' => 'ID варіанту опитування для оновлення.',
-                'example' => 'option-uuid123',
+            'pollOption' => [
+                'description' => 'UUID варіанта опитування.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

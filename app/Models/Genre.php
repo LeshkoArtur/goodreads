@@ -36,6 +36,7 @@ class Genre extends Model
     {
         return new GenreQueryBuilder($query);
     }
+
     public function books(): BelongsToMany
     {
         return $this->belongsToMany(Book::class);
@@ -49,6 +50,11 @@ class Genre extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Genre::class, 'parent_id');
+    }
+
+    public function subgenres(): HasMany
+    {
+        return $this->children();
     }
 
     public function toSearchableArray(): array

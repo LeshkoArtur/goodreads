@@ -9,7 +9,7 @@ class GenreIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Genre::class);
+        return $this->user()?->can('viewAny', Genre::class) ?? true;
     }
 
     public function rules(): array
@@ -20,7 +20,7 @@ class GenreIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:name,created_at,book_count'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'parent_id' => ['nullable', 'string', 'exists:genres,id'],
+            'parent_id' => ['nullable', 'uuid', 'exists:genres,id'],
             'min_book_count' => ['nullable', 'integer', 'min:0'],
             'max_book_count' => ['nullable', 'integer', 'min:0'],
         ];

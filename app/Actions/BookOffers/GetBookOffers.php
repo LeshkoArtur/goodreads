@@ -2,84 +2,51 @@
 
 namespace App\Actions\BookOffers;
 
-use App\DTOs\BookOffer\BookOfferIndexDTO;
+use App\Data\BookOffer\BookOfferIndexData;
 use App\Models\BookOffer;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetBookOffers
 {
     use AsAction;
 
-    /**
-     * Отримати список пропозицій книг із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param BookOfferIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(BookOfferIndexDTO $dto): LengthAwarePaginator
+    public function handle(BookOfferIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = BookOffer::search($dto->query ?? '');
+        $searchQuery = BookOffer::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['price', 'last_updated_at', 'created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['price', 'last_updated_at', 'created_at']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/book-offers');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param BookOfferIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, BookOfferIndexDTO $dto): void
+    private function applyFilters(Builder $query, BookOfferIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->book_id, fn ($collection) => $collection->push("book_id = '{$data->book_id}'"))
+                ->when($data->store_id, fn ($collection) => $collection->push("store_id = '{$data->store_id}'"))
+                ->when($data->min_price !== null, fn ($collection) => $collection->push("price >= {$data->min_price}"))
+                ->when($data->max_price !== null, fn ($collection) => $collection->push("price <= {$data->max_price}"))
+                ->when($data->currency, fn ($collection) => $collection->push("currency = '{$data->currency->value}'"))
+                ->when($data->status, fn ($collection) => $collection->push("status = '{$data->status->value}'"))
+                ->when($data->availability !== null, fn ($collection) => $collection->push('availability = '.($data->availability ? 'true' : 'false')))
+                ;
 
-            if ($dto->bookId) {
-                $options['filter'][] = "book_id = '{$dto->bookId}'";
-            }
-
-            if ($dto->storeId) {
-                $options['filter'][] = "store_id = '{$dto->storeId}'";
-            }
-
-            if ($dto->minPrice !== null) {
-                $options['filter'][] = "price >= {$dto->minPrice}";
-            }
-
-            if ($dto->maxPrice !== null) {
-                $options['filter'][] = "price <= {$dto->maxPrice}";
-            }
-
-            if ($dto->currency) {
-                $options['filter'][] = "currency = '{$dto->currency}'";
-            }
-
-            if ($dto->status) {
-                $options['filter'][] = "status = '{$dto->status}'";
-            }
-
-            if ($dto->minLastUpdatedAt) {
-                $options['filter'][] = "last_updated_at >= '{$dto->minLastUpdatedAt}'";
-            }
-
-            if ($dto->maxLastUpdatedAt) {
-                $options['filter'][] = "last_updated_at <= '{$dto->maxLastUpdatedAt}'";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

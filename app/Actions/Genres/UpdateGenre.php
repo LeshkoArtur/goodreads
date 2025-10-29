@@ -2,7 +2,7 @@
 
 namespace App\Actions\Genres;
 
-use App\DTOs\Genre\GenreUpdateDTO;
+use App\Data\Genre\GenreUpdateData;
 use App\Models\Genre;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,25 +10,15 @@ class UpdateGenre
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий жанр.
-     *
-     * @param Genre $genre
-     * @param GenreUpdateDTO $dto
-     * @return Genre
-     */
-    public function handle(Genre $genre, GenreUpdateDTO $dto): Genre
+    public function handle(Genre $genre, GenreUpdateData $data): Genre
     {
-        $attributes = [
-            'name' => $dto->name,
-            'parent_id' => $dto->parentId,
-            'description' => $dto->description,
-        ];
+        $genre->update(array_filter([
+            'name' => $data->name,
+            'parent_id' => $data->parent_id,
+            'description' => $data->description,
+            'book_count' => $data->book_count,
+        ], fn ($value) => $value !== null));
 
-        $genre->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $genre->save();
-
-        return $genre->load(['books', 'parent', 'children']);
+        return $genre->fresh(['books', 'parent', 'children']);
     }
 }

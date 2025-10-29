@@ -2,72 +2,48 @@
 
 namespace App\Actions\GroupModerationLogs;
 
-use App\DTOs\GroupModerationLog\GroupModerationLogIndexDTO;
+use App\Data\GroupModerationLog\GroupModerationLogIndexData;
 use App\Models\GroupModerationLog;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetGroupModerationLogs
 {
     use AsAction;
 
-    /**
-     * Отримати список логів модерації груп із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param GroupModerationLogIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(GroupModerationLogIndexDTO $dto): LengthAwarePaginator
+    public function handle(GroupModerationLogIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = GroupModerationLog::search($dto->query ?? '');
+        $searchQuery = GroupModerationLog::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at', 'action'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if (in_array($data->sort, ['created_at', 'action'])) {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/group-moderation-logs');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param GroupModerationLogIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, GroupModerationLogIndexDTO $dto): void
+    private function applyFilters(Builder $query, GroupModerationLogIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->group_id, fn ($collection) => $collection->push("group_id = '{$data->group_id}'"))
+                ->when($data->moderator_id, fn ($collection) => $collection->push("moderator_id = '{$data->moderator_id}'"))
+                ->when($data->action, fn ($collection) => $collection->push("action = '{$data->action->value}'"))
+                ->when($data->targetable_type, fn ($collection) => $collection->push("targetable_type = '{$data->targetable_type}'"))
+                ->when($data->targetable_id, fn ($collection) => $collection->push("targetable_id = '{$data->targetable_id}'"))
+                ;
 
-            if ($dto->groupId) {
-                $options['filter'][] = "group_id = '{$dto->groupId}'";
-            }
-
-            if ($dto->moderatorId) {
-                $options['filter'][] = "moderator_id = '{$dto->moderatorId}'";
-            }
-
-            if ($dto->action) {
-                $options['filter'][] = "action = '{$dto->action}'";
-            }
-
-            if ($dto->targetableType) {
-                $options['filter'][] = "targetable_type = '{$dto->targetableType}'";
-            }
-
-            if ($dto->targetableId) {
-                $options['filter'][] = "targetable_id = '{$dto->targetableId}'";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

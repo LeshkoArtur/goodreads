@@ -9,20 +9,23 @@ class ReadingStatStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', ReadingStat::class);
+        return $this->user()?->can('create', ReadingStat::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'string', 'exists:users,id'],
-            'year' => ['required', 'integer', 'min:1900', 'max:' . date('Y')],
+            'user_id' => [
+                'required',
+                'string',
+                'exists:users,id',
+                'unique:reading_stats,user_id,NULL,id,year,'.$this->input('year')
+            ],
+            'year' => ['required', 'integer', 'min:1900', 'max:'.date('Y')],
             'books_read' => ['required', 'integer', 'min:0'],
             'pages_read' => ['required', 'integer', 'min:0'],
             'genres_read' => ['nullable', 'array'],
-            'genres_read.*' => ['string', 'max:255'],
-            // Ensure unique combination of user_id and year
-            'user_id' => ['unique:reading_stats,user_id,NULL,id,year,' . $this->input('year')],
+            'genres_read.*' => ['string', 'max:100'],
         ];
     }
 

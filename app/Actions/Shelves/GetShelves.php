@@ -2,56 +2,44 @@
 
 namespace App\Actions\Shelves;
 
-use App\DTOs\Shelf\ShelfIndexDTO;
+use App\Data\Shelf\ShelfIndexData;
 use App\Models\Shelf;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetShelves
 {
     use AsAction;
 
-    /**
-     * Отримати список полиць із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param ShelfIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(ShelfIndexDTO $dto): LengthAwarePaginator
+    public function handle(ShelfIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Shelf::search($dto->query ?? '');
+        $searchQuery = Shelf::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at', 'name'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['created_at', 'name']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/shelves');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param ShelfIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, ShelfIndexDTO $dto): void
+    private function applyFilters(Builder $query, ShelfIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"));
 
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = {$dto->userId}";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

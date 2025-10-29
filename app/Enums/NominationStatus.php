@@ -14,7 +14,7 @@ enum NominationStatus: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('nomination_status.' . $this->value);
+        return __('nomination_status.'.$this->value);
     }
 
     // Colors for display in Filament

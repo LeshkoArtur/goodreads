@@ -2,72 +2,47 @@
 
 namespace App\Actions\AuthorAnswers;
 
-use App\DTOs\AuthorAnswer\AuthorAnswerIndexDTO;
+use App\Data\AuthorAnswer\AuthorAnswerIndexData;
 use App\Models\AuthorAnswer;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetAuthorAnswers
 {
     use AsAction;
 
-    /**
-     * Отримати список відповідей авторів із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param AuthorAnswerIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(AuthorAnswerIndexDTO $dto): LengthAwarePaginator
+    public function handle(AuthorAnswerIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = AuthorAnswer::search($dto->query ?? '');
+        $searchQuery = AuthorAnswer::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['published_at', 'created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['published_at', 'created_at']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/author-answers');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param AuthorAnswerIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, AuthorAnswerIndexDTO $dto): void
+    private function applyFilters(Builder $query, AuthorAnswerIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->question_id, fn ($collection) => $collection->push("question_id = '{$data->question_id}'"))
+                ->when($data->author_id, fn ($collection) => $collection->push("author_id = '{$data->author_id}'"))
+                ->when($data->status, fn ($collection) => $collection->push("status = '{$data->status->value}'"))
+                ;
 
-            if ($dto->questionId) {
-                $options['filter'][] = "question_id = '{$dto->questionId}'";
-            }
-
-            if ($dto->authorId) {
-                $options['filter'][] = "author_id = '{$dto->authorId}'";
-            }
-
-            if ($dto->status) {
-                $options['filter'][] = "status = '{$dto->status}'";
-            }
-
-            if ($dto->minPublishedAt) {
-                $options['filter'][] = "published_at >= '{$dto->minPublishedAt}'";
-            }
-
-            if ($dto->maxPublishedAt) {
-                $options['filter'][] = "published_at <= '{$dto->maxPublishedAt}'";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

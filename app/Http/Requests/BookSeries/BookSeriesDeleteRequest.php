@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\BookSeries;
 
-use App\Models\BookSeries;
 use Illuminate\Foundation\Http\FormRequest;
 
 class BookSeriesDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class BookSeriesDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $bookSeries = $this->route('book_series');
-        return $this->user()->can('delete', $bookSeries);
+
+        return $this->user()?->can('delete', $bookSeries) ?? false;
     }
 
     public function rules(): array

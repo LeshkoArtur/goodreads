@@ -2,7 +2,7 @@
 
 namespace App\Actions\Tags;
 
-use App\DTOs\Tag\TagStoreDTO;
+use App\Data\Tag\TagStoreData;
 use App\Models\Tag;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,19 +10,12 @@ class CreateTag
 {
     use AsAction;
 
-    /**
-     * Створити новий тег.
-     *
-     * @param TagStoreDTO $dto
-     * @return Tag
-     */
-    public function handle(TagStoreDTO $dto): Tag
+    public function handle(TagStoreData $data): Tag
     {
-        $tag = new Tag();
-        $tag->name = $dto->name;
-
+        $tag = new Tag;
+        $tag->name = $data->name;
         $tag->save();
 
-        return $tag->load(['posts']);
+        return $tag->fresh(['posts']);
     }
 }

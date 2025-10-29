@@ -32,6 +32,11 @@ class PollOption extends Model
         return $this->belongsTo(GroupPoll::class, 'group_poll_id');
     }
 
+    public function votes()
+    {
+        return $this->hasMany(PollVote::class);
+    }
+
     public function toSearchableArray(): array
     {
         return [

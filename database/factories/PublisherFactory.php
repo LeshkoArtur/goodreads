@@ -20,7 +20,7 @@ class PublisherFactory extends Factory
             'website' => $this->faker->url(),
             'country' => $this->faker->country(),
             'founded_year' => $this->faker->year(),
-            'logo' => $this->faker->imageUrl(),
+            'logo' => 'https://placehold.co/300x200',
             'contact_email' => $this->faker->companyEmail(),
             'phone' => $this->faker->phoneNumber(),
         ];

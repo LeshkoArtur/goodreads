@@ -2,7 +2,7 @@
 
 namespace App\Actions\Likes;
 
-use App\DTOs\Like\LikeUpdateDTO;
+use App\Data\Like\LikeUpdateData;
 use App\Models\Like;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,24 +10,14 @@ class UpdateLike
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий лайк.
-     *
-     * @param Like $like
-     * @param LikeUpdateDTO $dto
-     * @return Like
-     */
-    public function handle(Like $like, LikeUpdateDTO $dto): Like
+    public function handle(Like $like, LikeUpdateData $data): Like
     {
-        $attributes = [
-            'likeable_type' => $dto->likeableType,
-            'likeable_id' => $dto->likeableId,
-        ];
+        $like->update(array_filter([
+            'user_id' => $data->user_id,
+            'likeable_id' => $data->likeable_id,
+            'likeable_type' => $data->likeable_type,
+        ], fn ($value) => $value !== null));
 
-        $like->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $like->save();
-
-        return $like->load(['user', 'likeable']);
+        return $like->fresh(['user', 'likeable']);
     }
 }

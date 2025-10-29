@@ -14,7 +14,7 @@ class TagTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_fields()
     {
-        $tag = new Tag();
+        $tag = new Tag;
         $this->assertEquals(['name'], $tag->getFillable());
     }
 

@@ -2,58 +2,31 @@
 
 namespace App\Actions\Users;
 
-use App\DTOs\User\UserStoreDTO;
+use App\Data\User\UserStoreData;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateUser
 {
     use AsAction;
 
-    /**
-     * Створити нового користувача.
-     *
-     * @param UserStoreDTO $dto
-     * @return User
-     */
-    public function handle(UserStoreDTO $dto): User
+    public function handle(UserStoreData $data): User
     {
-        $user = new User();
-        $user->username = $dto->username;
-        $user->email = $dto->email;
-        $user->password = $dto->password;
-        $user->email_verified_at = $dto->emailVerifiedAt;
-        $user->bio = $dto->bio;
-        $user->is_public = $dto->isPublic;
-        $user->birthday = $dto->birthday;
-        $user->location = $dto->location;
-        $user->last_login = $dto->lastLogin;
-        $user->social_media_links = $dto->socialMediaLinks;
-        $user->role = $dto->role?->value;
-        $user->gender = $dto->gender?->value;
-
-        if ($dto->profilePicture) {
-            $user->profile_picture = $user->handleFileUpload($dto->profilePicture, 'profile_pictures');
-        }
-
+        $user = new User;
+        $user->username = $data->username;
+        $user->email = $data->email;
+        $user->password = Hash::make($data->password);
+        $user->profile_picture = $data->profile_picture;
+        $user->bio = $data->bio;
+        $user->is_public = $data->is_public ?? true;
+        $user->birthday = $data->birthday;
+        $user->location = $data->location;
+        $user->social_media_links = $data->social_media_links;
+        $user->role = $data->role;
+        $user->gender = $data->gender;
         $user->save();
 
-        return $user->load([
-            'authors',
-            'shelves',
-            'books',
-            'ratings',
-            'quotes',
-            'notes',
-            'comments',
-            'likes',
-            'favorites',
-            'following',
-            'followers',
-            'viewHistories',
-            'groups',
-            'groupInvitations',
-            'eventRsvps'
-        ]);
+        return $user->fresh(['authors', 'shelves']);
     }
 }

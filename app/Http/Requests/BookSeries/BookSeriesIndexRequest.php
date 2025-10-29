@@ -9,7 +9,7 @@ class BookSeriesIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', BookSeries::class);
+        return $this->user()?->can('viewAny', BookSeries::class) ?? true;
     }
 
     public function rules(): array

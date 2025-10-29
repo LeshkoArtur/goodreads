@@ -2,15 +2,13 @@
 
 namespace App\Http\Requests\EventRsvp;
 
-use App\Models\EventRsvp;
 use Illuminate\Foundation\Http\FormRequest;
 
 class EventRsvpDeleteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $eventRsvp = $this->route('event_rsvp');
-        return $this->user()->can('delete', $eventRsvp);
+        return $this->user()?->can('delete', $this->route('eventRsvp')) ?? false;
     }
 
     public function rules(): array
@@ -18,17 +16,12 @@ class EventRsvpDeleteRequest extends FormRequest
         return [];
     }
 
-    public function bodyParameters(): array
-    {
-        return [];
-    }
-
     public function urlParameters(): array
     {
         return [
-            'event_rsvp' => [
-                'description' => 'ID RSVP на подію для видалення.',
-                'example' => 'rsvp-uuid123',
+            'eventRsvp' => [
+                'description' => 'UUID RSVP.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

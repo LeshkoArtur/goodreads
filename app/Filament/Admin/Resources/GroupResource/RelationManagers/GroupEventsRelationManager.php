@@ -3,144 +3,92 @@
 namespace App\Filament\Admin\Resources\GroupResource\RelationManagers;
 
 use App\Enums\EventStatus;
-use App\Models\Group;
-use Filament\Forms;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class GroupEventsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'events';
+    protected static string $relationship = 'groupEvents';
 
     protected static ?string $recordTitleAttribute = 'title';
 
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Події групи') . ' ' . $ownerRecord->name;
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                Section::make(__('Подія'))
-                    ->schema([
-                        Select::make('creator_id')
-                            ->label(__('Творець'))
-                            ->relationship('creator', 'username')
-                            ->required()
-                            ->searchable()
-                            ->preload(),
-                        TextInput::make('title')
-                            ->label(__('Назва'))
-                            ->required()
-                            ->maxLength(255),
-                        Textarea::make('description')
-                            ->label(__('Опис'))
-                            ->maxLength(65535)
-                            ->nullable()
-                            ->rows(5)
-                            ->columnSpanFull(),
-                        DateTimePicker::make('event_date')
-                            ->label(__('Дата події'))
-                            ->required()
-                            ->minDate(now()),
-                        TextInput::make('location')
-                            ->label(__('Місце проведення'))
-                            ->maxLength(255)
-                            ->nullable(),
-                        Select::make('status')
-                            ->label(__('Статус'))
-                            ->options(EventStatus::class)
-                            ->required(),
-                    ]),
-            ]);
-    }
+    protected static ?string $title = 'Події групи';
 
     public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('title')
             ->columns([
-                TextColumn::make('title')
-                    ->label(__('Назва'))
+                Tables\Columns\TextColumn::make('title')
+                    ->label('Назва події')
                     ->searchable()
                     ->sortable()
-                    ->url(fn (Model $record): string => route('filament.resources.group-events.view', $record->id)),
-                TextColumn::make('creator.username')
-                    ->label(__('Творець'))
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('creator.username')
+                    ->label('Організатор')
                     ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('event_date')
+                    ->label('Дата події')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
-                    ->url(fn (Model $record): ?string => $record->creator ? route('filament.resources.users.view', $record->creator_id) : null),
-                TextColumn::make('event_date')
-                    ->label(__('Дата події'))
-                    ->dateTime()
-                    ->sortable()
+                    ->color(fn ($state) => $state && $state->isPast() ? 'danger' : 'success'),
+                Tables\Columns\TextColumn::make('location')
+                    ->label('Місце')
+                    ->limit(30)
                     ->toggleable(),
-                TextColumn::make('location')
-                    ->label(__('Місце'))
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('status')
-                    ->label(__('Статус'))
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Статус')
                     ->badge()
-                    ->formatStateUsing(fn (?EventStatus $state) => $state?->getLabel())
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('rsvps_count')
-                    ->label(__('Кількість RSVP'))
+                    ->color(fn (?EventStatus $state) => match ($state) {
+                        EventStatus::UPCOMING => 'info',
+                        EventStatus::ONGOING => 'warning',
+                        EventStatus::COMPLETED => 'success',
+                        EventStatus::CANCELLED => 'danger',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('rsvps_count')
+                    ->label('Відповідей')
                     ->counts('rsvps')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                    ->badge()
+                    ->color('success')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Створено')
+                    ->dateTime('d.m.Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('creator')
-                    ->label(__('Творець'))
-                    ->relationship('creator', 'username')
-                    ->searchable()
-                    ->multiple()
-                    ->indicator(__('Творець')),
-                SelectFilter::make('status')
-                    ->label(__('Статус'))
-                    ->options(EventStatus::class)
-                    ->multiple()
-                    ->indicator(__('Статус')),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label(__('Додати подію')),
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Статус')
+                    ->options(EventStatus::class),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
+                Tables\Actions\ViewAction::make()
+                    ->label('Переглянути'),
+                Tables\Actions\Action::make('cancel')
+                    ->label('Скасувати')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->status !== EventStatus::CANCELLED && $record->status !== EventStatus::COMPLETED)
+                    ->action(fn ($record) => $record->update(['status' => EventStatus::CANCELLED])),
                 Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                    ->label('Видалити')
+                    ->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                        ->label('Видалити обрані')
+                        ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('event_date', 'desc');
+            ->defaultSort('event_date', 'desc')
+            ->emptyStateHeading('Немає подій')
+            ->emptyStateDescription('У цій групі ще немає запланованих подій.');
     }
 }

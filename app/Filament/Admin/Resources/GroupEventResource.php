@@ -2,24 +2,25 @@
 
 namespace App\Filament\Admin\Resources;
 
-use App\Filament\Admin\Resources\GroupEventResource\Pages\CreateGroupEvent;
-use App\Filament\Admin\Resources\GroupEventResource\Pages\EditGroupEvent;
-use App\Filament\Admin\Resources\GroupEventResource\Pages\ListGroupEvents;
-use App\Filament\Admin\Resources\GroupEventResource\Pages\ViewGroupEvent;
-use App\Filament\Admin\Resources\GroupEventResource\RelationManagers\RsvpsRelationManager;
 use App\Enums\EventStatus;
+use App\Filament\Admin\Resources\GroupEventResource\Pages;
 use App\Models\GroupEvent;
-use Filament\Forms\Form;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class GroupEventResource extends Resource
 {
@@ -27,67 +28,86 @@ class GroupEventResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
 
-    protected static ?string $navigationGroup = 'Події груп';
+    protected static ?string $navigationGroup = 'Функціонал груп';
 
-    protected static ?int $navigationSort = 12;
-
-    public static function getNavigationLabel(): string
-    {
-        return __('Події груп');
-    }
+    protected static ?int $navigationSort = 26;
 
     public static function getModelLabel(): string
     {
-        return __('Подія групи');
+        return 'Подія';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Події груп');
+        return 'Події';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Події';
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->withCount(['rsvps']);
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Select::make('group_id')
-                    ->label(__('Група'))
-                    ->relationship('group', 'name')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
+                Section::make('Основна інформація')
+                    ->description('Базові дані про подію групи')
+                    ->schema([
+                        Select::make('group_id')
+                            ->label('Група')
+                            ->relationship('group', 'name')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Оберіть групу, для якої створюється подія'),
+                        Select::make('creator_id')
+                            ->label('Створив')
+                            ->relationship('creator', 'username')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Користувач, який створив подію'),
+                        TextInput::make('title')
+                            ->label('Назва події')
+                            ->required()
+                            ->maxLength(255)
+                            ->helperText('Коротка назва події')
+                            ->columnSpanFull(),
+                        Textarea::make('description')
+                            ->label('Опис')
+                            ->rows(4)
+                            ->helperText('Детальний опис події')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
 
-                Select::make('creator_id')
-                    ->label(__('Творець'))
-                    ->relationship('creator', 'username')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
-
-                TextInput::make('title')
-                    ->label(__('Назва'))
-                    ->required()
-                    ->maxLength(255),
-
-                Textarea::make('description')
-                    ->label(__('Опис'))
-                    ->maxLength(65535)
-                    ->nullable()
-                    ->columnSpanFull(),
-
-                DateTimePicker::make('event_date')
-                    ->label(__('Дата події'))
-                    ->required(),
-
-                TextInput::make('location')
-                    ->label(__('Місце проведення'))
-                    ->maxLength(255)
-                    ->nullable(),
-
-                Select::make('status')
-                    ->label(__('Статус'))
-                    ->options(EventStatus::class)
-                    ->required(),
+                Section::make('Деталі події')
+                    ->description('Час, місце та статус події')
+                    ->schema([
+                        DateTimePicker::make('event_date')
+                            ->label('Дата та час події')
+                            ->required()
+                            ->native(false)
+                            ->displayFormat('d.m.Y H:i')
+                            ->helperText('Коли відбудеться подія'),
+                        TextInput::make('location')
+                            ->label('Локація')
+                            ->maxLength(255)
+                            ->helperText('Місце проведення події'),
+                        Select::make('status')
+                            ->label('Статус')
+                            ->options(EventStatus::class)
+                            ->required()
+                            ->native(false)
+                            ->helperText('Поточний стан події'),
+                    ])
+                    ->columns(3),
             ]);
     }
 
@@ -95,124 +115,101 @@ class GroupEventResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
+                TextColumn::make('title')
+                    ->label('Подія')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold')
+                    ->description(fn (GroupEvent $record): string => $record->group?->name ?? ''
+                    ),
+                TextColumn::make('group.name')
+                    ->label('Група')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('creator.username')
+                    ->label('Створив')
                     ->searchable()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-
-                ImageColumn::make('group.cover_image')
-                    ->label(__('Обкладинка групи'))
-                    ->getStateUsing(fn ($record) => $record->group ? $record->group->getFirstMediaUrl('cover_image') : null)
-                    ->circular()
-                    ->defaultImageUrl(url('path/to/default-group-image.jpg')),
-
-                TextColumn::make('group.name')
-                    ->label(__('Група'))
-                    ->searchable()
-                    ->sortable()
-                    ->url(fn ($record) => $record->group ? route('filament.admin.resources.groups.view', $record->group_id) : null),
-
-                TextColumn::make('creator.username')
-                    ->label(__('Творець'))
-                    ->searchable()
-                    ->sortable()
-                    ->url(fn ($record) => $record->creator ? route('filament.admin.resources.users.view', $record->creator_id) : null),
-
-                TextColumn::make('title')
-                    ->label(__('Назва'))
-                    ->searchable()
-                    ->sortable()
-                    ->url(fn ($record) => route('filament.admin.resources.group-events.view', $record->id)),
-
                 TextColumn::make('event_date')
-                    ->label(__('Дата події'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-
+                    ->label('Дата та час')
+                    ->dateTime('d.m.Y H:i')
+                    ->sortable(),
                 TextColumn::make('location')
-                    ->label(__('Місце'))
+                    ->label('Локація')
+                    ->limit(30)
                     ->searchable()
-                    ->sortable()
                     ->toggleable(),
-
                 TextColumn::make('status')
-                    ->label(__('Статус'))
+                    ->label('Статус')
                     ->badge()
-                    ->formatStateUsing(fn (?EventStatus $state) => $state?->getLabel())
+                    ->color(fn (?EventStatus $state): string|array|null => $state?->getColor())
                     ->sortable()
-                    ->toggleable(),
-
+                    ->searchable(),
                 TextColumn::make('rsvps_count')
-                    ->label(__('Кількість RSVP'))
-                    ->counts('rsvps')
-                    ->sortable()
-                    ->toggleable(),
-
+                    ->label('Учасників')
+                    ->badge()
+                    ->color('success')
+                    ->sortable(),
                 TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
+                    ->label('Створено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
-                    ->toggleable(),
-
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                    ->label('Оновлено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('group_id')
-                    ->label(__('Група'))
+                SelectFilter::make('group')
+                    ->label('Група')
                     ->relationship('group', 'name')
-                    ->multiple()
-                    ->indicator(__('Група')),
-
-                SelectFilter::make('creator_id')
-                    ->label(__('Творець'))
-                    ->relationship('creator', 'username')
-                    ->multiple()
-                    ->indicator(__('Творець')),
-
+                    ->searchable()
+                    ->multiple(),
                 SelectFilter::make('status')
-                    ->label(__('Статус'))
+                    ->label('Статус')
                     ->options(EventStatus::class)
-                    ->multiple()
-                    ->indicator(__('Статус')),
+                    ->native(false)
+                    ->multiple(),
+                SelectFilter::make('creator')
+                    ->label('Створив')
+                    ->relationship('creator', 'username')
+                    ->searchable()
+                    ->multiple(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('event_date', 'desc')
-            ->groups([
-                'group_id',
-                'creator_id',
-                'status',
-            ]);
+            ->striped()
+            ->persistSortInSession()
+            ->persistSearchInSession()
+            ->persistFiltersInSession();
     }
 
     public static function getRelations(): array
     {
         return [
-            RsvpsRelationManager::class,
+            GroupEventResource\RelationManagers\RsvpsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListGroupEvents::route('/'),
-            'create' => CreateGroupEvent::route('/create'),
-            'view' => ViewGroupEvent::route('/{record}'),
-            'edit' => EditGroupEvent::route('/{record}/edit'),
+            'index' => Pages\ListGroupEvents::route('/'),
+            'create' => Pages\CreateGroupEvent::route('/create'),
+            'edit' => Pages\EditGroupEvent::route('/{record}/edit'),
         ];
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\User;
 
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UserDeleteRequest extends FormRequest
@@ -10,15 +9,11 @@ class UserDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $user = $this->route('user');
-        return $this->user()->can('delete', $user);
+
+        return $this->user()?->can('delete', $user) ?? false;
     }
 
     public function rules(): array
-    {
-        return [];
-    }
-
-    public function bodyParameters(): array
     {
         return [];
     }

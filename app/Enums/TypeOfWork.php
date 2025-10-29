@@ -33,7 +33,7 @@ enum TypeOfWork: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('type_of_work.' . $this->value);
+        return __('type_of_work.'.$this->value);
     }
 
     // Colors for display in Filament
@@ -70,10 +70,10 @@ enum TypeOfWork: string implements HasColor, HasIcon, HasLabel
         return match ($this) {
             self::NOVELIST => 'heroicon-o-book-open',
             self::SHORT_STORY_WRITER => 'heroicon-o-document-text',
-            self::POET => 'heroicon-o-pencil-alt',
+            self::POET => 'heroicon-o-pencil',
             self::PLAYWRIGHT => 'heroicon-o-globe-alt',
             self::SCREENWRITER => 'heroicon-o-film',
-            self::ESSAYIST => 'heroicon-o-document-report',
+            self::ESSAYIST => 'heroicon-o-document-chart-bar',
             self::BIOGRAPHER => 'heroicon-o-user-group',
             self::MEMOIRIST => 'heroicon-o-heart',
             self::HISTORIAN => 'heroicon-o-clock',
@@ -82,13 +82,13 @@ enum TypeOfWork: string implements HasColor, HasIcon, HasLabel
             self::SELF_HELP_WRITER => 'heroicon-o-light-bulb',
             self::CHILDREN_WRITER => 'heroicon-o-user',
             self::YOUNG_ADULT_WRITER => 'heroicon-o-users',
-            self::GRAPHIC_NOVELIST => 'heroicon-o-photograph',
+            self::GRAPHIC_NOVELIST => 'heroicon-o-photo',
             self::FANTASY_WRITER => 'heroicon-o-sparkles',
             self::SCI_FI_WRITER => 'heroicon-o-star',
             self::MYSTERY_WRITER => 'heroicon-o-question-mark-circle',
             self::ROMANCE_WRITER => 'heroicon-o-heart',
             self::HORROR_WRITER => 'heroicon-o-fire',
-            self::OTHER => 'heroicon-o-dots-horizontal',
+            self::OTHER => 'heroicon-o-ellipsis-horizontal',
         };
     }
 }

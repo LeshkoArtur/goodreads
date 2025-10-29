@@ -2,23 +2,16 @@
 
 namespace App\Http\Requests\Comment;
 
-use App\Models\Comment;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CommentDeleteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $comment = $this->route('comment');
-        return $this->user()->can('delete', $comment);
+        return $this->user()?->can('delete', $this->route('comment')) ?? false;
     }
 
     public function rules(): array
-    {
-        return [];
-    }
-
-    public function bodyParameters(): array
     {
         return [];
     }
@@ -27,8 +20,8 @@ class CommentDeleteRequest extends FormRequest
     {
         return [
             'comment' => [
-                'description' => 'ID коментаря для видалення.',
-                'example' => 'comment-uuid123',
+                'description' => 'UUID коментаря.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

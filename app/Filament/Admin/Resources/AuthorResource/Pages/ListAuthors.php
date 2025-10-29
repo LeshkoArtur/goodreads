@@ -10,10 +10,13 @@ class ListAuthors extends ListRecords
 {
     protected static string $resource = AuthorResource::class;
 
+    protected ?string $heading = 'Автори';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити автора'),
         ];
     }
 }

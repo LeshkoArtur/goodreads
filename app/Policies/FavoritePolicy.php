@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Favorite;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
@@ -15,24 +15,18 @@ class FavoritePolicy
 
     /**
      * Виконується перед усіма перевірками авторизації.
-     *
-     * @param User $user
-     * @param string $ability
-     * @return bool|null
      */
     public function before(User $user, string $ability): ?bool
     {
         if ($user->isAdmin()) {
             return true;
         }
+
         return null;
     }
 
     /**
      * Визначає, чи може користувач переглядати будь-які обрані записи.
-     *
-     * @param User $user
-     * @return bool
      */
     public function viewAny(User $user): bool
     {
@@ -41,10 +35,6 @@ class FavoritePolicy
 
     /**
      * Визначає, чи може користувач переглядати обраний запис.
-     *
-     * @param User $user
-     * @param Favorite $favorite
-     * @return bool
      */
     public function view(User $user, Favorite $favorite): bool
     {
@@ -53,9 +43,6 @@ class FavoritePolicy
 
     /**
      * Визначає, чи може користувач створювати обрані записи.
-     *
-     * @param User $user
-     * @return bool
      */
     public function create(User $user): bool
     {
@@ -64,10 +51,6 @@ class FavoritePolicy
 
     /**
      * Визначає, чи може користувач оновлювати обраний запис.
-     *
-     * @param User $user
-     * @param Favorite $favorite
-     * @return bool
      */
     public function update(User $user, Favorite $favorite): bool
     {
@@ -76,10 +59,6 @@ class FavoritePolicy
 
     /**
      * Визначає, чи може користувач видаляти обраний запис.
-     *
-     * @param User $user
-     * @param Favorite $favorite
-     * @return bool
      */
     public function delete(User $user, Favorite $favorite): bool
     {

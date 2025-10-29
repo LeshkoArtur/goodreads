@@ -2,64 +2,47 @@
 
 namespace App\Actions\Collections;
 
-use App\DTOs\Collection\CollectionIndexDTO;
+use App\Data\Collection\CollectionIndexData;
 use App\Models\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetCollections
 {
     use AsAction;
 
-    /**
-     * Отримати список колекцій із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param CollectionIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(CollectionIndexDTO $dto): LengthAwarePaginator
+    public function handle(CollectionIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Collection::search($dto->query ?? '');
+        $searchQuery = Collection::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['title', 'created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['title', 'created_at']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/collections');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param CollectionIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, CollectionIndexDTO $dto): void
+    private function applyFilters(Builder $query, CollectionIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"))
+                ->when($data->is_public !== null, fn ($collection) => $collection->push('is_public = '.($data->is_public ? 'true' : 'false')))
+                ->when($data->book_ids, fn ($collection) => $collection->push('book_ids IN ['.collect($data->book_ids)->implode(',').']'))
+                ;
 
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = '{$dto->userId}'";
-            }
-
-            if ($dto->isPublic !== null) {
-                $options['filter'][] = "is_public = " . ($dto->isPublic ? 'true' : 'false');
-            }
-
-            if ($dto->bookIds) {
-                $options['filter'][] = "book_ids IN [" . implode(',', $dto->bookIds) . "]";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

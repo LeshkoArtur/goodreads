@@ -2,7 +2,7 @@
 
 namespace App\Actions\Groups;
 
-use App\DTOs\Group\GroupStoreDTO;
+use App\Data\Group\GroupStoreData;
 use App\Models\Group;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,31 +10,23 @@ class CreateGroup
 {
     use AsAction;
 
-    /**
-     * Створити нову групу.
-     *
-     * @param GroupStoreDTO $dto
-     * @return Group
-     */
-    public function handle(GroupStoreDTO $dto): Group
+    public function handle(GroupStoreData $data): Group
     {
-        $group = new Group();
-        $group->name = $dto->name;
-        $group->description = $dto->description;
-        $group->creator_id = $dto->creatorId;
-        $group->is_public = $dto->isPublic;
-        $group->rules = $dto->rules;
-        $group->member_count = $dto->memberCount;
-        $group->is_active = $dto->isActive;
-        $group->join_policy = $dto->joinPolicy;
-        $group->post_policy = $dto->postPolicy;
-
-        if ($dto->coverImage) {
-            $group->cover_image = $group->handleFileUpload($dto->coverImage, 'group_covers');
-        }
-
+        $group = new Group;
+        $group->name = $data->name;
+        $group->creator_id = $data->creator_id;
+        $group->description = $data->description;
+        $group->is_public = $data->is_public;
+        $group->cover_image = $data->cover_image;
+        $group->rules = $data->rules;
+        $group->member_count = $data->member_count;
+        $group->is_active = $data->is_active;
+        $group->join_policy = $data->join_policy;
+        $group->post_policy = $data->post_policy;
         $group->save();
 
-        return $group->load(['creator', 'members', 'posts', 'events', 'invitations', 'polls', 'moderationLogs']);
+        when($data->member_ids, fn () => $group->members()->sync($data->member_ids));
+
+        return $group->fresh(['creator', 'members', 'posts']);
     }
 }

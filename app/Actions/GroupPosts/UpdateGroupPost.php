@@ -2,7 +2,7 @@
 
 namespace App\Actions\GroupPosts;
 
-use App\DTOs\GroupPost\GroupPostUpdateDTO;
+use App\Data\GroupPost\GroupPostUpdateData;
 use App\Models\GroupPost;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,26 +10,24 @@ class UpdateGroupPost
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий пост групи.
-     *
-     * @param GroupPost $post
-     * @param GroupPostUpdateDTO $dto
-     * @return GroupPost
-     */
-    public function handle(GroupPost $post, GroupPostUpdateDTO $dto): GroupPost
+    public function handle(GroupPost $groupPost, GroupPostUpdateData $data): GroupPost
     {
-        $attributes = [
-            'content' => $dto->body,
-            'is_pinned' => $dto->isPinned,
-            'category' => $dto->category,
-            'post_status' => $dto->status,
-        ];
+        $groupPost->content = $data->content;
 
-        $post->fill(array_filter($attributes, fn($value) => $value !== null));
+        if ($data->is_pinned !== null) {
+            $groupPost->is_pinned = $data->is_pinned;
+        }
 
-        $post->save();
+        if ($data->category !== null) {
+            $groupPost->category = $data->category;
+        }
 
-        return $post->load(['group', 'user', 'comments', 'likes', 'favorites', 'moderationLogs']);
+        if ($data->post_status !== null) {
+            $groupPost->post_status = $data->post_status;
+        }
+
+        $groupPost->save();
+
+        return $groupPost->fresh(['group', 'user']);
     }
 }

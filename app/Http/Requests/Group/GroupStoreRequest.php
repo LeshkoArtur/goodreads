@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Group;
 
+use App\Enums\JoinPolicy;
+use App\Enums\PostPolicy;
 use App\Models\Group;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,22 +12,21 @@ class GroupStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Group::class);
+        return $this->user()?->can('create', Group::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'creator_id' => ['required', 'string', 'exists:users,id'],
-            'is_public' => ['boolean'],
-            'description' => ['nullable', 'string'],
-            'cover_image' => ['nullable', 'url'],
-            'rules' => ['nullable', 'string'],
-            'member_count' => ['nullable', 'integer', 'min:0'],
-            'is_active' => ['boolean'],
-            'join_policy' => ['nullable', Rule::in(\App\Enums\JoinPolicy::values())],
-            'post_policy' => ['nullable', Rule::in(\App\Enums\PostPolicy::values())],
+            'name' => ['required', 'string', 'min:3', 'max:128'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'creator_id' => ['required', 'uuid', 'exists:users,id'],
+            'is_public' => ['nullable', 'boolean'],
+            'cover_image' => ['nullable', 'string', 'url', 'max:248'],
+            'rules' => ['nullable', 'string', 'max:10000'],
+            'is_active' => ['nullable', 'boolean'],
+            'join_policy' => ['nullable', Rule::enum(JoinPolicy::class)],
+            'post_policy' => ['nullable', Rule::enum(PostPolicy::class)],
         ];
     }
 
@@ -56,10 +57,7 @@ class GroupStoreRequest extends FormRequest
                 'description' => 'Правила групи.',
                 'example' => 'Без образ, поважайте інших учасників.',
             ],
-            'member_count' => [
-                'description' => 'Кількість учасників у групі.',
-                'example' => 10,
-            ],
+
             'is_active' => [
                 'description' => 'Чи є група активною.',
                 'example' => true,

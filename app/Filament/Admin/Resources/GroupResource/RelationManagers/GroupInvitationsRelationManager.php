@@ -3,120 +3,98 @@
 namespace App\Filament\Admin\Resources\GroupResource\RelationManagers;
 
 use App\Enums\InvitationStatus;
-use App\Models\Group;
-use Filament\Forms;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class GroupInvitationsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'invitations';
+    protected static string $relationship = 'groupInvitations';
 
-    protected static ?string $recordTitleAttribute = 'invitee_id';
-
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Запрошення до групи') . ' ' . $ownerRecord->name;
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                Section::make(__('Запрошення'))
-                    ->schema([
-                        Select::make('inviter_id')
-                            ->label(__('Відправник'))
-                            ->relationship('inviter', 'username')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
-                        Select::make('invitee_id')
-                            ->label(__('Отримувач'))
-                            ->relationship('invitee', 'username')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
-                        Select::make('status')
-                            ->label(__('Статус'))
-                            ->options(InvitationStatus::class)
-                            ->required(),
-                    ]),
-            ]);
-    }
+    protected static ?string $title = 'Запрошення';
 
     public function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('inviter.username')
-                    ->label(__('Відправник'))
+                Tables\Columns\ImageColumn::make('inviter.profile_picture')
+                    ->label('Хто запросив')
+                    ->circular()
+                    ->size(40)
+                    ->defaultImageUrl(url('/images/default-avatar.png')),
+                Tables\Columns\TextColumn::make('inviter.username')
+                    ->label('Запросив')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\ImageColumn::make('invitee.profile_picture')
+                    ->label('Кого запросив')
+                    ->circular()
+                    ->size(40)
+                    ->defaultImageUrl(url('/images/default-avatar.png')),
+                Tables\Columns\TextColumn::make('invitee.username')
+                    ->label('Кандидат')
                     ->searchable()
                     ->sortable()
-                    ->url(fn (Model $record): ?string => $record->inviter ? route('filament.resources.users.view', $record->inviter_id) : null),
-                TextColumn::make('invitee.username')
-                    ->label(__('Отримувач'))
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('invitee.email')
+                    ->label('Email')
                     ->searchable()
-                    ->sortable()
-                    ->url(fn (Model $record): ?string => $record->invitee ? route('filament.resources.users.view', $record->invitee_id) : null),
-                TextColumn::make('status')
-                    ->label(__('Статус'))
+                    ->copyable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Статус')
                     ->badge()
-                    ->formatStateUsing(fn (?InvitationStatus $state) => $state?->getLabel())
+                    ->color(fn (?InvitationStatus $state) => match ($state) {
+                        InvitationStatus::PENDING => 'warning',
+                        InvitationStatus::ACCEPTED => 'success',
+                        InvitationStatus::REJECTED => 'danger',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('sent_at')
+                    ->label('Відправлено')
+                    ->dateTime('d.m.Y H:i')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('responded_at')
+                    ->label('Відповів')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
+                    ->placeholder('—')
                     ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('inviter')
-                    ->label(__('Відправник'))
-                    ->relationship('inviter', 'username')
-                    ->searchable()
-                    ->multiple()
-                    ->indicator(__('Відправник')),
-                SelectFilter::make('invitee')
-                    ->label(__('Отримувач'))
-                    ->relationship('invitee', 'username')
-                    ->searchable()
-                    ->multiple()
-                    ->indicator(__('Отримувач')),
-                SelectFilter::make('status')
-                    ->label(__('Статус'))
-                    ->options(InvitationStatus::class)
-                    ->multiple()
-                    ->indicator(__('Статус')),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label(__('Додати запрошення')),
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Статус')
+                    ->options(InvitationStatus::class),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
+                Tables\Actions\Action::make('resend')
+                    ->label('Надіслати повторно')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('info')
+                    ->visible(fn ($record) => $record->status === InvitationStatus::PENDING)
+                    ->requiresConfirmation()
+                    ->action(fn ($record) => $record->update(['sent_at' => now()])),
+                Tables\Actions\Action::make('revoke')
+                    ->label('Відкликати')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(fn ($record) => $record->status === InvitationStatus::PENDING)
+                    ->requiresConfirmation()
+                    ->action(fn ($record) => $record->update(['status' => InvitationStatus::REJECTED, 'responded_at' => now()])),
                 Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                    ->label('Видалити')
+                    ->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                        ->label('Видалити обрані')
+                        ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('sent_at', 'desc')
+            ->emptyStateHeading('Немає запрошень')
+            ->emptyStateDescription('У цій групі ще не було відправлено запрошень.');
     }
 }

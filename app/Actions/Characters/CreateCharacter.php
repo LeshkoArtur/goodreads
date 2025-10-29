@@ -2,7 +2,7 @@
 
 namespace App\Actions\Characters;
 
-use App\DTOs\Character\CharacterStoreDTO;
+use App\Data\Character\CharacterStoreData;
 use App\Models\Character;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,32 +10,21 @@ class CreateCharacter
 {
     use AsAction;
 
-    /**
-     * Створити нового персонажа.
-     *
-     * @param CharacterStoreDTO $dto
-     * @return Character
-     */
-    public function handle(CharacterStoreDTO $dto): Character
+    public function handle(CharacterStoreData $data): Character
     {
-        $character = new Character();
-        $character->book_id = $dto->bookId;
-        $character->name = $dto->name;
-        $character->other_names = $dto->otherNames;
-        $character->race = $dto->race;
-        $character->nationality = $dto->nationality;
-        $character->residence = $dto->residence;
-        $character->biography = $dto->biography;
-        $character->fun_facts = $dto->funFacts;
-        $character->links = $dto->links;
-        $character->media_images = $dto->mediaImages;
-
-        if ($dto->mediaImages) {
-            $character->media_images = $character->handleFileUpload($dto->mediaImages, 'character_images');
-        }
-
+        $character = new Character;
+        $character->book_id = $data->book_id;
+        $character->name = $data->name;
+        $character->other_names = $data->other_names;
+        $character->race = $data->race;
+        $character->nationality = $data->nationality;
+        $character->residence = $data->residence;
+        $character->biography = $data->biography;
+        $character->fun_facts = $data->fun_facts;
+        $character->links = $data->links;
+        $character->media_images = $data->media_images;
         $character->save();
 
-        return $character->load(['book']);
+        return $character->fresh(['book']);
     }
 }

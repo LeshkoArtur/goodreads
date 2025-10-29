@@ -15,7 +15,7 @@ enum MemberRole: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('member_role.' . $this->value);
+        return __('member_role.'.$this->value);
     }
 
     // Colors for display in Filament

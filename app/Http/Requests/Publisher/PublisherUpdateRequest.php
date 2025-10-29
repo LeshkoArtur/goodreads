@@ -2,15 +2,16 @@
 
 namespace App\Http\Requests\Publisher;
 
-use App\Models\Publisher;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PublisherUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
         $publisher = $this->route('publisher');
-        return $this->user()->can('update', $publisher);
+
+        return $this->user()?->can('update', $publisher) ?? false;
     }
 
     public function rules(): array
@@ -18,12 +19,14 @@ class PublisherUpdateRequest extends FormRequest
         $publisherId = $this->route('publisher')->id;
 
         return [
-            'name' => ['nullable', 'string', 'max:255', Rule::unique('publishers', 'name')->ignore($publisherId)],
-            'country' => ['nullable', 'string', 'max:100'],
-            'founded_year' => ['nullable', 'integer', 'min:0', 'max:' . date('Y')],
-            'contact_emails' => ['nullable', 'array'],
-            'contact_emails.*' => ['email'],
+            'name' => ['nullable', 'string', 'max:100', Rule::unique('publishers', 'name')->ignore($publisherId)],
             'description' => ['nullable', 'string'],
+            'website' => ['nullable', 'url', 'max:255'],
+            'country' => ['nullable', 'string', 'max:50'],
+            'founded_year' => ['nullable', 'integer', 'min:0', 'max:'.date('Y')],
+            'logo' => ['nullable', 'string', 'max:255'],
+            'contact_email' => ['nullable', 'email', 'max:376'],
+            'phone' => ['nullable', 'string', 'max:20'],
         ];
     }
 
@@ -34,6 +37,14 @@ class PublisherUpdateRequest extends FormRequest
                 'description' => 'Назва видавця.',
                 'example' => 'Оновлене Видавництво Старого Лева',
             ],
+            'description' => [
+                'description' => 'Опис видавця.',
+                'example' => 'Оновлений опис видавництва.',
+            ],
+            'website' => [
+                'description' => 'Вебсайт видавця.',
+                'example' => 'https://starylev.com.ua',
+            ],
             'country' => [
                 'description' => 'Країна видавця.',
                 'example' => 'Україна',
@@ -42,13 +53,17 @@ class PublisherUpdateRequest extends FormRequest
                 'description' => 'Рік заснування видавця.',
                 'example' => 2001,
             ],
-            'contact_emails' => [
-                'description' => 'Масив контактних email видавця.',
-                'example' => ['contact1@starylev.com.ua', 'contact2@starylev.com.ua'],
+            'logo' => [
+                'description' => 'URL або шлях до логотипу видавця.',
+                'example' => '/images/logo.png',
             ],
-            'description' => [
-                'description' => 'Опис видавця.',
-                'example' => 'Оновлений опис видавництва.',
+            'contact_email' => [
+                'description' => 'Контактна електронна пошта видавця.',
+                'example' => 'contact@starylev.com.ua',
+            ],
+            'phone' => [
+                'description' => 'Контактний телефон видавця.',
+                'example' => '+380123456789',
             ],
         ];
     }

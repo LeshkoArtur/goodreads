@@ -2,20 +2,25 @@
 
 namespace App\Filament\Admin\Resources\GroupPostResource\Pages;
 
-use App\DTOs\GroupPost\GroupPostStoreDTO;
-use App\Filament\Admin\Resources\GroupPostResource;
-use App\Models\GroupPost;
 use App\Actions\GroupPosts\CreateGroupPost as CreateGroupPostAction;
+use App\Data\GroupPost\GroupPostStoreData;
+use App\Filament\Admin\Resources\GroupPostResource;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateGroupPost extends CreateRecord
 {
     protected static string $resource = GroupPostResource::class;
 
-    protected function handleRecordCreation(array $data): GroupPost
-    {
-        $dto = GroupPostStoreDTO::fromArray($data);
+    protected ?string $heading = 'Створити пост групи';
 
-        return CreateGroupPostAction::run($dto);
+    protected function handleRecordCreation(array $data): Model
+    {
+        return app(CreateGroupPostAction::class)->handle(GroupPostStoreData::fromArray($data));
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Пост створено';
     }
 }

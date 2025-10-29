@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Genre;
 
-use App\Models\Genre;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GenreUpdateRequest extends FormRequest
@@ -10,15 +9,17 @@ class GenreUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $genre = $this->route('genre');
-        return $this->user()->can('update', $genre);
+
+        return $this->user()?->can('update', $genre) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'name' => ['nullable', 'string', 'max:255'],
-            'parent_id' => ['nullable', 'string', 'exists:genres,id'],
+            'name' => ['nullable', 'string', 'max:50'],
+            'parent_id' => ['nullable', 'uuid', 'exists:genres,id'],
             'description' => ['nullable', 'string'],
+            'book_count' => ['nullable', 'integer', 'min:0'],
         ];
     }
 
@@ -36,6 +37,10 @@ class GenreUpdateRequest extends FormRequest
             'description' => [
                 'description' => 'Опис жанру.',
                 'example' => 'Оновлений опис жанру епічного фентезі.',
+            ],
+            'book_count' => [
+                'description' => 'Кількість книг у жанрі.',
+                'example' => 50,
             ],
         ];
     }

@@ -2,35 +2,28 @@
 
 namespace App\Http\Requests\Comment;
 
-use App\Models\Comment;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CommentUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $comment = $this->route('comment');
-        return $this->user()->can('update', $comment);
+        return $this->user()?->can('update', $this->route('comment')) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'body' => ['nullable', 'string'],
-            'is_spoiler' => ['nullable', 'boolean'],
+            'content' => ['required', 'string', 'max:5000'],
         ];
     }
 
     public function bodyParameters(): array
     {
         return [
-            'body' => [
-                'description' => 'Текст коментаря.',
-                'example' => 'Оновлений текст коментаря...',
-            ],
-            'is_spoiler' => [
-                'description' => 'Чи містить коментар спойлери.',
-                'example' => true,
+            'content' => [
+                'description' => 'Оновлений текст коментаря.',
+                'example' => 'Це чудова книга, дуже рекомендую! Оновлено.',
             ],
         ];
     }
@@ -39,8 +32,8 @@ class CommentUpdateRequest extends FormRequest
     {
         return [
             'comment' => [
-                'description' => 'ID коментаря для оновлення.',
-                'example' => 'comment-uuid123',
+                'description' => 'UUID коментаря.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

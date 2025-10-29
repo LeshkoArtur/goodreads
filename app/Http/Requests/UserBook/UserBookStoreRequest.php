@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\UserBook;
 
+use App\Enums\ReadingFormat;
 use App\Models\UserBook;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,24 +11,22 @@ class UserBookStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', UserBook::class);
+        return $this->user()?->can('create', UserBook::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'string', 'exists:users,id'],
-            'book_id' => ['required', 'string', 'exists:books,id'],
-            'shelf_id' => ['nullable', 'string', 'exists:shelves,id'],
+            'user_id' => ['required', 'uuid', 'exists:users,id'],
+            'book_id' => ['required', 'uuid', 'exists:books,id'],
+            'shelf_id' => ['nullable', 'uuid', 'exists:shelves,id'],
             'start_date' => ['nullable', 'date'],
             'read_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'progress_pages' => ['nullable', 'integer', 'min:0'],
-            'is_private' => ['boolean'],
-            'rating' => ['nullable', 'integer', 'min:1', 'max:10'],
-            'notes' => ['nullable', 'string', 'max:5000'],
-            'reading_format' => ['nullable', Rule::in(\App\Enums\ReadingFormat::values())],
-            // Ensure unique combination of user_id and book_id
-            'user_id' => ['unique:user_books,user_id,NULL,id,book_id,' . $this->input('book_id')],
+            'is_private' => ['nullable', 'boolean'],
+            'rating' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'notes' => ['nullable', 'string'],
+            'reading_format' => ['nullable', Rule::enum(ReadingFormat::class)],
         ];
     }
 

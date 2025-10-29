@@ -2,56 +2,44 @@
 
 namespace App\Actions\Nominations;
 
-use App\DTOs\Nomination\NominationIndexDTO;
+use App\Data\Nomination\NominationIndexData;
 use App\Models\Nomination;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetNominations
 {
     use AsAction;
 
-    /**
-     * Отримати список номінацій із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param NominationIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(NominationIndexDTO $dto): LengthAwarePaginator
+    public function handle(NominationIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Nomination::search($dto->query ?? '');
+        $searchQuery = Nomination::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if ($data->sort === 'created_at') {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/nominations');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param NominationIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, NominationIndexDTO $dto): void
+    private function applyFilters(Builder $query, NominationIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->award_id, fn ($collection) => $collection->push("award_id = '{$data->award_id}'"))
+                ;
 
-            if ($dto->awardId) {
-                $options['filter'][] = "award_id = {$dto->awardId}";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

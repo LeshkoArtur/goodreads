@@ -2,7 +2,7 @@
 
 namespace App\Actions\Stores;
 
-use App\DTOs\Store\StoreUpdateDTO;
+use App\Data\Store\StoreUpdateData;
 use App\Models\Store;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,25 +10,15 @@ class UpdateStore
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий магазин.
-     *
-     * @param Store $store
-     * @param StoreUpdateDTO $dto
-     * @return Store
-     */
-    public function handle(Store $store, StoreUpdateDTO $dto): Store
+    public function handle(Store $store, StoreUpdateData $data): Store
     {
-        $attributes = [
-            'name' => $dto->name,
-            'region' => $dto->country,
-            'website_url' => $dto->website,
-        ];
+        $store->update(array_filter([
+            'name' => $data->name,
+            'logo_url' => $data->logo_url,
+            'region' => $data->region,
+            'website_url' => $data->website_url,
+        ], fn ($value) => $value !== null));
 
-        $store->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $store->save();
-
-        return $store->load(['bookOffers']);
+        return $store->fresh(['bookOffers']);
     }
 }

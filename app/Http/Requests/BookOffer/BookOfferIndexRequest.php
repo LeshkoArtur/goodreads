@@ -10,7 +10,14 @@ class BookOfferIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', BookOffer::class);
+        return $this->user()?->can('viewAny', BookOffer::class) ?? true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'query' => $this->input('q'),
+        ]);
     }
 
     public function rules(): array
@@ -25,8 +32,9 @@ class BookOfferIndexRequest extends FormRequest
             'store_id' => ['nullable', 'string', 'exists:stores,id'],
             'min_price' => ['nullable', 'numeric', 'min:0'],
             'max_price' => ['nullable', 'numeric', 'min:0'],
-            'currency' => ['nullable', Rule::in(\App\Enums\Currency::values())],
-            'status' => ['nullable', Rule::in(\App\Enums\OfferStatus::values())],
+            'currency' => ['nullable', Rule::in(\App\Enums\Currency::cases())],
+            'status' => ['nullable', Rule::in(\App\Enums\OfferStatus::cases())],
+            'availability' => ['nullable', 'boolean'],
             'min_last_updated_at' => ['nullable', 'date'],
             'max_last_updated_at' => ['nullable', 'date'],
         ];
@@ -78,6 +86,10 @@ class BookOfferIndexRequest extends FormRequest
             'status' => [
                 'description' => 'Фільтр за статусом пропозиції.',
                 'example' => 'ACTIVE',
+            ],
+            'availability' => [
+                'description' => 'Фільтр за наявністю книги.',
+                'example' => true,
             ],
             'min_last_updated_at' => [
                 'description' => 'Мінімальний час останнього оновлення для фільтрації.',

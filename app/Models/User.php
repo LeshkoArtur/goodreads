@@ -5,27 +5,26 @@ namespace App\Models;
 use App\Enums\Gender;
 use App\Enums\Role;
 use App\Models\Builders\UserQueryBuilder;
+use App\Notifications\VerifyEmailNotification;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasName;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\Relations\{
-    BelongsToMany,
-    HasMany
-};
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Models\Contracts\HasName;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Laravel\Scout\Searchable;
-
 
 /**
  * @mixin IdeHelperUser
  */
 class User extends Authenticatable implements FilamentUser, HasName
 {
-    use HasFactory, HasUuids, Searchable;
+    use HasApiTokens, HasFactory, HasUuids, Notifiable, Searchable;
 
     protected $fillable = [
         'username',
@@ -41,15 +40,17 @@ class User extends Authenticatable implements FilamentUser, HasName
         'social_media_links',
         'role',
         'gender',
+        'remember_token',
     ];
 
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'remember_token' => 'string',
         'is_public' => 'boolean',
         'birthday' => 'date',
         'last_login' => 'datetime',
@@ -190,5 +191,10 @@ class User extends Authenticatable implements FilamentUser, HasName
             ],
             'sortableAttributes' => ['created_at', 'username', 'last_login'],
         ];
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification);
     }
 }

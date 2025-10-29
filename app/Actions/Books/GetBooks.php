@@ -2,96 +2,58 @@
 
 namespace App\Actions\Books;
 
-use App\DTOs\Book\BookIndexDTO;
+use App\Data\Book\BookIndexData;
 use App\Models\Book;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetBooks
 {
     use AsAction;
 
-    /**
-     * Отримати список книг із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param BookIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(BookIndexDTO $dto): LengthAwarePaginator
+    public function handle(BookIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Book::search($dto->query ?? '');
+        $searchQuery = Book::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['average_rating', 'page_count', 'created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if (in_array($data->sort, ['average_rating', 'page_count', 'created_at'])) {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/books');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param BookIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, BookIndexDTO $dto): void
+    private function applyFilters(Builder $query, BookIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->series_id, fn ($collection) => $collection->push("series_id = {$data->series_id}"))
+            ->when($data->min_page_count !== null, fn ($collection) => $collection->push("page_count >= {$data->min_page_count}"))
+            ->when($data->max_page_count !== null, fn ($collection) => $collection->push("page_count <= {$data->max_page_count}"))
+            ->when($data->languages, function ($collection) use ($data) {
+                $languageFilters = collect($data->languages)
+                    ->map(fn ($lang) => "languages = '{$lang}'")
+                    ->implode(' OR ');
+                return $collection->push("({$languageFilters})");
+            })
+            ->when($data->is_bestseller !== null, fn ($collection) => $collection->push('is_bestseller = '.($data->is_bestseller ? 'true' : 'false')))
+            ->when($data->min_average_rating !== null, fn ($collection) => $collection->push("average_rating >= {$data->min_average_rating}"))
+            ->when($data->max_average_rating !== null, fn ($collection) => $collection->push("average_rating <= {$data->max_average_rating}"))
+            ->when($data->age_restriction, fn ($collection) => $collection->push("age_restriction = '{$data->age_restriction->value}'"))
+            ->when($data->author_ids, fn ($collection) => $collection->push('author_ids IN ['.collect($data->author_ids)->implode(',').']'))
+            ->when($data->genre_ids, fn ($collection) => $collection->push('genre_ids IN ['.collect($data->genre_ids)->implode(',').']'))
+            ->when($data->publisher_ids, fn ($collection) => $collection->push('publisher_ids IN ['.collect($data->publisher_ids)->implode(',').']'));
 
-            if ($dto->seriesId) {
-                $options['filter'][] = "series_id = {$dto->seriesId}";
-            }
-
-            if ($dto->minPageCount !== null) {
-                $options['filter'][] = "page_count >= {$dto->minPageCount}";
-            }
-            if ($dto->maxPageCount !== null) {
-                $options['filter'][] = "page_count <= {$dto->maxPageCount}";
-            }
-
-            if ($dto->languages) {
-                foreach ($dto->languages as $language) {
-                    $options['filter'][] = "languages = '{$language}'";
-                }
-            }
-
-            if ($dto->isBestseller !== null) {
-                $options['filter'][] = "is_bestseller = " . ($dto->isBestseller ? 'true' : 'false');
-            }
-
-            if ($dto->minAverageRating !== null) {
-                $options['filter'][] = "average_rating >= {$dto->minAverageRating}";
-            }
-            if ($dto->maxAverageRating !== null) {
-                $options['filter'][] = "average_rating <= {$dto->maxAverageRating}";
-            }
-
-            if ($dto->ageRestriction) {
-                $options['filter'][] = "age_restriction = '{$dto->ageRestriction}'";
-            }
-
-            if ($dto->authorIds) {
-                $options['filter'][] = 'author_ids IN [' . implode(',', $dto->authorIds) . ']';
-            }
-
-            if ($dto->genreIds) {
-                $options['filter'][] = 'genre_ids IN [' . implode(',', $dto->genreIds) . ']';
-            }
-
-            if ($dto->publisherIds) {
-                $options['filter'][] = 'publisher_ids IN [' . implode(',', $dto->publisherIds) . ']';
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

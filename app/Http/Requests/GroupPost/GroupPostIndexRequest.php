@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\GroupPost;
 
+use App\Enums\PostCategory;
+use App\Enums\PostStatus;
 use App\Models\GroupPost;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,7 +12,7 @@ class GroupPostIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', GroupPost::class);
+        return $this->user()?->can('viewAny', GroupPost::class) ?? true;
     }
 
     public function rules(): array
@@ -19,13 +21,13 @@ class GroupPostIndexRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'sort' => ['nullable', 'string', 'in:content,created_at'],
+            'sort' => ['nullable', 'string', 'in:created_at,updated_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'group_id' => ['nullable', 'string', 'exists:groups,id'],
-            'user_id' => ['nullable', 'string', 'exists:users,id'],
+            'group_id' => ['nullable', 'uuid', 'exists:groups,id'],
+            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
             'is_pinned' => ['nullable', 'boolean'],
-            'category' => ['nullable', Rule::in(\App\Enums\PostCategory::values())],
-            'post_status' => ['nullable', Rule::in(\App\Enums\PostStatus::values())],
+            'category' => ['nullable', Rule::enum(PostCategory::class)],
+            'post_status' => ['nullable', Rule::enum(PostStatus::class)],
         ];
     }
 
@@ -33,8 +35,8 @@ class GroupPostIndexRequest extends FormRequest
     {
         return [
             'q' => [
-                'description' => 'Пошуковий запит для вмісту поста.',
-                'example' => 'Обговорення книги',
+                'description' => 'Пошуковий запит для контенту посту.',
+                'example' => 'Цікавий пост',
             ],
             'page' => [
                 'description' => 'Номер сторінки для пагінації.',
@@ -45,7 +47,7 @@ class GroupPostIndexRequest extends FormRequest
                 'example' => 15,
             ],
             'sort' => [
-                'description' => 'Поле для сортування (content, created_at).',
+                'description' => 'Поле для сортування (created_at).',
                 'example' => 'created_at',
             ],
             'direction' => [
@@ -53,24 +55,24 @@ class GroupPostIndexRequest extends FormRequest
                 'example' => 'desc',
             ],
             'group_id' => [
-                'description' => 'Фільтр за ID групи.',
-                'example' => 'group-uuid123',
+                'description' => 'Фільтр за UUID групи.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'user_id' => [
-                'description' => 'Фільтр за ID користувача, який створив пост.',
-                'example' => 'user-uuid123',
+                'description' => 'Фільтр за UUID користувача.',
+                'example' => '8c6d7e2b-1a9c-3d4e-8f2b-1c2d3e4f5a6b',
             ],
             'is_pinned' => [
-                'description' => 'Фільтр за статусом закріплення поста.',
+                'description' => 'Фільтр за закріпленими постами.',
                 'example' => true,
             ],
             'category' => [
-                'description' => 'Фільтр за категорією поста.',
-                'example' => 'DISCUSSION',
+                'description' => 'Фільтр за категорією посту.',
+                'example' => 'general',
             ],
             'post_status' => [
-                'description' => 'Фільтр за статусом поста.',
-                'example' => 'PUBLISHED',
+                'description' => 'Фільтр за статусом посту.',
+                'example' => 'published',
             ],
         ];
     }

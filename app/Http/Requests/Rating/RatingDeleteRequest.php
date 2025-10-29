@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Rating;
 
-use App\Models\Rating;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RatingDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class RatingDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $rating = $this->route('rating');
-        return $this->user()->can('delete', $rating);
+
+        return $this->user()?->can('delete', $rating) ?? false;
     }
 
     public function rules(): array

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50" fill="none">
+  <defs>
+    <linearGradient id="bookGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FCD34D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FBBF24;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Book Icon -->
+  <path d="M10 10 L10 40 L25 35 L40 40 L40 10 L25 15 Z" fill="url(#bookGradientDark)" stroke="#FDE68A" stroke-width="2"/>
+  <path d="M25 15 L25 35" stroke="#FDE68A" stroke-width="2" stroke-dasharray="2,2"/>
+  <circle cx="17.5" cy="20" r="2" fill="#1F2937"/>
+  <circle cx="32.5" cy="25" r="2" fill="#1F2937"/>
+  
+  <!-- Text: readloop -->
+  <text x="50" y="30" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="700" fill="#F9FAFB">
+    Good<tspan fill="#FCD34D">reads</tspan>
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="50" y="42" font-family="Inter, system-ui, sans-serif" font-size="8" fill="#9CA3AF" letter-spacing="1">
+    BOOKS COMMUNITY
+  </text>
+</svg>

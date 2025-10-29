@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Genre;
 
-use App\Models\Genre;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GenreDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class GenreDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $genre = $this->route('genre');
-        return $this->user()->can('delete', $genre);
+
+        return $this->user()?->can('delete', $genre) ?? false;
     }
 
     public function rules(): array

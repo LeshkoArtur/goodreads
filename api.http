@@ -1,0 +1,856 @@
+### Variables
+@baseUrl = http://localhost:8000/api
+#@email = user123@example.com
+@email = leskoartur431@gmail.com
+@password = password123
+@username = lesko
+# After login, replace this with actual token
+@token = x3zcnmo6iUIBnoAkZlEBPyZHdTgZUFypEieRbh6F3883295d
+
+# Resource IDs (replace with actual UUIDs from your database)
+@authorId = 019a308c-986f-733b-be63-9560926489f5
+@bookId = 019a308c-9c2d-7218-86e0-3f370c703c36
+@userId = 770e8400-e29b-41d4-a716-446655440002
+@genreId = 880e8400-e29b-41d4-a716-446655440003
+@publisherId = 990e8400-e29b-41d4-a716-446655440004
+@seriesId = aa0e8400-e29b-41d4-a716-446655440005
+
+###############################################
+# 1. REGISTER - Create new user
+###############################################
+POST {{baseUrl}}/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "{{username}}",
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "password_confirmation": "{{password}}"
+}
+
+###############################################
+# 2. LOGIN - Get authentication token
+###############################################
+POST {{baseUrl}}/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+###############################################
+# 3. GET CURRENT USER - Requires authentication
+###############################################
+GET {{baseUrl}}/me
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###############################################
+# 4. LOGOUT - Revoke current token
+###############################################
+POST {{baseUrl}}/logout
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###############################################
+# 5. UPDATE PROFILE INFORMATION
+###############################################
+PUT {{baseUrl}}/user/profile-information
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "username": "newusername",
+    "email": "newemail@example.com",
+    "bio": "My updated bio text",
+    "location": "Kyiv, Ukraine",
+    "birthday": "1995-05-15",
+    "profile_picture": "https://example.com/avatar.jpg"
+}
+
+###############################################
+# 6. UPDATE PASSWORD
+###############################################
+PUT {{baseUrl}}/user/password
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "current_password": "{{password}}",
+  "password": "newpassword123",
+  "password_confirmation": "newpassword123"
+}
+
+###############################################
+# 7. FORGOT PASSWORD - Request reset link
+###############################################
+POST {{baseUrl}}/forgot-password
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{email}}"
+}
+
+###############################################
+# 8. RESET PASSWORD - Reset with token from email
+###############################################
+POST {{baseUrl}}/reset-password
+Content-Type: application/json
+Accept: application/json
+
+{
+  "token": "3e5534fc3470c6e4f0bd6d633bfed3bddce7bd6fcc4713713c8dbb7f504132b4",
+  "email": "{{email}}",
+  "password": "password123",
+  "password_confirmation": "password123"
+}
+
+###############################################
+# 9. RESEND EMAIL VERIFICATION
+###############################################
+POST {{baseUrl}}/email/verification-notification
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###############################################
+# 10. VERIFY EMAIL - Frontend approach
+# Email contains: http://localhost:3000/verify-email?url=<encoded_api_url>
+# Frontend extracts the URL parameter and makes this authenticated request:
+###############################################
+GET {{baseUrl}}/email/verify/{id}/{hash}?expires=1234567890&signature=abc123
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###############################################
+# 11. CONFIRM PASSWORD - For sensitive operations
+###############################################
+POST {{baseUrl}}/user/confirm-password
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "password": "{{password}}"
+}
+
+###############################################
+# 12. CHECK PASSWORD CONFIRMATION STATUS
+###############################################
+GET {{baseUrl}}/user/confirmed-password-status
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###############################################
+# TESTING SCENARIOS
+###############################################
+
+### Scenario 1: Complete registration flow
+# 1. Register new user
+# 2. Copy token from response
+# 3. Test /api/me endpoint
+
+### Scenario 2: Login existing user
+# 1. Login with credentials
+# 2. Copy token from response
+# 3. Test authenticated endpoints
+
+### Scenario 3: Update user profile
+# 1. Login to get token
+# 2. Update profile with new data
+# 3. Get current user to verify changes
+
+### Scenario 4: Change password
+# 1. Login with old password
+# 2. Change password
+# 3. Try login with old password (should fail)
+# 4. Login with new password (should succeed)
+
+###############################################
+# ERROR SCENARIOS - Testing validation
+###############################################
+
+### Register without username
+POST {{baseUrl}}/register
+Content-Type: application/json
+Accept: application/json
+
+{
+    "email": "test2@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+
+### Register with invalid email
+POST {{baseUrl}}/register
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "testuser2",
+    "email": "invalid-email",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+
+### Register with mismatched passwords
+POST {{baseUrl}}/register
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "testuser3",
+    "email": "test3@example.com",
+    "password": "password123",
+    "password_confirmation": "different123"
+}
+
+### Register with short password
+POST {{baseUrl}}/register
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "testuser4",
+    "email": "test4@example.com",
+    "password": "123",
+    "password_confirmation": "123"
+}
+
+### Login with wrong credentials
+POST {{baseUrl}}/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "{{email}}",
+  "password": "wrongpassword"
+}
+
+### Access protected route without token
+GET {{baseUrl}}/me
+Accept: application/json
+
+### Access protected route with invalid token
+GET {{baseUrl}}/me
+Accept: application/json
+Authorization: Bearer invalid_token_here
+
+###############################################
+# CORE RESOURCES
+###############################################
+
+###############################################
+# AUTHORS
+###############################################
+
+### Get all authors
+GET {{baseUrl}}/authors
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get specific author
+GET {{baseUrl}}/authors/{{authorId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get author books
+GET {{baseUrl}}/authors/{{authorId}}/books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get author series
+GET {{baseUrl}}/authors/{{authorId}}/series
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get author users (followers)
+GET {{baseUrl}}/authors/{{authorId}}/users
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get author questions
+GET {{baseUrl}}/authors/{{authorId}}/questions
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get author answers
+GET {{baseUrl}}/authors/{{authorId}}/answers
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get author posts
+GET {{baseUrl}}/authors/{{authorId}}/posts
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get author nominations
+GET {{baseUrl}}/authors/{{authorId}}/nominations
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get author awards
+GET {{baseUrl}}/authors/{{authorId}}/awards
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get author stats
+GET {{baseUrl}}/authors/{{authorId}}/stats
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get author popular books
+GET {{baseUrl}}/authors/{{authorId}}/popular-books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get similar authors
+GET {{baseUrl}}/authors/{{authorId}}/similar
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Create author (authenticated)
+POST {{baseUrl}}/authors
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "J.K. Rowling",
+    "bio": "British author, best known for the Harry Potter series",
+    "birth_date": "1965-07-31",
+    "website": "https://www.jkrowling.com",
+    "photo_url": "https://example.com/jkrowling.jpg"
+}
+
+### Update author (authenticated)
+PUT {{baseUrl}}/authors/{{authorId}}
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "J.K. Rowling",
+    "bio": "British author and philanthropist, best known for the Harry Potter series",
+    "website": "https://www.jkrowling.com"
+}
+
+### Delete author (authenticated)
+DELETE {{baseUrl}}/authors/{{authorId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Follow author (authenticated)
+POST {{baseUrl}}/authors/{{authorId}}/follow
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Unfollow author (authenticated)
+DELETE {{baseUrl}}/authors/{{authorId}}/unfollow
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Claim author profile (authenticated)
+POST {{baseUrl}}/authors/{{authorId}}/claim
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###############################################
+# BOOKS
+###############################################
+
+### Get all books
+GET {{baseUrl}}/books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get specific book
+GET {{baseUrl}}/books/{{bookId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book authors
+GET {{baseUrl}}/books/{{bookId}}/authors
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book genres
+GET {{baseUrl}}/books/{{bookId}}/genres
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book publishers
+GET {{baseUrl}}/books/{{bookId}}/publishers
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book series
+GET {{baseUrl}}/books/{{bookId}}/series
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get series books
+GET {{baseUrl}}/books/{{bookId}}/series-books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book characters
+GET {{baseUrl}}/books/{{bookId}}/characters
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book quotes
+GET {{baseUrl}}/books/{{bookId}}/quotes
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book ratings
+GET {{baseUrl}}/books/{{bookId}}/ratings
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book reviews
+GET {{baseUrl}}/books/{{bookId}}/reviews
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book posts
+GET {{baseUrl}}/books/{{bookId}}/posts
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book discussions
+GET {{baseUrl}}/books/{{bookId}}/discussions
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book questions
+GET {{baseUrl}}/books/{{bookId}}/questions
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book stats
+GET {{baseUrl}}/books/{{bookId}}/stats
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get similar books
+GET {{baseUrl}}/books/{{bookId}}/similar
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book offers
+GET {{baseUrl}}/books/{{bookId}}/offers
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get book collections
+GET {{baseUrl}}/books/{{bookId}}/collections
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Create book (authenticated)
+POST {{baseUrl}}/books
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "title": "Harry Potter and the Philosopher's Stone",
+    "description": "The first book in the Harry Potter series",
+    "isbn": "9780439708180",
+    "pages": 309,
+    "published_date": "1997-06-26",
+    "language": "en",
+    "cover_image": "https://example.com/cover.jpg"
+}
+
+### Update book (authenticated)
+PUT {{baseUrl}}/books/{{bookId}}
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "title": "Harry Potter and the Philosopher's Stone",
+    "description": "The first book in the Harry Potter series - Updated",
+    "pages": 309
+}
+
+### Delete book (authenticated)
+DELETE {{baseUrl}}/books/{{bookId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Attach author to book (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/authors/{{authorId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Detach author from book (authenticated)
+DELETE {{baseUrl}}/books/{{bookId}}/authors/{{authorId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Attach genre to book (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/genres/{{genreId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Detach genre from book (authenticated)
+DELETE {{baseUrl}}/books/{{bookId}}/genres/{{genreId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Attach publisher to book (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/publishers/{{publisherId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Detach publisher from book (authenticated)
+DELETE {{baseUrl}}/books/{{bookId}}/publishers/{{publisherId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Mark book as read (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/mark-as-read
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Mark book as reading (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/mark-as-reading
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Mark book as want to read (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/mark-as-want-to-read
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Mark book as DNF (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/mark-as-dnf
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Mark book as on hold (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/mark-as-on-hold
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Mark book as favorite (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/mark-as-favorite
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Mark book as rereading (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/mark-as-rereading
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Mark book as owned (authenticated)
+POST {{baseUrl}}/books/{{bookId}}/mark-as-owned
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###############################################
+# USERS
+###############################################
+
+### Get all users
+GET {{baseUrl}}/users
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get specific user
+GET {{baseUrl}}/users/{{userId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get user books
+GET {{baseUrl}}/users/{{userId}}/books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get user shelves
+GET {{baseUrl}}/users/{{userId}}/shelves
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get user ratings
+GET {{baseUrl}}/users/{{userId}}/ratings
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get user quotes
+GET {{baseUrl}}/users/{{userId}}/quotes
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get user comments
+GET {{baseUrl}}/users/{{userId}}/comments
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get user following
+GET {{baseUrl}}/users/{{userId}}/following
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get user followers
+GET {{baseUrl}}/users/{{userId}}/followers
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get user groups
+GET {{baseUrl}}/users/{{userId}}/groups
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get user stats
+GET {{baseUrl}}/users/{{userId}}/stats
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Create user (authenticated)
+POST {{baseUrl}}/users
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "username": "newuser",
+    "email": "newuser@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+
+### Update user (authenticated)
+PUT {{baseUrl}}/users/{{userId}}
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "username": "updatedusername",
+    "bio": "Updated bio"
+}
+
+### Delete user (authenticated)
+DELETE {{baseUrl}}/users/{{userId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Follow user (authenticated)
+POST {{baseUrl}}/users/{{userId}}/follow
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Unfollow user (authenticated)
+DELETE {{baseUrl}}/users/{{userId}}/unfollow
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###############################################
+# GENRES
+###############################################
+
+### Get all genres
+GET {{baseUrl}}/genres
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get specific genre
+GET {{baseUrl}}/genres/{{genreId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get genre books
+GET {{baseUrl}}/genres/{{genreId}}/books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get genre subgenres
+GET {{baseUrl}}/genres/{{genreId}}/subgenres
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get genre parent
+GET {{baseUrl}}/genres/{{genreId}}/parent
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get genre popular books
+GET {{baseUrl}}/genres/{{genreId}}/popular-books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get genre trending books
+GET {{baseUrl}}/genres/{{genreId}}/trending-books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get genre new releases
+GET {{baseUrl}}/genres/{{genreId}}/new-releases
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get genre stats
+GET {{baseUrl}}/genres/{{genreId}}/stats
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Create genre (authenticated)
+POST {{baseUrl}}/genres
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Science Fiction",
+    "slug": "science-fiction",
+    "description": "Fiction based on imagined future scientific or technological advances"
+}
+
+### Update genre (authenticated)
+PUT {{baseUrl}}/genres/{{genreId}}
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Science Fiction",
+    "description": "Fiction based on imagined future scientific or technological advances and major social or environmental changes"
+}
+
+### Delete genre (authenticated)
+DELETE {{baseUrl}}/genres/{{genreId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###############################################
+# PUBLISHERS
+###############################################
+
+### Get all publishers
+GET {{baseUrl}}/publishers
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get specific publisher
+GET {{baseUrl}}/publishers/{{publisherId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get publisher books
+GET {{baseUrl}}/publishers/{{publisherId}}/books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get publisher popular books
+GET {{baseUrl}}/publishers/{{publisherId}}/popular-books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get publisher new releases
+GET {{baseUrl}}/publishers/{{publisherId}}/new-releases
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get publisher stats
+GET {{baseUrl}}/publishers/{{publisherId}}/stats
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Create publisher (authenticated)
+POST {{baseUrl}}/publishers
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Penguin Random House",
+    "description": "Leading book publisher",
+    "website": "https://www.penguinrandomhouse.com",
+    "founded_date": "2013-07-01"
+}
+
+### Update publisher (authenticated)
+PUT {{baseUrl}}/publishers/{{publisherId}}
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Penguin Random House",
+    "description": "World's largest trade book publisher",
+    "website": "https://www.penguinrandomhouse.com"
+}
+
+### Delete publisher (authenticated)
+DELETE {{baseUrl}}/publishers/{{publisherId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###############################################
+# BOOK SERIES
+###############################################
+
+### Get all book series
+GET {{baseUrl}}/book-series
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get specific book series
+GET {{baseUrl}}/book-series/{{seriesId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get series books
+GET {{baseUrl}}/book-series/{{seriesId}}/books
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get series author
+GET {{baseUrl}}/book-series/{{seriesId}}/author
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get series stats
+GET {{baseUrl}}/book-series/{{seriesId}}/stats
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Create book series (authenticated)
+POST {{baseUrl}}/book-series
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Harry Potter",
+  "description": "A series of fantasy novels",
+  "author_id": "{{authorId}}",
+  "total_books": 7
+}
+
+### Update book series (authenticated)
+PUT {{baseUrl}}/book-series/{{seriesId}}
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "title": "Harry Potter",
+    "description": "A series of seven fantasy novels",
+    "total_books": 7
+}
+
+### Delete book series (authenticated)
+DELETE {{baseUrl}}/book-series/{{seriesId}}
+Accept: application/json
+Authorization: Bearer {{token}}

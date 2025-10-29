@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Tag;
 
-use App\Models\Tag;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,7 +10,8 @@ class TagUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $tag = $this->route('tag');
-        return $this->user()->can('update', $tag);
+
+        return $this->user()?->can('update', $tag) ?? false;
     }
 
     public function rules(): array
@@ -19,7 +19,7 @@ class TagUpdateRequest extends FormRequest
         $tagId = $this->route('tag')->id;
 
         return [
-            'name' => ['nullable', 'string', 'max:255', Rule::unique('tags', 'name')->ignore($tagId)],
+            'name' => ['nullable', 'string', 'max:50', Rule::unique('tags', 'name')->ignore($tagId)],
         ];
     }
 

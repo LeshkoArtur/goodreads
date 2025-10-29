@@ -2,72 +2,48 @@
 
 namespace App\Actions\GroupPosts;
 
-use App\DTOs\GroupPost\GroupPostIndexDTO;
+use App\Data\GroupPost\GroupPostIndexData;
 use App\Models\GroupPost;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetGroupPosts
 {
     use AsAction;
 
-    /**
-     * Отримати список постів груп із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param GroupPostIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(GroupPostIndexDTO $dto): LengthAwarePaginator
+    public function handle(GroupPostIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = GroupPost::search($dto->query ?? '');
+        $searchQuery = GroupPost::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if ($data->sort === 'created_at') {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/group-posts');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param GroupPostIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, GroupPostIndexDTO $dto): void
+    private function applyFilters(Builder $query, GroupPostIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->group_id, fn ($collection) => $collection->push("group_id = '{$data->group_id}'"))
+                ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"))
+                ->when($data->is_pinned !== null, fn ($collection) => $collection->push('is_pinned = '.($data->is_pinned ? 'true' : 'false')))
+                ->when($data->category, fn ($collection) => $collection->push("category = '{$data->category->value}'"))
+                ->when($data->post_status, fn ($collection) => $collection->push("post_status = '{$data->post_status->value}'"))
+                ;
 
-            if ($dto->groupId) {
-                $options['filter'][] = "group_id = {$dto->groupId}";
-            }
-
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = {$dto->userId}";
-            }
-
-            if ($dto->isPinned !== null) {
-                $options['filter'][] = "is_pinned = " . ($dto->isPinned ? 'true' : 'false');
-            }
-
-            if ($dto->category) {
-                $options['filter'][] = "category = '{$dto->category}'";
-            }
-
-            if ($dto->postStatus) {
-                $options['filter'][] = "post_status = '{$dto->postStatus}'";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

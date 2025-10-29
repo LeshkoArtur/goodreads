@@ -10,10 +10,13 @@ class ListBooks extends ListRecords
 {
     protected static string $resource = BookResource::class;
 
+    protected ?string $heading = 'Книги';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити книгу'),
         ];
     }
 }

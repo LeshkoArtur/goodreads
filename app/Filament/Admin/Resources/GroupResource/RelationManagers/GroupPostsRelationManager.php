@@ -2,173 +2,105 @@
 
 namespace App\Filament\Admin\Resources\GroupResource\RelationManagers;
 
-use App\Enums\PostCategory;
 use App\Enums\PostStatus;
-use App\Models\Group;
-use Filament\Forms;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class GroupPostsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'posts';
+    protected static string $relationship = 'groupPosts';
 
-    protected static ?string $recordTitleAttribute = 'content';
-
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Публікації групи') . ' ' . $ownerRecord->name;
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                Section::make(__('Публікація'))
-                    ->schema([
-                        Select::make('user_id')
-                            ->label(__('Користувач'))
-                            ->relationship('user', 'username')
-                            ->required()
-                            ->searchable()
-                            ->preload(),
-                        Textarea::make('content')
-                            ->label(__('Контент'))
-                            ->required()
-                            ->maxLength(65535)
-                            ->rows(5)
-                            ->columnSpanFull(),
-                        Toggle::make('is_pinned')
-                            ->label(__('Закріплено'))
-                            ->default(false),
-                        Select::make('category')
-                            ->label(__('Категорія'))
-                            ->options(PostCategory::class)
-                            ->required(),
-                        Select::make('post_status')
-                            ->label(__('Статус'))
-                            ->options(PostStatus::class)
-                            ->required(),
-                    ]),
-            ]);
-    }
+    protected static ?string $title = 'Пости групи';
 
     public function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('user.username')
-                    ->label(__('Користувач'))
+                Tables\Columns\ImageColumn::make('user.profile_picture')
+                    ->label('Автор')
+                    ->circular()
+                    ->size(40)
+                    ->defaultImageUrl(url('/images/default-avatar.png')),
+                Tables\Columns\TextColumn::make('user.username')
+                    ->label('Користувач')
                     ->searchable()
-                    ->sortable()
-                    ->url(fn (Model $record): ?string => $record->user ? route('filament.resources.users.view', $record->user_id) : null),
-                TextColumn::make('content')
-                    ->label(__('Контент'))
-                    ->limit(50)
-                    ->tooltip(fn (Model $record): string => $record->content)
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('content')
+                    ->label('Контент')
                     ->searchable()
-                    ->sortable()
-                    ->url(fn (Model $record): string => route('filament.resources.group-posts.view', $record->id)),
-                IconColumn::make('is_pinned')
-                    ->label(__('Закріплено'))
+                    ->limit(100)
+                    ->wrap(),
+                Tables\Columns\TextColumn::make('category')
+                    ->label('Категорія')
+                    ->badge()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('post_status')
+                    ->label('Статус')
+                    ->badge()
+                    ->color(fn (?PostStatus $state) => match ($state) {
+                        PostStatus::PUBLISHED => 'success',
+                        PostStatus::DRAFT => 'warning',
+                        PostStatus::ARCHIVED => 'danger',
+                        default => 'gray',
+                    }),
+                Tables\Columns\IconColumn::make('is_pinned')
+                    ->label('Закріплений')
                     ->boolean()
-                    ->trueIcon('heroicon-o-pin')
-                    ->falseIcon('heroicon-o-x-mark')
-                    ->sortable()
+                    ->trueIcon('heroicon-o-bookmark')
+                    ->trueColor('warning')
                     ->toggleable(),
-                TextColumn::make('category')
-                    ->label(__('Категорія'))
-                    ->badge()
-                    ->formatStateUsing(fn (?PostCategory $state) => $state?->getLabel())
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('post_status')
-                    ->label(__('Статус'))
-                    ->badge()
-                    ->formatStateUsing(fn (?PostStatus $state) => $state?->getLabel())
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('comments_count')
-                    ->label(__('Кількість коментарів'))
+                Tables\Columns\TextColumn::make('comments_count')
+                    ->label('Коментарі')
                     ->counts('comments')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('likes_count')
-                    ->label(__('Кількість лайків'))
-                    ->counts('likes')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('favorites_count')
-                    ->label(__('Кількість у вибране'))
-                    ->counts('favorites')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('moderation_logs_count')
-                    ->label(__('Кількість логів модерації'))
-                    ->counts('moderationLogs')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
-                    ->sortable()
+                    ->badge()
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('likes_count')
+                    ->label('Лайки')
+                    ->counts('likes')
+                    ->badge()
+                    ->color('success')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Створено')
+                    ->dateTime('d.m.Y H:i')
+                    ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('user')
-                    ->label(__('Користувач'))
-                    ->relationship('user', 'username')
-                    ->searchable()
-                    ->multiple()
-                    ->indicator(__('Користувач')),
-                TernaryFilter::make('is_pinned')
-                    ->label(__('Закріплено'))
-                    ->placeholder(__('Всі'))
-                    ->trueLabel(__('Закріплені'))
-                    ->falseLabel(__('Незакріплені'))
-                    ->indicator(__('Закріплено')),
-                SelectFilter::make('category')
-                    ->label(__('Категорія'))
-                    ->options(PostCategory::class)
-                    ->multiple()
-                    ->indicator(__('Категорія')),
-                SelectFilter::make('post_status')
-                    ->label(__('Статус'))
-                    ->options(PostStatus::class)
-                    ->multiple()
-                    ->indicator(__('Статус')),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label(__('Додати публікацію')),
+                Tables\Filters\SelectFilter::make('post_status')
+                    ->label('Статус')
+                    ->options(PostStatus::class),
+                Tables\Filters\TernaryFilter::make('is_pinned')
+                    ->label('Закріплені'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
+                Tables\Actions\Action::make('pin')
+                    ->label('Закріпити')
+                    ->icon('heroicon-o-bookmark')
+                    ->color('warning')
+                    ->visible(fn ($record) => ! $record->is_pinned)
+                    ->action(fn ($record) => $record->update(['is_pinned' => true])),
+                Tables\Actions\Action::make('unpin')
+                    ->label('Відкріпити')
+                    ->icon('heroicon-o-bookmark-slash')
+                    ->color('gray')
+                    ->visible(fn ($record) => $record->is_pinned)
+                    ->action(fn ($record) => $record->update(['is_pinned' => false])),
+                Tables\Actions\ViewAction::make()
+                    ->label('Переглянути'),
                 Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                    ->label('Видалити')
+                    ->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                        ->label('Видалити обрані')
+                        ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->emptyStateHeading('Немає постів')
+            ->emptyStateDescription('У цій групі ще немає постів.');
     }
 }

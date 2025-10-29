@@ -9,16 +9,17 @@ class GroupPollStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', GroupPoll::class);
+        return $this->user()?->can('create', GroupPoll::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'group_id' => ['required', 'string', 'exists:groups,id'],
-            'creator_id' => ['required', 'string', 'exists:users,id'],
-            'question' => ['required', 'string', 'max:255'],
-            'is_active' => ['boolean'],
+            'group_id' => ['required', 'uuid', 'exists:groups,id'],
+            'question' => ['required', 'string', 'max:500'],
+            'options' => ['required', 'array', 'min:2', 'max:10'],
+            'options.*' => ['required', 'string', 'max:255'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 
@@ -26,19 +27,19 @@ class GroupPollStoreRequest extends FormRequest
     {
         return [
             'group_id' => [
-                'description' => 'ID групи, до якої відноситься опитування.',
-                'example' => 'group-uuid123',
-            ],
-            'creator_id' => [
-                'description' => 'ID користувача, який створює опитування.',
-                'example' => 'user-uuid123',
+                'description' => 'UUID групи, для якої створюється опитування.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'question' => [
                 'description' => 'Питання опитування.',
-                'example' => 'Яка книга вам сподобалась найбільше?',
+                'example' => 'Яка ваша улюблена книга місяця?',
+            ],
+            'options' => [
+                'description' => 'Масив варіантів відповіді (мінімум 2, максимум 10).',
+                'example' => '["Варіант 1", "Варіант 2", "Варіант 3"]',
             ],
             'is_active' => [
-                'description' => 'Чи є опитування активним.',
+                'description' => 'Чи активне опитування.',
                 'example' => true,
             ],
         ];

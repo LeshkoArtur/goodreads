@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\GroupModerationLog;
 
-use App\Models\GroupModerationLog;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GroupModerationLogDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class GroupModerationLogDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $groupModerationLog = $this->route('group_moderation_log');
-        return $this->user()->can('delete', $groupModerationLog);
+
+        return $this->user()?->can('delete', $groupModerationLog) ?? false;
     }
 
     public function rules(): array

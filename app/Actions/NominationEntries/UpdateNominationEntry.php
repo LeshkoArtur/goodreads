@@ -2,7 +2,7 @@
 
 namespace App\Actions\NominationEntries;
 
-use App\DTOs\NominationEntry\NominationEntryUpdateDTO;
+use App\Data\NominationEntry\NominationEntryUpdateData;
 use App\Models\NominationEntry;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,23 +10,22 @@ class UpdateNominationEntry
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий запис номінації.
-     *
-     * @param NominationEntry $nominationEntry
-     * @param NominationEntryUpdateDTO $dto
-     * @return NominationEntry
-     */
-    public function handle(NominationEntry $nominationEntry, NominationEntryUpdateDTO $dto): NominationEntry
+    public function handle(NominationEntry $entry, NominationEntryUpdateData $data): NominationEntry
     {
-        $attributes = [
-            'status' => $dto->status,
-        ];
+        if ($data->book_id !== null) {
+            $entry->book_id = $data->book_id;
+        }
 
-        $nominationEntry->fill(array_filter($attributes, fn($value) => $value !== null));
+        if ($data->author_id !== null) {
+            $entry->author_id = $data->author_id;
+        }
 
-        $nominationEntry->save();
+        if ($data->status !== null) {
+            $entry->status = $data->status;
+        }
 
-        return $nominationEntry->load(['nomination', 'book', 'author']);
+        $entry->save();
+
+        return $entry->fresh(['nomination', 'book', 'author']);
     }
 }

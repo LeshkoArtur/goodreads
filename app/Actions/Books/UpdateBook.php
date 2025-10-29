@@ -2,7 +2,7 @@
 
 namespace App\Actions\Books;
 
-use App\DTOs\Book\BookUpdateDTO;
+use App\Data\Book\BookUpdateData;
 use App\Models\Book;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,61 +10,31 @@ class UpdateBook
 {
     use AsAction;
 
-    /**
-     * Оновити існуючу книгу.
-     *
-     * @param Book $book
-     * @param BookUpdateDTO $dto
-     * @return Book
-     */
-    public function handle(Book $book, BookUpdateDTO $dto): Book
+    public function handle(Book $book, BookUpdateData $data): Book
     {
-        $attributes = [
-            'title' => $dto->title,
-            'description' => $dto->description,
-            'series_id' => $dto->seriesId,
-            'page_count' => $dto->pageCount,
-            'languages' => $dto->languages,
-            'is_bestseller' => $dto->isBestseller,
-            'age_restriction' => $dto->ageRestriction,
-        ];
+        $book->update(array_filter([
+            'title' => $data->title,
+            'description' => $data->description,
+            'plot' => $data->plot,
+            'history' => $data->history,
+            'series_id' => $data->series_id,
+            'number_in_series' => $data->number_in_series,
+            'page_count' => $data->page_count,
+            'languages' => $data->languages,
+            'cover_image' => $data->cover_image,
+            'fun_facts' => $data->fun_facts,
+            'adaptations' => $data->adaptations,
+            'is_bestseller' => $data->is_bestseller,
+            'average_rating' => $data->average_rating,
+            'age_restriction' => $data->age_restriction,
+        ], fn ($value) => $value !== null));
 
-        $book->fill(array_filter($attributes, fn($value) => $value !== null));
+        collect([
+            'authors' => $data->author_ids,
+            'genres' => $data->genre_ids,
+            'publishers' => $data->publisher_ids,
+        ])->each(fn ($ids, $relation) => when($ids !== null, fn () => $book->$relation()->sync($ids)));
 
-        if ($dto->coverImage !== null) {
-            $book->cover_image = $book->handleFileUpload($dto->coverImage, 'covers', $book->cover_image);
-        }
-
-        $book->save();
-
-        $this->syncRelations($book, $dto);
-
-        return $book->load(['series', 'authors', 'genres', 'publishers']);
-    }
-
-    /**
-     * Синхронізувати зв’язки книги (автори, жанри, видавці).
-     *
-     * @param Book $book
-     * @param BookUpdateDTO $dto
-     * @return void
-     */
-    private function syncRelations(Book $book, BookUpdateDTO $dto): void
-    {
-        if ($dto->authorIds !== null) {
-            $book->authors()->sync($dto->authorIds);
-        }
-
-        if ($dto->genreIds !== null) {
-            $book->genres()->sync($dto->genreIds);
-        }
-
-        if ($dto->publisherIds !== null) {
-            $syncData = [];
-            foreach ($dto->publisherIds as $publisherId) {
-                $syncData[$publisherId] = ['published_at' => now()];
-            }
-            $book->publishers()->sync($syncData);
-        }
+        return $book->fresh(['authors', 'genres', 'publishers', 'series']);
     }
 }

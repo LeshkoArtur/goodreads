@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Group;
 
-use App\Models\Group;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GroupDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class GroupDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $group = $this->route('group');
-        return $this->user()->can('delete', $group);
+
+        return $this->user()?->can('delete', $group) ?? false;
     }
 
     public function rules(): array

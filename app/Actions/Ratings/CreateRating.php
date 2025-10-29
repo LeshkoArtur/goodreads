@@ -2,7 +2,7 @@
 
 namespace App\Actions\Ratings;
 
-use App\DTOs\Rating\RatingStoreDTO;
+use App\Data\Rating\RatingStoreData;
 use App\Models\Rating;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,22 +10,15 @@ class CreateRating
 {
     use AsAction;
 
-    /**
-     * Створити новий рейтинг.
-     *
-     * @param RatingStoreDTO $dto
-     * @return Rating
-     */
-    public function handle(RatingStoreDTO $dto): Rating
+    public function handle(RatingStoreData $data): Rating
     {
-        $rating = new Rating();
-        $rating->user_id = $dto->userId;
-        $rating->book_id = $dto->bookId;
-        $rating->rating = $dto->rating;
-        $rating->review = $dto->review;
-
+        $rating = new Rating;
+        $rating->user_id = $data->user_id;
+        $rating->book_id = $data->book_id;
+        $rating->rating = $data->rating;
+        $rating->review = $data->review;
         $rating->save();
 
-        return $rating->load(['user', 'book', 'comments', 'likes', 'favorites']);
+        return $rating->fresh(['user', 'book']);
     }
 }

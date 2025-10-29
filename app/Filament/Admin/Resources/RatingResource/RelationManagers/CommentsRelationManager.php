@@ -2,128 +2,62 @@
 
 namespace App\Filament\Admin\Resources\RatingResource\RelationManagers;
 
-use App\Models\Comment;
-use App\Models\Rating;
-use Filament\Forms;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class CommentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'comments';
 
-    protected static ?string $recordTitleAttribute = 'content';
-
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Коментарі до оцінки') . ' ' . $ownerRecord->rating . ' (' . $ownerRecord->book->title . ')';
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                Section::make(__('Коментар'))
-                    ->schema([
-                        Select::make('user_id')
-                            ->label(__('Автор'))
-                            ->relationship('user', 'username')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
-                        Select::make('parent_id')
-                            ->label(__('Батьківський коментар'))
-                            ->relationship('parent', 'content', fn ($query) => $query->where('commentable_type', Rating::class)->where('commentable_id', $this->ownerRecord->id))
-                            ->nullable()
-                            ->searchable()
-                            ->preload(),
-                        Textarea::make('content')
-                            ->label(__('Коментар'))
-                            ->required()
-                            ->maxLength(65535)
-                            ->rows(5)
-                            ->columnSpanFull(),
-                    ]),
-            ]);
-    }
+    protected static ?string $title = 'Коментарі';
 
     public function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('content')
-                    ->label(__('Коментар'))
-                    ->limit(100)
-                    ->tooltip(fn (Model $record): string => $record->content)
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('user.username')
-                    ->label(__('Автор'))
-                    ->searchable()
-                    ->sortable()
-                    ->url(fn (Model $record): ?string => $record->user ? route('filament.admin.resources.users.view', $record->user_id) : null),
-                TextColumn::make('parent.content')
-                    ->label(__('Батьківський коментар'))
-                    ->limit(50)
-                    ->tooltip(fn (?Model $record): ?string => $record->parent ? $record->parent->content : null)
+                Tables\Columns\ImageColumn::make('user.profile_picture')
+                    ->label('Користувач')
+                    ->circular()
+                    ->size(40)
+                    ->defaultImageUrl(url('/images/default-avatar.png')),
+                Tables\Columns\TextColumn::make('user.username')
+                    ->label('Автор')
                     ->searchable()
                     ->sortable()
-                    ->toggleable(),
-                TextColumn::make('replies_count')
-                    ->label(__('Відповідей'))
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('content')
+                    ->label('Коментар')
+                    ->searchable()
+                    ->limit(120)
+                    ->wrap(),
+                Tables\Columns\IconColumn::make('parent_id')
+                    ->label('Відповідь')
+                    ->boolean()
+                    ->exists('parent'),
+                Tables\Columns\TextColumn::make('replies_count')
+                    ->label('Відповідей')
                     ->counts('replies')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
-                    ->sortable()
+                    ->badge()
+                    ->color('info')
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Створено')
+                    ->dateTime('d.m.Y H:i')
+                    ->sortable(),
             ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('user')
-                    ->label(__('Автор'))
-                    ->relationship('user', 'username')
-                    ->searchable()
-                    ->multiple()
-                    ->indicator(__('Автор')),
-                Tables\Filters\Filter::make('has_replies')
-                    ->label(__('Має відповіді'))
-                    ->query(fn ($query) => $query->has('replies'))
-                    ->toggleable(),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label(__('Додати коментар')),
-            ])
+            ->filters([])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
-                Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
-                Tables\Actions\Action::make('view_replies')
-                    ->label(__('Переглянути відповіді'))
-                    ->icon('heroicon-o-chat-bubble-left-right')
-                    ->action(fn (Model $record) => redirect()->route('filament.admin.resources.comments.index', ['tableFilters' => ['parent_id' => ['value' => $record->id]]]))
-                    ->hidden(fn (Model $record): bool => $record->replies_count === 0),
+                Tables\Actions\ViewAction::make()->label('Переглянути'),
+                Tables\Actions\DeleteAction::make()->label('Видалити')->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                    Tables\Actions\DeleteBulkAction::make()->label('Видалити обрані')->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->emptyStateHeading('Немає коментарів')
+            ->emptyStateDescription('Поки що ніхто не прокоментував цю оцінку.');
     }
 }

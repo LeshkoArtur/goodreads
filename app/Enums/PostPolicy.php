@@ -15,7 +15,7 @@ enum PostPolicy: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('post_policy.' . $this->value);
+        return __('post_policy.'.$this->value);
     }
 
     // Colors for display in Filament

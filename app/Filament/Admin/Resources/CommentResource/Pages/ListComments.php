@@ -10,10 +10,13 @@ class ListComments extends ListRecords
 {
     protected static string $resource = CommentResource::class;
 
+    protected ?string $heading = 'Коментарі';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити коментар'),
         ];
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Actions\Collections;
 
-use App\DTOs\Collection\CollectionUpdateDTO;
+use App\Data\Collection\CollectionUpdateData;
 use App\Models\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,25 +10,18 @@ class UpdateCollection
 {
     use AsAction;
 
-    /**
-     * Оновити існуючу колекцію.
-     *
-     * @param Collection $collection
-     * @param CollectionUpdateDTO $dto
-     * @return Collection
-     */
-    public function handle(Collection $collection, CollectionUpdateDTO $dto): Collection
+    public function handle(Collection $collection, CollectionUpdateData $data): Collection
     {
-        $attributes = [
-            'title' => $dto->name,
-            'is_public' => $dto->isPublic,
-            'description' => $dto->description,
-        ];
+        $collection->update(array_filter([
+            'user_id' => $data->user_id,
+            'title' => $data->title,
+            'description' => $data->description,
+            'cover_image' => $data->cover_image,
+            'is_public' => $data->is_public,
+        ], fn ($value) => $value !== null));
 
-        $collection->fill(array_filter($attributes, fn($value) => $value !== null));
+        when($data->book_ids !== null, fn () => $collection->books()->sync($data->book_ids));
 
-        $collection->save();
-
-        return $collection->load(['user', 'books']);
+        return $collection->fresh(['user', 'books']);
     }
 }

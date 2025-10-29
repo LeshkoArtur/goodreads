@@ -2,15 +2,13 @@
 
 namespace App\Http\Requests\GroupPoll;
 
-use App\Models\GroupPoll;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GroupPollDeleteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $groupPoll = $this->route('group_poll');
-        return $this->user()->can('delete', $groupPoll);
+        return $this->user()?->can('delete', $this->route('groupPoll')) ?? false;
     }
 
     public function rules(): array
@@ -18,17 +16,12 @@ class GroupPollDeleteRequest extends FormRequest
         return [];
     }
 
-    public function bodyParameters(): array
-    {
-        return [];
-    }
-
     public function urlParameters(): array
     {
         return [
-            'group_poll' => [
-                'description' => 'ID опитування для видалення.',
-                'example' => 'poll-uuid123',
+            'groupPoll' => [
+                'description' => 'UUID опитування групи.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

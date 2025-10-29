@@ -10,10 +10,13 @@ class ListQuotes extends ListRecords
 {
     protected static string $resource = QuoteResource::class;
 
+    protected ?string $heading = 'Цитати';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити цитату'),
         ];
     }
 }

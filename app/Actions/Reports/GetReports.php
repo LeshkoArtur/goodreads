@@ -2,72 +2,48 @@
 
 namespace App\Actions\Reports;
 
-use App\DTOs\Report\ReportIndexDTO;
+use App\Data\Report\ReportIndexData;
 use App\Models\Report;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetReports
 {
     use AsAction;
 
-    /**
-     * Отримати список звітів із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param ReportIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(ReportIndexDTO $dto): LengthAwarePaginator
+    public function handle(ReportIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Report::search($dto->query ?? '');
+        $searchQuery = Report::search('');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['created_at']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/reports');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param ReportIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, ReportIndexDTO $dto): void
+    private function applyFilters(Builder $query, ReportIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"))
+            ->when($data->type, fn ($collection) => $collection->push("type = '{$data->type->value}'"))
+            ->when($data->reportable_type, fn ($collection) => $collection->push("reportable_type = '{$data->reportable_type}'"))
+            ->when($data->reportable_id, fn ($collection) => $collection->push("reportable_id = '{$data->reportable_id}'"))
+            ->when($data->status, fn ($collection) => $collection->push("status = '{$data->status->value}'"));
 
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = {$dto->userId}";
-            }
-
-            if ($dto->reportableType) {
-                $options['filter'][] = "reportable_type = '{$dto->reportableType}'";
-            }
-
-            if ($dto->reportableId) {
-                $options['filter'][] = "reportable_id = {$dto->reportableId}";
-            }
-
-            if ($dto->reason) {
-                $options['filter'][] = "type = '{$dto->reason}'";
-            }
-
-            if ($dto->status) {
-                $options['filter'][] = "status = '{$dto->status}'";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

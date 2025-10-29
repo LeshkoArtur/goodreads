@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\GroupEvent;
 
+use App\Enums\EventStatus;
 use App\Models\GroupEvent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,19 +11,18 @@ class GroupEventStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', GroupEvent::class);
+        return $this->user()?->can('create', GroupEvent::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'group_id' => ['required', 'string', 'exists:groups,id'],
-            'creator_id' => ['required', 'string', 'exists:users,id'],
+            'group_id' => ['required', 'uuid', 'exists:groups,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'event_date' => ['nullable', 'date'],
             'location' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', Rule::in(\App\Enums\EventStatus::values())],
+            'status' => ['nullable', Rule::enum(EventStatus::class)],
         ];
     }
 
@@ -30,32 +30,28 @@ class GroupEventStoreRequest extends FormRequest
     {
         return [
             'group_id' => [
-                'description' => 'ID групи, до якої відноситься подія.',
-                'example' => 'group-uuid123',
-            ],
-            'creator_id' => [
-                'description' => 'ID користувача, який створює подію.',
-                'example' => 'user-uuid123',
+                'description' => 'UUID групи, для якої створюється подія.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'title' => [
                 'description' => 'Назва події.',
-                'example' => 'Обговорення нової книги',
+                'example' => 'Зустріч книжкового клубу',
             ],
             'description' => [
                 'description' => 'Опис події.',
-                'example' => 'Зустріч для обговорення фентезійної літератури.',
+                'example' => 'Обговорення нової книги місяця',
             ],
             'event_date' => [
-                'description' => 'Дата і час події у форматі Y-m-d H:i:s.',
-                'example' => '2025-08-13 18:00:00',
+                'description' => 'Дата та час події.',
+                'example' => '2025-11-15 18:00:00',
             ],
             'location' => [
-                'description' => 'Місце проведення події.',
-                'example' => 'Київ, бібліотека',
+                'description' => 'Локація події.',
+                'example' => 'Київ, вул. Хрещатик 1',
             ],
             'status' => [
                 'description' => 'Статус події.',
-                'example' => 'UPCOMING',
+                'example' => 'upcoming',
             ],
         ];
     }

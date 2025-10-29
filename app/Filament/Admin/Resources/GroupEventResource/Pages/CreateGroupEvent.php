@@ -2,20 +2,25 @@
 
 namespace App\Filament\Admin\Resources\GroupEventResource\Pages;
 
-use App\DTOs\GroupEvent\GroupEventStoreDTO;
-use App\Filament\Admin\Resources\GroupEventResource;
-use App\Models\GroupEvent;
 use App\Actions\GroupEvents\CreateGroupEvent as CreateGroupEventAction;
+use App\Data\GroupEvent\GroupEventStoreData;
+use App\Filament\Admin\Resources\GroupEventResource;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateGroupEvent extends CreateRecord
 {
     protected static string $resource = GroupEventResource::class;
 
-    protected function handleRecordCreation(array $data): GroupEvent
-    {
-        $dto = GroupEventStoreDTO::fromArray($data);
+    protected ?string $heading = 'Створити подію';
 
-        return CreateGroupEventAction::run($dto);
+    protected function handleRecordCreation(array $data): Model
+    {
+        return app(CreateGroupEventAction::class)->handle(GroupEventStoreData::fromArray($data));
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
     }
 }

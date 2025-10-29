@@ -9,7 +9,7 @@ class AwardIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Award::class);
+        return $this->user()?->can('viewAny', Award::class) ?? true;
     }
 
     public function rules(): array
@@ -18,13 +18,11 @@ class AwardIndexRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'sort' => ['nullable', 'string', 'in:name,year,created_at'],
+            'sort' => ['nullable', 'string', 'in:name,year,ceremony_date,created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'year' => ['nullable', 'integer', 'min:1800', 'max:' . date('Y')],
+            'year' => ['nullable', 'integer', 'min:1800', 'max:2100'],
             'organizer' => ['nullable', 'string', 'max:255'],
-            'country' => ['nullable', 'string', 'max:255'],
-            'min_ceremony_date' => ['nullable', 'date'],
-            'max_ceremony_date' => ['nullable', 'date'],
+            'country' => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -32,8 +30,8 @@ class AwardIndexRequest extends FormRequest
     {
         return [
             'q' => [
-                'description' => 'Пошуковий запит для назви або опису нагороди.',
-                'example' => 'Літературна премія',
+                'description' => 'Пошуковий запит для назви, опису або організатора нагороди.',
+                'example' => 'Букер',
             ],
             'page' => [
                 'description' => 'Номер сторінки для пагінації.',
@@ -44,7 +42,7 @@ class AwardIndexRequest extends FormRequest
                 'example' => 15,
             ],
             'sort' => [
-                'description' => 'Поле для сортування (name, year, created_at).',
+                'description' => 'Поле для сортування (name, year, ceremony_date, created_at).',
                 'example' => 'year',
             ],
             'direction' => [
@@ -53,23 +51,15 @@ class AwardIndexRequest extends FormRequest
             ],
             'year' => [
                 'description' => 'Фільтр за роком нагороди.',
-                'example' => 2023,
+                'example' => 2024,
             ],
             'organizer' => [
                 'description' => 'Фільтр за організатором нагороди.',
-                'example' => 'Академія літератури',
+                'example' => 'Booker Foundation',
             ],
             'country' => [
-                'description' => 'Фільтр за країною нагороди.',
-                'example' => 'Україна',
-            ],
-            'min_ceremony_date' => [
-                'description' => 'Мінімальна дата церемонії для фільтрації.',
-                'example' => '2023-01-01',
-            ],
-            'max_ceremony_date' => [
-                'description' => 'Максимальна дата церемонії для фільтрації.',
-                'example' => '2023-12-31',
+                'description' => 'Фільтр за країною.',
+                'example' => 'United Kingdom',
             ],
         ];
     }

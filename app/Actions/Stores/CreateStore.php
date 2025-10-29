@@ -2,7 +2,7 @@
 
 namespace App\Actions\Stores;
 
-use App\DTOs\Store\StoreStoreDTO;
+use App\Data\Store\StoreStoreData;
 use App\Models\Store;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,26 +10,15 @@ class CreateStore
 {
     use AsAction;
 
-    /**
-     * Створити новий магазин.
-     *
-     * @param StoreStoreDTO $dto
-     * @return Store
-     */
-    public function handle(StoreStoreDTO $dto): Store
+    public function handle(StoreStoreData $data): Store
     {
-        $store = new Store();
-        $store->name = $dto->name;
-        $store->logo_url = $dto->logoUrl;
-        $store->region = $dto->region;
-        $store->website_url = $dto->websiteUrl;
-
-        if ($dto->logoUrl) {
-            $store->logo_url = $store->handleFileUpload($dto->logoUrl, 'store_logos');
-        }
-
+        $store = new Store;
+        $store->name = $data->name;
+        $store->logo_url = $data->logo_url;
+        $store->region = $data->region;
+        $store->website_url = $data->website_url;
         $store->save();
 
-        return $store->load(['bookOffers']);
+        return $store->fresh(['bookOffers']);
     }
 }

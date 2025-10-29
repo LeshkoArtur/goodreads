@@ -2,28 +2,33 @@
 
 namespace App\Http\Requests\Report;
 
+use App\Enums\ReportStatus;
+use App\Enums\ReportType;
 use App\Models\Report;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class ReportStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Report::class);
+        return $this->user()?->can('create', Report::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'string', 'exists:users,id'],
-            'type' => ['required', Rule::in(\App\Enums\ReportType::values())],
-            'reportable_id' => ['required', 'string'],
-            'reportable_type' => ['required', 'string', 'in:Post,Comment,Quote,Rating'],
-            'description' => ['nullable', 'string'],
-            'status' => ['nullable', Rule::in(\App\Enums\ReportStatus::values())],
-            // Ensure unique combination of user_id, reportable_id, and reportable_type
-            'user_id' => ['unique:reports,user_id,NULL,id,reportable_id,' . $this->input('reportable_id') . ',reportable_type,' . $this->input('reportable_type')],
+            'user_id' => [
+                'required',
+                'string',
+                'exists:users,id',
+                'unique:reports,user_id,NULL,id,reportable_id,'.$this->input('reportable_id').',reportable_type,'.$this->input('reportable_type')
+            ],
+            'type' => ['required', new Enum(ReportType::class)],
+            'reportable_id' => ['required', 'uuid'],
+            'reportable_type' => ['required', 'string', 'in:App\\Models\\Post,App\\Models\\Comment,App\\Models\\GroupPost,App\\Models\\Quote,App\\Models\\Rating'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'status' => ['nullable', new Enum(ReportStatus::class)],
         ];
     }
 
@@ -35,24 +40,24 @@ class ReportStoreRequest extends FormRequest
                 'example' => 'user-uuid123',
             ],
             'type' => [
-                'description' => 'Тип звіту.',
-                'example' => 'CONTENT_VIOLATION',
+                'description' => 'Тип звіту. Можливі значення: spam, offensive, inappropriate, spoilers, copyright, other.',
+                'example' => 'spam',
             ],
             'reportable_id' => [
                 'description' => 'ID об’єкта, на який подано звіт.',
                 'example' => 'post-uuid123',
             ],
             'reportable_type' => [
-                'description' => 'Тип об’єкта звіту (Post, Comment, Quote, Rating).',
-                'example' => 'Post',
+                'description' => 'Тип об’єкта звіту. Можливі значення: App\\Models\\Post, App\\Models\\Comment, App\\Models\\GroupPost, App\\Models\\Quote, App\\Models\\Rating.',
+                'example' => 'App\\Models\\Post',
             ],
             'description' => [
                 'description' => 'Опис звіту.',
                 'example' => 'Цей пост містить невідповідний вміст.',
             ],
             'status' => [
-                'description' => 'Статус звіту.',
-                'example' => 'PENDING',
+                'description' => 'Статус звіту. Можливі значення: pending, reviewed, resolved, dismissed.',
+                'example' => 'pending',
             ],
         ];
     }

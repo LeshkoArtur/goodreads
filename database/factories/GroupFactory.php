@@ -22,7 +22,7 @@ class GroupFactory extends Factory
             'description' => $this->faker->paragraph(),
             'creator_id' => User::factory(),
             'is_public' => $this->faker->boolean(),
-            'cover_image' => $this->faker->imageUrl(),
+            'cover_image' => 'https://placehold.co/800x400',
             'rules' => $this->faker->paragraph(),
             'member_count' => $this->faker->numberBetween(1, 1000),
             'is_active' => $this->faker->boolean(),

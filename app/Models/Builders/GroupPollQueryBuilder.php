@@ -35,7 +35,7 @@ class GroupPollQueryBuilder extends Builder
      */
     public function withQuestion(string $question): static
     {
-        return $this->where('question', 'like', '%' . $question . '%');
+        return $this->where('question', 'like', '%'.$question.'%');
     }
 
     /**

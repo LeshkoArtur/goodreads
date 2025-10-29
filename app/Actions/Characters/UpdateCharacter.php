@@ -2,7 +2,7 @@
 
 namespace App\Actions\Characters;
 
-use App\DTOs\Character\CharacterUpdateDTO;
+use App\Data\Character\CharacterUpdateData;
 use App\Models\Character;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,28 +10,19 @@ class UpdateCharacter
 {
     use AsAction;
 
-    /**
-     * Оновити існуючого персонажа.
-     *
-     * @param Character $character
-     * @param CharacterUpdateDTO $dto
-     * @return Character
-     */
-    public function handle(Character $character, CharacterUpdateDTO $dto): Character
+    public function handle(Character $character, CharacterUpdateData $data): Character
     {
-        $attributes = [
-            'name' => $dto->name,
-            'race' => $dto->race,
-            'nationality' => $dto->nationality,
-            'residence' => $dto->residence,
-            'other_names' => $dto->otherNames,
-            'biography' => $dto->description,
-        ];
-
-        $character->fill(array_filter($attributes, fn($value) => $value !== null));
-
+        $character->name = $data->name;
+        $character->other_names = $data->other_names;
+        $character->race = $data->race;
+        $character->nationality = $data->nationality;
+        $character->residence = $data->residence;
+        $character->biography = $data->biography;
+        $character->fun_facts = $data->fun_facts;
+        $character->links = $data->links;
+        $character->media_images = $data->media_images;
         $character->save();
 
-        return $character->load(['book']);
+        return $character->fresh(['book']);
     }
 }

@@ -9,7 +9,7 @@ class CollectionIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Collection::class);
+        return $this->user()?->can('viewAny', Collection::class) ?? true;
     }
 
     public function rules(): array
@@ -20,9 +20,10 @@ class CollectionIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:title,created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'user_id' => ['nullable', 'string', 'exists:users,id'],
+            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
             'is_public' => ['nullable', 'boolean'],
-            'book_ids' => ['nullable', 'json'],
+            'book_ids' => ['nullable', 'array'],
+            'book_ids.*' => ['uuid', 'exists:books,id'],
         ];
     }
 

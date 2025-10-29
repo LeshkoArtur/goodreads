@@ -2,7 +2,7 @@
 
 namespace App\Actions\Notes;
 
-use App\DTOs\Note\NoteStoreDTO;
+use App\Data\Note\NoteStoreData;
 use App\Models\Note;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,24 +10,17 @@ class CreateNote
 {
     use AsAction;
 
-    /**
-     * Створити нову нотатку.
-     *
-     * @param NoteStoreDTO $dto
-     * @return Note
-     */
-    public function handle(NoteStoreDTO $dto): Note
+    public function handle(NoteStoreData $data): Note
     {
-        $note = new Note();
-        $note->user_id = $dto->userId;
-        $note->book_id = $dto->bookId;
-        $note->text = $dto->text;
-        $note->page_number = $dto->pageNumber;
-        $note->contains_spoilers = $dto->containsSpoilers;
-        $note->is_private = $dto->isPrivate;
-
+        $note = new Note;
+        $note->user_id = $data->user_id;
+        $note->book_id = $data->book_id;
+        $note->text = $data->text;
+        $note->page_number = $data->page_number;
+        $note->contains_spoilers = $data->contains_spoilers;
+        $note->is_private = $data->is_private;
         $note->save();
 
-        return $note->load(['user', 'book']);
+        return $note->fresh(['user', 'book']);
     }
 }

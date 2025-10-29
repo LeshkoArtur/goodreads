@@ -3,9 +3,6 @@
 namespace Tests\Unit\Models;
 
 use App\Models\Book;
-use App\Models\Comment;
-use App\Models\Favorite;
-use App\Models\Like;
 use App\Models\Quote;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +17,7 @@ class QuoteTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_attributes()
     {
-        $quote = new Quote();
+        $quote = new Quote;
 
         $this->assertEquals([
             'user_id',

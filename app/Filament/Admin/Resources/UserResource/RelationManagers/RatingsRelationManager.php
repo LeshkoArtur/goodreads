@@ -2,126 +2,81 @@
 
 namespace App\Filament\Admin\Resources\UserResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Model;
+use Filament\Tables\Table;
 
 class RatingsRelationManager extends RelationManager
 {
     protected static string $relationship = 'ratings';
 
-    protected static ?string $recordTitleAttribute = 'rating';
+    protected static ?string $title = 'Оцінки користувача';
 
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Оцінки користувача') . ' ' . $ownerRecord->username;
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                Select::make('book_id')
-                    ->label(__('Книга'))
-                    ->relationship('book', 'title')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
-                TextInput::make('rating')
-                    ->label(__('Оцінка'))
-                    ->required()
-                    ->numeric()
-                    ->minValue(1)
-                    ->maxValue(5),
-                Textarea::make('review')
-                    ->label(__('Відгук'))
-                    ->maxLength(65535)
-                    ->rows(5)
-                    ->columnSpanFull(),
-            ]);
-    }
-
-    public function table(Tables\Table $table): Tables\Table
+    public function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('book.title')
-                    ->label(__('Книга'))
+                Tables\Columns\ImageColumn::make('book.cover_image')
+                    ->label('Обкладинка')
+                    ->size(50),
+                Tables\Columns\TextColumn::make('book.title')
+                    ->label('Книга')
                     ->searchable()
                     ->sortable()
-                    ->url(fn (Model $record): ?string => $record->book ? route('filament.admin.resources.books.view', $record->book_id) : null),
-                TextColumn::make('rating')
-                    ->label(__('Оцінка'))
-                    ->sortable(),
-                TextColumn::make('review')
-                    ->label(__('Відгук'))
+                    ->limit(40),
+                Tables\Columns\TextColumn::make('rating')
+                    ->label('Оцінка')
+                    ->sortable()
+                    ->badge()
+                    ->color(fn ($state) => match (true) {
+                        $state >= 4 => 'success',
+                        $state >= 3 => 'warning',
+                        default => 'danger',
+                    })
+                    ->formatStateUsing(fn ($state) => str_repeat('⭐', $state)),
+                Tables\Columns\TextColumn::make('review')
+                    ->label('Відгук')
                     ->limit(100)
-                    ->tooltip(fn (Model $record): ?string => $record->review ?? '-')
-                    ->searchable(),
-                TextColumn::make('comments_count')
-                    ->label(__('Коментарі'))
-                    ->counts('comments')
-                    ->sortable()
+                    ->wrap()
                     ->toggleable(),
-                TextColumn::make('likes_count')
-                    ->label(__('Лайки'))
+                Tables\Columns\TextColumn::make('likes_count')
+                    ->label('Лайки')
                     ->counts('likes')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
-                    ->sortable()
+                    ->badge()
+                    ->color('success')
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Створено')
+                    ->dateTime('d.m.Y')
+                    ->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('book_id')
-                    ->label(__('Книга'))
-                    ->relationship('book', 'title')
-                    ->multiple()
-                    ->indicator(__('Книга')),
-                Tables\Filters\Filter::make('has_comments')
-                    ->label(__('Має коментарі'))
-                    ->query(fn ($query) => $query->has('comments'))
-                    ->toggleable(),
                 Tables\Filters\SelectFilter::make('rating')
-                    ->label(__('Оцінка'))
+                    ->label('Оцінка')
                     ->options([
-                        1 => '1',
-                        2 => '2',
-                        3 => '3',
-                        4 => '4',
-                        5 => '5',
-                    ])
-                    ->multiple()
-                    ->indicator(__('Оцінка')),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label(__('Додати оцінку')),
+                        1 => '1⭐',
+                        2 => '2⭐⭐',
+                        3 => '3⭐⭐⭐',
+                        4 => '4⭐⭐⭐⭐',
+                        5 => '5⭐⭐⭐⭐⭐',
+                    ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
+                Tables\Actions\ViewAction::make()
+                    ->label('Переглянути'),
                 Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                    ->label('Видалити')
+                    ->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                        ->label('Видалити обрані')
+                        ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->emptyStateHeading('Немає оцінок')
+            ->emptyStateDescription('Користувач ще не оцінив жодної книги.');
     }
 }

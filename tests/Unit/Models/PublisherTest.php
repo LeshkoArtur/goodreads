@@ -37,7 +37,7 @@ class PublisherTest extends TestCase
             'phone' => '+380123456789',
         ];
 
-        $publisher = new Publisher();
+        $publisher = new Publisher;
         $publisher->fill($data);
 
         foreach ($data as $field => $value) {
@@ -55,7 +55,7 @@ class PublisherTest extends TestCase
         $this->assertEquals(2000, $publisher->founded_year);
     }
 
-    public function test_books_relationship_returns_belongsToMany()
+    public function test_books_relationship_returns_belongs_to_many()
     {
         $publisher = Publisher::factory()->create();
         $book = Book::factory()->create();
@@ -98,7 +98,7 @@ class PublisherTest extends TestCase
             'description' => 'nullable|string',
             'website' => 'nullable|url',
             'country' => 'nullable|string|max:100',
-            'founded_year' => 'nullable|integer|min:1000|max:' . date('Y'),
+            'founded_year' => 'nullable|integer|min:1000|max:'.date('Y'),
             'logo' => 'nullable|url',
             'contact_email' => 'nullable|email',
             'phone' => 'nullable|string|max:20',
@@ -123,7 +123,7 @@ class PublisherTest extends TestCase
             'description' => 'nullable|string',
             'website' => 'nullable|url',
             'country' => 'nullable|string|max:100',
-            'founded_year' => 'nullable|integer|min:1000|max:' . date('Y'),
+            'founded_year' => 'nullable|integer|min:1000|max:'.date('Y'),
             'logo' => 'nullable|url',
             'contact_email' => 'nullable|email',
             'phone' => 'nullable|string|max:20',

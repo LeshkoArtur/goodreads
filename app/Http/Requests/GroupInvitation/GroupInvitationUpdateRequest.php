@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\GroupInvitation;
 
-use App\Models\GroupInvitation;
+use App\Enums\InvitationStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,13 +11,14 @@ class GroupInvitationUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $groupInvitation = $this->route('group_invitation');
-        return $this->user()->can('update', $groupInvitation);
+
+        return $this->user()?->can('update', $groupInvitation) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'status' => ['nullable', Rule::in(\App\Enums\InvitationStatus::values())],
+            'status' => ['nullable', Rule::enum(InvitationStatus::class)],
         ];
     }
 

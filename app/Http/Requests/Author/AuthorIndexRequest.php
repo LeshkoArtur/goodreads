@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Author;
 
+use App\Enums\TypeOfWork;
 use App\Models\Author;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,7 +11,7 @@ class AuthorIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Author::class);
+        return $this->user()?->can('viewAny', Author::class) ?? true;
     }
 
     public function rules(): array
@@ -26,10 +27,11 @@ class AuthorIndexRequest extends FormRequest
             'max_birth_date' => ['nullable', 'date'],
             'min_death_date' => ['nullable', 'date'],
             'max_death_date' => ['nullable', 'date'],
-            'type_of_work' => ['nullable', Rule::in(\App\Enums\TypeOfWork::values())],
-            'social_media_links' => ['nullable', 'json'],
-            'user_ids' => ['nullable', 'json'],
-            'book_ids' => ['nullable', 'json'],
+            'type_of_work' => ['nullable', Rule::enum(TypeOfWork::class)],
+            'user_ids' => ['nullable', 'array'],
+            'user_ids.*' => ['uuid', 'exists:users,id'],
+            'book_ids' => ['nullable', 'array'],
+            'book_ids.*' => ['uuid', 'exists:books,id'],
         ];
     }
 
@@ -77,20 +79,16 @@ class AuthorIndexRequest extends FormRequest
                 'example' => '2020-01-01',
             ],
             'type_of_work' => [
-                'description' => 'Фільтр за типом роботи.',
-                'example' => 'Романіст',
-            ],
-            'social_media_links' => [
-                'description' => 'Фільтр за посиланнями на соціальні мережі (JSON масив).',
-                'example' => '["https://twitter.com/author", "https://facebook.com/author"]',
+                'description' => 'Фільтр за типом роботи (novelist, poet, playwright, тощо).',
+                'example' => 'novelist',
             ],
             'user_ids' => [
-                'description' => 'Фільтр за ID користувачів (JSON масив).',
-                'example' => '["user-uuid1", "user-uuid2"]',
+                'description' => 'Фільтр за UUID користувачів (масив).',
+                'example' => '["9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a"]',
             ],
             'book_ids' => [
-                'description' => 'Фільтр за ID книг (JSON масив).',
-                'example' => '["book-uuid1", "book-uuid2"]',
+                'description' => 'Фільтр за UUID книг (масив).',
+                'example' => '["8c6d7e2b-1a9c-3d4e-8f2b-1c2d3e4f5a6b"]',
             ],
         ];
     }

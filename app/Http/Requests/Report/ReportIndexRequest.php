@@ -2,40 +2,37 @@
 
 namespace App\Http\Requests\Report;
 
+use App\Enums\ReportStatus;
+use App\Enums\ReportType;
 use App\Models\Report;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class ReportIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Report::class);
+        return $this->user()?->can('viewAny', Report::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'q' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'sort' => ['nullable', 'string', 'in:type,description,created_at'],
+            'sort' => ['nullable', 'string', 'in:created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
             'user_id' => ['nullable', 'string', 'exists:users,id'],
-            'reportable_type' => ['nullable', 'string', 'in:Post,Comment,Quote,Rating'],
-            'reportable_id' => ['nullable', 'string'],
-            'reason' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', Rule::in(\App\Enums\ReportStatus::values())],
+            'type' => ['nullable', new Enum(ReportType::class)],
+            'reportable_type' => ['nullable', 'string'],
+            'reportable_id' => ['nullable', 'uuid'],
+            'status' => ['nullable', new Enum(ReportStatus::class)],
         ];
     }
 
     public function queryParameters(): array
     {
         return [
-            'q' => [
-                'description' => 'Пошуковий запит для опису або причини звіту.',
-                'example' => 'Порушення правил',
-            ],
             'page' => [
                 'description' => 'Номер сторінки для пагінації.',
                 'example' => 1,
@@ -45,7 +42,7 @@ class ReportIndexRequest extends FormRequest
                 'example' => 15,
             ],
             'sort' => [
-                'description' => 'Поле для сортування (type, description, created_at).',
+                'description' => 'Поле для сортування (created_at).',
                 'example' => 'created_at',
             ],
             'direction' => [
@@ -57,7 +54,7 @@ class ReportIndexRequest extends FormRequest
                 'example' => 'user-uuid123',
             ],
             'reportable_type' => [
-                'description' => 'Фільтр за типом об’єкта звіту (Post, Comment, Quote, Rating).',
+                'description' => 'Фільтр за типом об’єкта звіту. Можливі значення: App\\Models\\Post, App\\Models\\Comment, App\\Models\\GroupPost, App\\Models\\Quote, App\\Models\\Rating.',
                 'example' => 'Post',
             ],
             'reportable_id' => [
@@ -69,8 +66,8 @@ class ReportIndexRequest extends FormRequest
                 'example' => 'Непристойний вміст',
             ],
             'status' => [
-                'description' => 'Фільтр за статусом звіту.',
-                'example' => 'PENDING',
+                'description' => 'Фільтр за статусом звіту. Можливі значення: pending, reviewed, resolved, dismissed.',
+                'example' => 'pending',
             ],
         ];
     }

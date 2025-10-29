@@ -2,127 +2,96 @@
 
 namespace App\Filament\Admin\Resources\GroupResource\RelationManagers;
 
-use App\Models\Group;
-use Filament\Forms;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class GroupPollsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'polls';
+    protected static string $relationship = 'groupPolls';
 
     protected static ?string $recordTitleAttribute = 'question';
 
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Опитування групи') . ' ' . $ownerRecord->name;
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                Section::make(__('Опитування'))
-                    ->schema([
-                        Select::make('creator_id')
-                            ->label(__('Творець'))
-                            ->relationship('creator', 'username')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
-                        TextInput::make('question')
-                            ->label(__('Питання'))
-                            ->required()
-                            ->maxLength(255),
-                        Toggle::make('is_active')
-                            ->label(__('Активне'))
-                            ->default(true),
-                    ]),
-            ]);
-    }
+    protected static ?string $title = 'Опитування';
 
     public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('question')
             ->columns([
-                TextColumn::make('question')
-                    ->label(__('Питання'))
+                Tables\Columns\TextColumn::make('question')
+                    ->label('Питання')
                     ->searchable()
-                    ->sortable()
-                    ->url(fn (Model $record): string => route('filament.resources.group-polls.view', $record->id)),
-                TextColumn::make('creator.username')
-                    ->label(__('Творець'))
+                    ->limit(80)
+                    ->weight('bold')
+                    ->wrap(),
+                Tables\Columns\TextColumn::make('creator.username')
+                    ->label('Створив')
                     ->searchable()
-                    ->sortable()
-                    ->url(fn (Model $record): ?string => $record->creator ? route('filament.resources.users.view', $record->creator_id) : null),
-                IconColumn::make('is_active')
-                    ->label(__('Активність'))
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('options_count')
+                    ->label('Варіантів')
+                    ->counts('pollOptions')
+                    ->badge()
+                    ->color('info')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('votes_count')
+                    ->label('Голосів')
+                    ->counts('pollVotes')
+                    ->badge()
+                    ->color('success')
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('allows_multiple_votes')
+                    ->label('Багато варіантів')
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->sortable()
                     ->toggleable(),
-                TextColumn::make('options_count')
-                    ->label(__('Кількість варіантів'))
-                    ->counts('options')
+                Tables\Columns\TextColumn::make('closes_at')
+                    ->label('Закінчується')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
-                    ->toggleable(),
-                TextColumn::make('votes_count')
-                    ->label(__('Кількість голосів'))
-                    ->counts('votes')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                    ->color(fn ($state) => $state && $state->isPast() ? 'danger' : 'success')
+                    ->placeholder('Не обмежено'),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Створено')
+                    ->dateTime('d.m.Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('creator')
-                    ->label(__('Творець'))
-                    ->relationship('creator', 'username')
-                    ->searchable()
-                    ->multiple()
-                    ->indicator(__('Творець')),
-                TernaryFilter::make('is_active')
-                    ->label(__('Активність'))
-                    ->placeholder(__('Всі'))
-                    ->trueLabel(__('Активні'))
-                    ->falseLabel(__('Неактивні'))
-                    ->indicator(__('Активність')),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label(__('Додати опитування')),
+                Tables\Filters\TernaryFilter::make('closes_at')
+                    ->label('Статус')
+                    ->placeholder('Всі')
+                    ->trueLabel('Активні')
+                    ->falseLabel('Завершені')
+                    ->queries(
+                        true: fn ($query) => $query->where('closes_at', '>', now())->orWhereNull('closes_at'),
+                        false: fn ($query) => $query->where('closes_at', '<=', now()),
+                    ),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
+                Tables\Actions\ViewAction::make()
+                    ->label('Переглянути'),
+                Tables\Actions\Action::make('close')
+                    ->label('Закрити')
+                    ->icon('heroicon-o-lock-closed')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => ! $record->closes_at || $record->closes_at->isFuture())
+                    ->action(fn ($record) => $record->update(['closes_at' => now()])),
                 Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                    ->label('Видалити')
+                    ->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                        ->label('Видалити обрані')
+                        ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->emptyStateHeading('Немає опитувань')
+            ->emptyStateDescription('У цій групі ще не було створено опитувань.');
     }
 }

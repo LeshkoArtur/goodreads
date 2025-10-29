@@ -2,15 +2,13 @@
 
 namespace App\Http\Requests\GroupEvent;
 
-use App\Models\GroupEvent;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GroupEventDeleteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $groupEvent = $this->route('group_event');
-        return $this->user()->can('delete', $groupEvent);
+        return $this->user()?->can('delete', $this->route('groupEvent')) ?? false;
     }
 
     public function rules(): array
@@ -18,17 +16,12 @@ class GroupEventDeleteRequest extends FormRequest
         return [];
     }
 
-    public function bodyParameters(): array
-    {
-        return [];
-    }
-
     public function urlParameters(): array
     {
         return [
-            'group_event' => [
-                'description' => 'ID події групи для видалення.',
-                'example' => 'event-uuid123',
+            'groupEvent' => [
+                'description' => 'UUID події групи.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

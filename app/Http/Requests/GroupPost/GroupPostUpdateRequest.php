@@ -2,7 +2,8 @@
 
 namespace App\Http\Requests\GroupPost;
 
-use App\Models\GroupPost;
+use App\Enums\PostCategory;
+use App\Enums\PostStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,43 +11,37 @@ class GroupPostUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $groupPost = $this->route('group_post');
-        return $this->user()->can('update', $groupPost);
+        return $this->user()?->can('update', $this->route('groupPost')) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'title' => ['nullable', 'string', 'max:255'],
-            'body' => ['nullable', 'string'],
+            'content' => ['required', 'string', 'max:10000'],
             'is_pinned' => ['nullable', 'boolean'],
-            'category' => ['nullable', Rule::in(\App\Enums\PostCategory::values())],
-            'status' => ['nullable', Rule::in(\App\Enums\PostStatus::values())],
+            'category' => ['nullable', Rule::enum(PostCategory::class)],
+            'post_status' => ['nullable', Rule::enum(PostStatus::class)],
         ];
     }
 
     public function bodyParameters(): array
     {
         return [
-            'title' => [
-                'description' => 'Назва поста.',
-                'example' => 'Обговорення книги',
-            ],
-            'body' => [
-                'description' => 'Вміст поста.',
-                'example' => 'Оновлений текст поста про нову книгу.',
+            'content' => [
+                'description' => 'Оновлений контент посту.',
+                'example' => 'Це чудовий пост для нашої групи! (оновлено)',
             ],
             'is_pinned' => [
-                'description' => 'Чи є пост закріпленим.',
-                'example' => true,
+                'description' => 'Чи закріплений пост.',
+                'example' => false,
             ],
             'category' => [
-                'description' => 'Категорія поста.',
-                'example' => 'DISCUSSION',
+                'description' => 'Категорія посту.',
+                'example' => 'general',
             ],
-            'status' => [
-                'description' => 'Статус поста.',
-                'example' => 'PUBLISHED',
+            'post_status' => [
+                'description' => 'Статус посту.',
+                'example' => 'published',
             ],
         ];
     }
@@ -54,9 +49,9 @@ class GroupPostUpdateRequest extends FormRequest
     public function urlParameters(): array
     {
         return [
-            'group_post' => [
-                'description' => 'ID поста групи для оновлення.',
-                'example' => 'post-uuid123',
+            'groupPost' => [
+                'description' => 'UUID посту групи.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

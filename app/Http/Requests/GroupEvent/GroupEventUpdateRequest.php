@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\GroupEvent;
 
-use App\Models\GroupEvent;
+use App\Enums\EventStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,18 +10,17 @@ class GroupEventUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $groupEvent = $this->route('group_event');
-        return $this->user()->can('update', $groupEvent);
+        return $this->user()?->can('update', $this->route('groupEvent')) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'title' => ['nullable', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'event_date' => ['nullable', 'date'],
             'location' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', Rule::in(\App\Enums\EventStatus::values())],
+            'status' => ['nullable', Rule::enum(EventStatus::class)],
         ];
     }
 
@@ -29,24 +28,24 @@ class GroupEventUpdateRequest extends FormRequest
     {
         return [
             'title' => [
-                'description' => 'Назва події.',
-                'example' => 'Обговорення нової книги',
+                'description' => 'Оновлена назва події.',
+                'example' => 'Зустріч книжкового клубу (оновлено)',
             ],
             'description' => [
-                'description' => 'Опис події.',
-                'example' => 'Оновлений опис зустрічі для обговорення літератури.',
+                'description' => 'Оновлений опис події.',
+                'example' => 'Обговорення нової книги місяця та чаювання',
             ],
             'event_date' => [
-                'description' => 'Дата і час події у форматі Y-m-d H:i:s.',
-                'example' => '2025-08-13 18:00:00',
+                'description' => 'Оновлена дата та час події.',
+                'example' => '2025-11-15 18:00:00',
             ],
             'location' => [
-                'description' => 'Місце проведення події.',
-                'example' => 'Київ, бібліотека',
+                'description' => 'Оновлена локація події.',
+                'example' => 'Київ, вул. Хрещатик 1',
             ],
             'status' => [
-                'description' => 'Статус події.',
-                'example' => 'UPCOMING',
+                'description' => 'Оновлений статус події.',
+                'example' => 'upcoming',
             ],
         ];
     }
@@ -54,9 +53,9 @@ class GroupEventUpdateRequest extends FormRequest
     public function urlParameters(): array
     {
         return [
-            'group_event' => [
-                'description' => 'ID події групи для оновлення.',
-                'example' => 'event-uuid123',
+            'groupEvent' => [
+                'description' => 'UUID події групи.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

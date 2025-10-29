@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Book;
 
 use App\Enums\AgeRestriction;
-use App\Models\Book;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,7 +10,7 @@ class BookIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Book::class);
+        return $this->user()?->can('viewAny', \App\Models\Book::class) ?? true;
     }
 
     public function rules(): array
@@ -25,14 +24,18 @@ class BookIndexRequest extends FormRequest
             'series_id' => ['nullable', 'string', 'exists:book_series,id'],
             'min_page_count' => ['nullable', 'integer', 'min:1'],
             'max_page_count' => ['nullable', 'integer', 'min:1'],
-            'languages' => ['nullable', 'json'],
+            'languages' => ['nullable', 'array'],
+            'languages.*' => ['string', 'max:10'],
             'is_bestseller' => ['nullable', 'boolean'],
             'min_average_rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
             'max_average_rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
-            'age_restriction' => ['nullable', Rule::in(AgeRestriction::values())],
-            'author_ids' => ['nullable', 'json'],
-            'genre_ids' => ['nullable', 'json'],
-            'publisher_ids' => ['nullable', 'json'],
+            'age_restriction' => ['nullable', Rule::enum(AgeRestriction::class)],
+            'author_ids' => ['nullable', 'array'],
+            'author_ids.*' => ['uuid', 'exists:authors,id'],
+            'genre_ids' => ['nullable', 'array'],
+            'genre_ids.*' => ['uuid', 'exists:genres,id'],
+            'publisher_ids' => ['nullable', 'array'],
+            'publisher_ids.*' => ['uuid', 'exists:publishers,id'],
         ];
     }
 
@@ -72,8 +75,8 @@ class BookIndexRequest extends FormRequest
                 'example' => 500,
             ],
             'languages' => [
-                'description' => 'Фільтр за мовами (JSON масив).',
-                'example' => '["Англійська", "Іспанська"]',
+                'description' => 'Фільтр за мовами (масив рядків).',
+                'example' => '["en", "es"]',
             ],
             'is_bestseller' => [
                 'description' => 'Фільтр за статусом бестселера.',
@@ -88,16 +91,16 @@ class BookIndexRequest extends FormRequest
                 'example' => 5.0,
             ],
             'age_restriction' => [
-                'description' => 'Фільтр за віковими обмеженнями.',
-                'example' => 'Дорослі',
+                'description' => 'Фільтр за віковими обмеженнями (0+, 6+, 12+, 16+, 18+).',
+                'example' => '12+',
             ],
             'author_ids' => [
-                'description' => 'Фільтр за ID авторів (JSON масив).',
-                'example' => '["author-uuid1", "author-uuid2"]',
+                'description' => 'Фільтр за UUID авторів (масив).',
+                'example' => '["9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a"]',
             ],
             'genre_ids' => [
-                'description' => 'Фільтр за ID жанрів (JSON масив).',
-                'example' => '["genre-uuid1", "genre-uuid2"]',
+                'description' => 'Фільтр за UUID жанрів (масив).',
+                'example' => '["7b5c6d3a-2e1f-4a9b-8c7d-6e5f4a3b2c1d"]',
             ],
             'publisher_ids' => [
                 'description' => 'Фільтр за ID видавців із додатковими даними (JSON масив об’єктів).',

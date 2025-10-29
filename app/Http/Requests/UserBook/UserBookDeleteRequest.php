@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\UserBook;
 
-use App\Models\UserBook;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UserBookDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class UserBookDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $userBook = $this->route('user_book');
-        return $this->user()->can('delete', $userBook);
+
+        return $this->user()?->can('delete', $userBook) ?? false;
     }
 
     public function rules(): array

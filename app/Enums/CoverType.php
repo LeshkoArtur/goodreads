@@ -15,7 +15,7 @@ enum CoverType: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('cover_type.' . $this->value);
+        return __('cover_type.'.$this->value);
     }
 
     // Colors for display in Filament
@@ -34,7 +34,7 @@ enum CoverType: string implements HasColor, HasIcon, HasLabel
         return match ($this) {
             self::HARDCOVER => 'heroicon-o-book-open',
             self::PAPERBACK => 'heroicon-o-document',
-            self::OTHER => 'heroicon-o-dots-horizontal',
+            self::OTHER => 'heroicon-o-ellipsis-horizontal',
         };
     }
 }

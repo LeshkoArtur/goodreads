@@ -2,7 +2,7 @@
 
 namespace App\Actions\Books;
 
-use App\DTOs\Book\BookStoreDTO;
+use App\Data\Book\BookStoreData;
 use App\Models\Book;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,52 +10,37 @@ class CreateBook
 {
     use AsAction;
 
-    /**
-     * Створити нову книгу.
-     *
-     * @param BookStoreDTO $dto
-     * @return Book
-     */
-    public function handle(BookStoreDTO $dto): Book
+    public function handle(BookStoreData $data): Book
     {
-        $book = new Book();
-        $book->title = $dto->title;
-        $book->description = $dto->description;
-        $book->plot = $dto->plot;
-        $book->history = $dto->history;
-        $book->series_id = $dto->seriesId;
-        $book->number_in_series = $dto->numberInSeries;
-        $book->page_count = $dto->pageCount;
-        $book->languages = $dto->languages ?? [];
-        $book->cover_image = $dto->coverImage;
-        $book->fun_facts = $dto->funFacts ?? [];
-        $book->adaptations = $dto->adaptations ?? [];
-        $book->is_bestseller = $dto->isBestseller;
-        $book->average_rating = $dto->averageRating;
-        $book->age_restriction = $dto->ageRestriction?->value;
-
-        if ($dto->coverImage) {
-            $book->cover_image = $book->handleFileUpload($dto->coverImage, 'covers');
-        }
-
+        $book = new Book;
+        $book->title = $data->title;
+        $book->description = $data->description;
+        $book->plot = $data->plot;
+        $book->history = $data->history;
+        $book->series_id = $data->series_id;
+        $book->number_in_series = $data->number_in_series;
+        $book->page_count = $data->page_count;
+        $book->languages = $data->languages;
+        $book->cover_image = $data->cover_image;
+        $book->fun_facts = $data->fun_facts;
+        $book->adaptations = $data->adaptations;
+        $book->is_bestseller = $data->is_bestseller;
+        $book->average_rating = $data->average_rating;
+        $book->age_restriction = $data->age_restriction;
         $book->save();
 
-        if ($dto->authorIds) {
-            $book->authors()->sync($dto->authorIds);
+        if ($data->author_ids) {
+            $book->authors()->sync($data->author_ids);
         }
 
-        if ($dto->genreIds) {
-            $book->genres()->sync($dto->genreIds);
+        if ($data->genre_ids) {
+            $book->genres()->sync($data->genre_ids);
         }
 
-        if ($dto->publisherIds) {
-            $syncData = [];
-            foreach ($dto->publisherIds as $publisherId) {
-                $syncData[$publisherId] = ['published_at' => now()];
-            }
-            $book->publishers()->sync($syncData);
+        if ($data->publisher_ids) {
+            $book->publishers()->sync($data->publisher_ids);
         }
 
-        return $book->load(['series', 'authors', 'genres', 'publishers']);
+        return $book->fresh(['authors', 'genres', 'publishers', 'series']);
     }
 }

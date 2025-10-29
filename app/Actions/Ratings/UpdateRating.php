@@ -2,7 +2,7 @@
 
 namespace App\Actions\Ratings;
 
-use App\DTOs\Rating\RatingUpdateDTO;
+use App\Data\Rating\RatingUpdateData;
 use App\Models\Rating;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,23 +10,15 @@ class UpdateRating
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий рейтинг.
-     *
-     * @param Rating $rating
-     * @param RatingUpdateDTO $dto
-     * @return Rating
-     */
-    public function handle(Rating $rating, RatingUpdateDTO $dto): Rating
+    public function handle(Rating $rating, RatingUpdateData $data): Rating
     {
-        $attributes = [
-            'rating' => $dto->score,
-        ];
+        $rating->update(array_filter([
+            'user_id' => $data->user_id,
+            'book_id' => $data->book_id,
+            'rating' => $data->rating,
+            'review' => $data->review,
+        ], fn ($value) => $value !== null));
 
-        $rating->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $rating->save();
-
-        return $rating->load(['user', 'book', 'comments', 'likes', 'favorites']);
+        return $rating->fresh(['user', 'book']);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Quote;
 
-use App\Models\Quote;
 use Illuminate\Foundation\Http\FormRequest;
 
 class QuoteDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class QuoteDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $quote = $this->route('quote');
-        return $this->user()->can('delete', $quote);
+
+        return $this->user()?->can('delete', $quote) ?? false;
     }
 
     public function rules(): array

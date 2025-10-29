@@ -2,7 +2,7 @@
 
 namespace App\Actions\Publishers;
 
-use App\DTOs\Publisher\PublisherUpdateDTO;
+use App\Data\Publisher\PublisherUpdateData;
 use App\Models\Publisher;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,27 +10,19 @@ class UpdatePublisher
 {
     use AsAction;
 
-    /**
-     * Оновити існуючого видавця.
-     *
-     * @param Publisher $publisher
-     * @param PublisherUpdateDTO $dto
-     * @return Publisher
-     */
-    public function handle(Publisher $publisher, PublisherUpdateDTO $dto): Publisher
+    public function handle(Publisher $publisher, PublisherUpdateData $data): Publisher
     {
-        $attributes = [
-            'name' => $dto->name,
-            'country' => $dto->country,
-            'founded_year' => $dto->foundedYear,
-            'contact_email' => $dto->contactEmails[0] ?? null, // Assuming single email for simplicity
-            'description' => $dto->description,
-        ];
+        $publisher->update(array_filter([
+            'name' => $data->name,
+            'description' => $data->description,
+            'website' => $data->website,
+            'country' => $data->country,
+            'founded_year' => $data->founded_year,
+            'logo' => $data->logo,
+            'contact_email' => $data->contact_email,
+            'phone' => $data->phone,
+        ], fn ($value) => $value !== null));
 
-        $publisher->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $publisher->save();
-
-        return $publisher->load(['books']);
+        return $publisher->fresh(['books']);
     }
 }

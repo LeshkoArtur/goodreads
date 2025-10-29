@@ -4,47 +4,53 @@ namespace App\Http\Requests\Comment;
 
 use App\Models\Comment;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CommentStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Comment::class);
+        return $this->user()?->can('create', Comment::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'string', 'exists:users,id'],
-            'commentable_type' => ['required', 'string', 'in:App\Models\Book,App\Models\Post'],
-            'commentable_id' => ['required', 'string'],
-            'content' => ['required', 'string'],
-            'parent_id' => ['nullable', 'string', 'exists:comments,id'],
+            'content' => ['required', 'string', 'max:5000'],
+            'commentable_type' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::in([
+                    'App\\Models\\Post',
+                    'App\\Models\\GroupPost',
+                    'App\\Models\\Quote',
+                    'App\\Models\\Rating',
+                ]),
+            ],
+            'commentable_id' => ['required', 'uuid'],
+            'parent_id' => ['nullable', 'uuid', 'exists:comments,id'],
         ];
     }
 
     public function bodyParameters(): array
     {
         return [
-            'user_id' => [
-                'description' => 'ID користувача, який створює коментар.',
-                'example' => 'user-uuid123',
-            ],
-            'commentable_type' => [
-                'description' => 'Тип коментованого об’єкта (напр., App\Models\Book).',
-                'example' => 'App\Models\Book',
-            ],
-            'commentable_id' => [
-                'description' => 'ID коментованого об’єкта.',
-                'example' => 'book-uuid123',
-            ],
             'content' => [
                 'description' => 'Текст коментаря.',
-                'example' => 'Дуже цікава книга!',
+                'example' => 'Це чудова книга, дуже рекомендую!',
+            ],
+            'commentable_type' => [
+                'description' => 'Тип об\'єкта для коментування. Можливі значення: App\\Models\\Post, App\\Models\\GroupPost, App\\Models\\Quote, App\\Models\\Rating.',
+                'example' => 'App\\Models\\Post',
+            ],
+            'commentable_id' => [
+                'description' => 'UUID об\'єкта для коментування.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'parent_id' => [
-                'description' => 'ID батьківського коментаря (для відповідей).',
-                'example' => 'comment-uuid123',
+                'description' => 'UUID батьківського коментаря (для відповідей).',
+                'example' => '8c6d7e2b-1a9c-3d4e-8f2b-1c2d3e4f5a6b',
             ],
         ];
     }

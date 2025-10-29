@@ -28,7 +28,7 @@ return new class extends Migration
 
         Schema::table('users', function (Blueprint $table) {
             $table->enumAlterColumn('role', 'role', Role::class);
-            $table->enumAlterColumn('gender', 'gender', Gender::class);
+            $table->enumAlterColumn('gender', 'gender', Gender::class, nullable: true);
         });
     }
 

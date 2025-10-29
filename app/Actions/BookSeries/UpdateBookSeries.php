@@ -2,7 +2,7 @@
 
 namespace App\Actions\BookSeries;
 
-use App\DTOs\BookSeries\BookSeriesUpdateDTO;
+use App\Data\BookSeries\BookSeriesUpdateData;
 use App\Models\BookSeries;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,25 +10,15 @@ class UpdateBookSeries
 {
     use AsAction;
 
-    /**
-     * Оновити існуючу книжкову серію.
-     *
-     * @param BookSeries $bookSeries
-     * @param BookSeriesUpdateDTO $dto
-     * @return BookSeries
-     */
-    public function handle(BookSeries $bookSeries, BookSeriesUpdateDTO $dto): BookSeries
+    public function handle(BookSeries $bookSeries, BookSeriesUpdateData $data): BookSeries
     {
-        $attributes = [
-            'title' => $dto->title,
-            'description' => $dto->description,
-            'is_completed' => $dto->isCompleted,
-        ];
+        $bookSeries->update(array_filter([
+            'title' => $data->title,
+            'description' => $data->description,
+            'total_books' => $data->total_books,
+            'is_completed' => $data->is_completed,
+        ], fn ($value) => $value !== null));
 
-        $bookSeries->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $bookSeries->save();
-
-        return $bookSeries->load(['books']);
+        return $bookSeries->fresh(['books']);
     }
 }

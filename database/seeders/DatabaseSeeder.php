@@ -43,56 +43,64 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
+        $this->call([
+            DefaultShelvesSeeder::class,
+        ]);
+
+        User::factory()->admin()->create([
+            'username' => 'superadmin',
+            'email' => 'superadmin@example.com',
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+        ]);
+
         // Незалежні моделі (створюємо першими)
-        User::factory(1)->create();
-        /*Genre::factory(50)->create();
-        Publisher::factory(30)->create();
-        Store::factory(20)->create();
-        Tag::factory(100)->create();
-        Award::factory(50)->create();
-        BookSeries::factory(50)->create();
+        User::factory(5)->create();
+        Genre::factory(15)->create();
+        Publisher::factory(10)->create();
+        Store::factory(5)->create();
+        Tag::factory(30)->create();
+        Award::factory(10)->create();
+        BookSeries::factory(10)->create();
 
         // Моделі зі зв’язками
-        Author::factory(150)->create();
-        Book::factory(500)->create();
-        Group::factory(50)->create();
-        Shelf::factory(300)->create();
-        Collection::factory(100)->create();
+        Author::factory(30)->create();
+        Book::factory(100)->create();
+        Group::factory(10)->create();
+        Shelf::factory(30)->create();
+        Collection::factory(20)->create();
 
         // Пов’язані з книгами та авторами
-        Character::factory(1000)->create();
-        AuthorQuestion::factory(500)->create();
-        AuthorAnswer::factory(400)->create();
-        BookOffer::factory(1000)->create();
-        Nomination::factory(100)->create();
-        NominationEntry::factory(300)->create();
-        UserBook::factory(2000)->create();
-        Note::factory(1000)->create();
-        Quote::factory(500)->create();
-        Rating::factory(1500)->create();
-        ReadingStat::factory(200)->create();
+        Character::factory(100)->create();
+        AuthorQuestion::factory(50)->create();
+        AuthorAnswer::factory(40)->create();
+        BookOffer::factory(100)->create();
+        Nomination::factory(10)->create();
+        NominationEntry::factory(30)->create();
+        UserBook::factory(200)->create();
+        Note::factory(100)->create();
+        Quote::factory(50)->create();
+        Rating::factory(150)->create();
+        ReadingStat::factory(20)->create();
 
         // Пов’язані з групами
-        GroupEvent::factory(200)->create();
-        GroupPost::factory(1000)->create();
-        GroupPoll::factory(100)->create();
-        PollOption::factory(300)->create();
-        PollVote::factory(1000)->create();
-        GroupInvitation::factory(500)->create();
-        EventRsvp::factory(1000)->create();
-        GroupModerationLog::factory(200)->create();
+        GroupEvent::factory(20)->create();
+        GroupPost::factory(100)->create();
+        GroupPoll::factory(10)->create();
+        PollOption::factory(30)->create();
+        PollVote::factory(100)->create();
+        GroupInvitation::factory(50)->create();
+        EventRsvp::factory(100)->create();
+        GroupModerationLog::factory(20)->create();
 
         // Поліморфні зв’язки
-        Post::factory(1000)->create();
-        Comment::factory(3000)->create();
-        Like::factory(5000)->create();
-        Favorite::factory(2000)->create();
-        Report::factory(200)->create();
-        ViewHistory::factory(5000)->create();*/
+        Post::factory(100)->create();
+        Comment::factory(300)->create();
+        Like::factory(500)->create();
+        Favorite::factory(200)->create();
+        Report::factory(20)->create();
+        ViewHistory::factory(500)->create();
     }
 }

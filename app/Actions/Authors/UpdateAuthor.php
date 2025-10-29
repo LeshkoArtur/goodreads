@@ -2,7 +2,7 @@
 
 namespace App\Actions\Authors;
 
-use App\DTOs\Author\AuthorUpdateDTO;
+use App\Data\Author\AuthorUpdateData;
 use App\Models\Author;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,46 +10,26 @@ class UpdateAuthor
 {
     use AsAction;
 
-    /**
-     * Оновити існуючого автора.
-     *
-     * @param Author $author
-     * @param AuthorUpdateDTO $dto
-     * @return Author
-     */
-    public function handle(Author $author, AuthorUpdateDTO $dto): Author
+    public function handle(Author $author, AuthorUpdateData $data): Author
     {
-        $attributes = [
-            'name' => $dto->name,
-            'nationality' => $dto->nationality,
-            'birth_date' => $dto->birthDate,
-            'death_date' => $dto->deathDate,
-            'type_of_work' => $dto->typeOfWork,
-            'social_media_links' => $dto->socialMediaLinks,
-            'bio' => $dto->bio,
-        ];
+        $author->update(array_filter([
+            'name' => $data->name,
+            'bio' => $data->bio,
+            'birth_date' => $data->birth_date,
+            'birth_place' => $data->birth_place,
+            'nationality' => $data->nationality,
+            'website' => $data->website,
+            'profile_picture' => $data->profile_picture,
+            'death_date' => $data->death_date,
+            'social_media_links' => $data->social_media_links,
+            'media_images' => $data->media_images,
+            'media_videos' => $data->media_videos,
+            'fun_facts' => $data->fun_facts,
+            'type_of_work' => $data->type_of_work,
+        ], fn ($value) => $value !== null));
 
-        $author->fill(array_filter($attributes, fn($value) => $value !== null));
+        when($data->user_ids !== null, fn () => $author->users()->sync($data->user_ids));
 
-        $author->save();
-
-        $this->syncRelations($author, $dto);
-
-        return $author->load(['users', 'books']);
-    }
-
-    /**
-     * Синхронізувати зв’язки автора (користувачі, книги).
-     *
-     * @param Author $author
-     * @param AuthorUpdateDTO $dto
-     * @return void
-     */
-    private function syncRelations(Author $author, AuthorUpdateDTO $dto): void
-    {
-        if ($dto->userIds !== null) {
-            $author->users()->sync($dto->userIds);
-        }
-
+        return $author->fresh(['users', 'books']);
     }
 }

@@ -2,84 +2,52 @@
 
 namespace App\Actions\Groups;
 
-use App\DTOs\Group\GroupIndexDTO;
+use App\Data\Group\GroupIndexData;
 use App\Models\Group;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetGroups
 {
     use AsAction;
 
-    /**
-     * Отримати список груп із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param GroupIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(GroupIndexDTO $dto): LengthAwarePaginator
+    public function handle(GroupIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Group::search($dto->query ?? '');
+        $searchQuery = Group::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['name', 'member_count', 'created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['name', 'member_count', 'created_at']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/groups');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param GroupIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, GroupIndexDTO $dto): void
+    private function applyFilters(Builder $query, GroupIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->creator_id, fn ($collection) => $collection->push("creator_id = '{$data->creator_id}'"))
+                ->when($data->is_public !== null, fn ($collection) => $collection->push('is_public = '.($data->is_public ? 'true' : 'false')))
+                ->when($data->is_active !== null, fn ($collection) => $collection->push('is_active = '.($data->is_active ? 'true' : 'false')))
+                ->when($data->join_policy, fn ($collection) => $collection->push("join_policy = '{$data->join_policy->value}'"))
+                ->when($data->post_policy, fn ($collection) => $collection->push("post_policy = '{$data->post_policy->value}'"))
+                ->when($data->min_member_count !== null, fn ($collection) => $collection->push("member_count >= {$data->min_member_count}"))
+                ->when($data->max_member_count !== null, fn ($collection) => $collection->push("member_count <= {$data->max_member_count}"))
+                ->when($data->member_ids, fn ($collection) => $collection->push('member_ids IN ['.collect($data->member_ids)->implode(',').']'))
+                ;
 
-            if ($dto->creatorId) {
-                $options['filter'][] = "creator_id = '{$dto->creatorId}'";
-            }
-
-            if ($dto->isPublic !== null) {
-                $options['filter'][] = "is_public = " . ($dto->isPublic ? 'true' : 'false');
-            }
-
-            if ($dto->isActive !== null) {
-                $options['filter'][] = "is_active = " . ($dto->isActive ? 'true' : 'false');
-            }
-
-            if ($dto->joinPolicy) {
-                $options['filter'][] = "join_policy = '{$dto->joinPolicy}'";
-            }
-
-            if ($dto->postPolicy) {
-                $options['filter'][] = "post_policy = '{$dto->postPolicy}'";
-            }
-
-            if ($dto->minMemberCount !== null) {
-                $options['filter'][] = "member_count >= {$dto->minMemberCount}";
-            }
-
-            if ($dto->maxMemberCount !== null) {
-                $options['filter'][] = "member_count <= {$dto->maxMemberCount}";
-            }
-
-            if ($dto->memberIds) {
-                $options['filter'][] = "member_ids IN [" . implode(',', $dto->memberIds) . "]";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

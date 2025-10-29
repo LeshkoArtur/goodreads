@@ -2,20 +2,32 @@
 
 namespace App\Filament\Admin\Resources\GenreResource\Pages;
 
-use App\DTOs\Genre\GenreStoreDTO;
-use App\Filament\Admin\Resources\GenreResource;
-use App\Models\Genre;
 use App\Actions\Genres\CreateGenre as CreateGenreAction;
+use App\Data\Genre\GenreStoreData;
+use App\Filament\Admin\Resources\GenreResource;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateGenre extends CreateRecord
 {
     protected static string $resource = GenreResource::class;
 
-    protected function handleRecordCreation(array $data): Genre
-    {
-        $dto = GenreStoreDTO::fromArray($data);
+    protected ?string $heading = 'Створити жанр';
 
-        return CreateGenreAction::run($dto);
+    protected function handleRecordCreation(array $data): Model
+    {
+        $dto = GenreStoreData::fromArray($data);
+
+        return app(CreateGenreAction::class)->handle($dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Жанр створено';
     }
 }

@@ -62,7 +62,6 @@ class PollVoteTest extends TestCase
         $this->assertArrayHasKey('user_id', $validator->errors()->toArray());
     }
 
-
     public function test_poll_vote_belongs_to_poll(): void
     {
         $vote = PollVote::factory()->create();

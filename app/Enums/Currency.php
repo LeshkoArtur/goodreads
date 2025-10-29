@@ -18,7 +18,7 @@ enum Currency: string implements HasColor, HasIcon, HasLabel
 
     public function getLabel(): ?string
     {
-        return __('currency.' . $this->value);
+        return __('currency.'.$this->value);
     }
 
     public function getColor(): string|array|null

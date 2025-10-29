@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Favorite;
 
-use App\Models\Favorite;
 use Illuminate\Foundation\Http\FormRequest;
 
 class FavoriteUpdateRequest extends FormRequest
@@ -10,7 +9,8 @@ class FavoriteUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $favorite = $this->route('favorite');
-        return $this->user()->can('update', $favorite);
+
+        return $this->user()?->can('update', $favorite) ?? false;
     }
 
     public function rules(): array
@@ -25,7 +25,7 @@ class FavoriteUpdateRequest extends FormRequest
     {
         return [
             'favoriteable_type' => [
-                'description' => 'Тип улюбленого об’єкта (напр., App\Models\Book).',
+                'description' => 'Тип улюбленого об’єкта. Можливі значення: App\Models\Book, App\Models\Author, App\Models\Series.',
                 'example' => 'App\Models\Book',
             ],
             'favoriteable_id' => [

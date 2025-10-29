@@ -2,7 +2,7 @@
 
 namespace App\Actions\GroupPolls;
 
-use App\DTOs\GroupPoll\GroupPollUpdateDTO;
+use App\Data\GroupPoll\GroupPollUpdateData;
 use App\Models\GroupPoll;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,24 +10,16 @@ class UpdateGroupPoll
 {
     use AsAction;
 
-    /**
-     * Оновити існуюче опитування групи.
-     *
-     * @param GroupPoll $groupPoll
-     * @param GroupPollUpdateDTO $dto
-     * @return GroupPoll
-     */
-    public function handle(GroupPoll $groupPoll, GroupPollUpdateDTO $dto): GroupPoll
+    public function handle(GroupPoll $groupPoll, GroupPollUpdateData $data): GroupPoll
     {
-        $attributes = [
-            'question' => $dto->title,
-            'is_active' => $dto->isActive,
-        ];
+        $groupPoll->question = $data->question;
 
-        $groupPoll->fill(array_filter($attributes, fn($value) => $value !== null));
+        if ($data->is_active !== null) {
+            $groupPoll->is_active = $data->is_active;
+        }
 
         $groupPoll->save();
 
-        return $groupPoll->load(['group', 'creator', 'options', 'votes']);
+        return $groupPoll->fresh(['group', 'creator', 'options']);
     }
 }

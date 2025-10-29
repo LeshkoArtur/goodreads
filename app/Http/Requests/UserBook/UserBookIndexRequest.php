@@ -9,7 +9,7 @@ class UserBookIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', UserBook::class);
+        return $this->user()?->can('viewAny', UserBook::class) ?? false;
     }
 
     public function rules(): array
@@ -20,9 +20,9 @@ class UserBookIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:created_at,updated_at,start_date,read_date,progress_pages,rating'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'user_id' => ['nullable', 'string', 'exists:users,id'],
-            'book_id' => ['nullable', 'string', 'exists:books,id'],
-            'shelf_id' => ['nullable', 'string', 'exists:shelves,id'],
+            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'book_id' => ['nullable', 'uuid', 'exists:books,id'],
+            'shelf_id' => ['nullable', 'uuid', 'exists:shelves,id'],
         ];
     }
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\ViewHistory;
 
-use App\Models\ViewHistory;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ViewHistoryUpdateRequest extends FormRequest
@@ -10,7 +9,8 @@ class ViewHistoryUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $viewHistory = $this->route('view_history');
-        return $this->user()->can('update', $viewHistory);
+
+        return $this->user()?->can('update', $viewHistory) ?? false;
     }
 
     public function rules(): array
@@ -30,7 +30,7 @@ class ViewHistoryUpdateRequest extends FormRequest
                 'example' => 'post-uuid123',
             ],
             'viewable_type' => [
-                'description' => 'Тип переглянутого об’єкта.',
+                'description' => 'Тип переглянутого об’єкта. Можливі значення: залежить від вашої моделі (наприклад, App\\Models\\Post, App\\Models\\Book, тощо).',
                 'example' => 'App\\Models\\Post',
             ],
             'viewed_at' => [

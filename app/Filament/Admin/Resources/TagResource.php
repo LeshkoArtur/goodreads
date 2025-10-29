@@ -2,54 +2,85 @@
 
 namespace App\Filament\Admin\Resources;
 
-use App\Filament\Admin\Resources\TagResource\Pages\CreateTag;
-use App\Filament\Admin\Resources\TagResource\Pages\EditTag;
-use App\Filament\Admin\Resources\TagResource\Pages\ListTags;
-use App\Filament\Admin\Resources\TagResource\Pages\ViewTag;
-use App\Filament\Admin\Resources\TagResource\RelationManagers\PostsRelationManager;
+use App\Filament\Admin\Resources\TagResource\Pages;
 use App\Models\Tag;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class TagResource extends Resource
 {
     protected static ?string $model = Tag::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-tag';
+    protected static ?string $navigationIcon = 'heroicon-o-hashtag';
 
-    protected static ?string $navigationGroup = 'Теги';
+    protected static ?string $navigationGroup = 'Деталізація книги';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 9;
 
-    public static function getNavigationLabel(): string
-    {
-        return __('Теги');
-    }
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function getModelLabel(): string
     {
-        return __('Тег');
+        return 'Тег';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Теги');
+        return 'Теги';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Теги';
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name'];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return '#'.$record->name;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Постів' => $record->posts_count ?? 0,
+        ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withCount(['posts']);
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->label(__('Назва'))
-                    ->required()
-                    ->maxLength(50)
-                    ->unique(Tag::class, 'name', ignoreRecord: true),
+                Section::make('Інформація про тег')
+                    ->description('Тег для категоризації постів')
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Назва тегу')
+                            ->required()
+                            ->maxLength(50)
+                            ->unique(ignoreRecord: true)
+                            ->helperText('Тег без символу #, наприклад: fantasy або book-review'),
+                    ]),
             ]);
     }
 
@@ -57,77 +88,59 @@ class TagResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
                 TextColumn::make('name')
-                    ->label(__('Назва'))
+                    ->label('Тег')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record) => route('filament.admin.resources.tags.view', $record->id)),
-
+                    ->weight('bold')
+                    ->formatStateUsing(fn ($state) => '#'.$state),
                 TextColumn::make('posts_count')
-                    ->label(__('Кількість публікацій'))
-                    ->counts('posts')
-                    ->sortable()
-                    ->toggleable(),
-
+                    ->label('Використань')
+                    ->badge()
+                    ->color('success')
+                    ->sortable(),
                 TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
+                    ->label('Створено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-
                 TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                    ->label('Оновлено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\Filter::make('name')
-                    ->label(__('Назва'))
-                    ->form([
-                        Forms\Components\TextInput::make('name')
-                            ->label(__('Назва'))
-                            ->placeholder(__('Введіть назву тегу')),
-                    ])
-                    ->query(fn ($query, array $data) => $query->when($data['name'], fn ($q) => $q->where('name', 'like', '%' . $data['name'] . '%')))
-                    ->indicateUsing(fn (array $data): array => $data['name'] ? [__('Назва') . ': ' . $data['name']] : []),
+                //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('name', 'asc')
-            ->groups([
-                'name',
-            ]);
+            ->defaultSort('posts_count', 'desc')
+            ->striped()
+            ->persistSortInSession()
+            ->persistSearchInSession();
     }
 
     public static function getRelations(): array
     {
         return [
-            PostsRelationManager::class,
+            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListTags::route('/'),
-            'create' => CreateTag::route('/create'),
-            'view' => ViewTag::route('/{record}'),
-            'edit' => EditTag::route('/{record}/edit'),
+            'index' => Pages\ListTags::route('/'),
+            'create' => Pages\CreateTag::route('/create'),
+            'edit' => Pages\EditTag::route('/{record}/edit'),
         ];
     }
 }

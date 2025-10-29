@@ -3,11 +3,10 @@
 namespace App\Filament\Admin\Resources\UserResource\RelationManagers;
 
 use Filament\Forms;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Model;
+use Filament\Tables\Table;
 
 class ShelvesRelationManager extends RelationManager
 {
@@ -15,68 +14,91 @@ class ShelvesRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Полиці користувача') . ' ' . $ownerRecord->username;
-    }
+    protected static ?string $title = 'Полиці';
 
-    public function form(Forms\Form $form): Forms\Form
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->label(__('Назва полиці'))
+                Forms\Components\TextInput::make('name')
+                    ->label('Назва полиці')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Textarea::make('description')
+                    ->label('Опис')
+                    ->rows(3)
+                    ->maxLength(1000),
+                Forms\Components\Toggle::make('is_public')
+                    ->label('Публічна')
+                    ->default(true)
+                    ->helperText('Публічні полиці видимі іншим користувачам'),
             ]);
     }
 
-    public function table(Tables\Table $table): Tables\Table
+    public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('name')
-                    ->label(__('Назва полиці'))
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Назва')
                     ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Опис')
+                    ->limit(100)
+                    ->toggleable(),
+                Tables\Columns\IconColumn::make('is_public')
+                    ->label('Публічна')
+                    ->boolean()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('books_count')
+                    ->label('Книг')
+                    ->counts('books')
+                    ->badge()
+                    ->color('success')
                     ->sortable(),
-                TextColumn::make('userBooks_count')
-                    ->label(__('Кількість книг'))
-                    ->counts('userBooks')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Створено')
+                    ->dateTime('d.m.Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\Filter::make('has_books')
-                    ->label(__('Має книги'))
-                    ->query(fn ($query) => $query->has('userBooks'))
-                    ->toggleable(),
+                Tables\Filters\TernaryFilter::make('is_public')
+                    ->label('Публічність')
+                    ->placeholder('Всі полиці')
+                    ->trueLabel('Публічні')
+                    ->falseLabel('Приватні'),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->label(__('Додати полицю')),
+                    ->label('Створити полицю')
+                    ->modalHeading('Створити нову полицю'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
+                    ->label('Редагувати'),
                 Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                    ->label('Видалити')
+                    ->requiresConfirmation()
+                    ->modalHeading('Видалити полицю?')
+                    ->modalDescription('Всі книги на цій полиці будуть відкріплені.'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                        ->label('Видалити обрані')
+                        ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('name')
+            ->emptyStateHeading('Немає полиць')
+            ->emptyStateDescription('Створіть першу полицю для організації книг.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make()
+                    ->label('Створити полицю'),
+            ]);
     }
 }

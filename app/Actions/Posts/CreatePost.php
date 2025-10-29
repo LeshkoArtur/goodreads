@@ -2,7 +2,7 @@
 
 namespace App\Actions\Posts;
 
-use App\DTOs\Post\PostStoreDTO;
+use App\Data\Post\PostStoreData;
 use App\Models\Post;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,35 +10,22 @@ class CreatePost
 {
     use AsAction;
 
-    /**
-     * Створити новий пост.
-     *
-     * @param PostStoreDTO $dto
-     * @return Post
-     */
-    public function handle(PostStoreDTO $dto): Post
+    public function handle(PostStoreData $data): Post
     {
-        $post = new Post();
-        $post->user_id = $dto->userId;
-        $post->book_id = $dto->bookId;
-        $post->author_id = $dto->authorId;
-        $post->title = $dto->title;
-        $post->content = $dto->content;
-        $post->cover_image = $dto->coverImage;
-        $post->published_at = $dto->publishedAt;
-        $post->type = $dto->type?->value;
-        $post->status = $dto->status?->value;
-
-        if ($dto->coverImage) {
-            $post->cover_image = $post->handleFileUpload($dto->coverImage, 'covers');
-        }
-
+        $post = new Post;
+        $post->user_id = $data->user_id;
+        $post->title = $data->title;
+        $post->content = $data->content;
+        $post->book_id = $data->book_id;
+        $post->author_id = $data->author_id;
+        $post->cover_image = $data->cover_image;
+        $post->published_at = $data->published_at;
+        $post->type = $data->type;
+        $post->status = $data->status;
         $post->save();
 
-        if ($dto->tagIds) {
-            $post->tags()->sync($dto->tagIds);
-        }
+        when($data->tag_ids, fn () => $post->tags()->sync($data->tag_ids));
 
-        return $post->load(['user', 'book', 'author', 'comments', 'likes', 'favorites', 'tags']);
+        return $post->fresh(['user', 'book', 'author', 'tags']);
     }
 }

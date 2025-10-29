@@ -2,7 +2,7 @@
 
 namespace App\Actions\PollVotes;
 
-use App\DTOs\PollVote\PollVoteUpdateDTO;
+use App\Data\PollVote\PollVoteUpdateData;
 use App\Models\PollVote;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,23 +10,14 @@ class UpdatePollVote
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий голос в опитуванні.
-     *
-     * @param PollVote $pollVote
-     * @param PollVoteUpdateDTO $dto
-     * @return PollVote
-     */
-    public function handle(PollVote $pollVote, PollVoteUpdateDTO $dto): PollVote
+    public function handle(PollVote $pollVote, PollVoteUpdateData $data): PollVote
     {
-        $attributes = [
-            'poll_option_id' => $dto->pollOptionId,
-        ];
+        $pollVote->update(array_filter([
+            'group_poll_id' => $data->group_poll_id,
+            'poll_option_id' => $data->poll_option_id,
+            'user_id' => $data->user_id,
+        ], fn ($value) => $value !== null));
 
-        $pollVote->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $pollVote->save();
-
-        return $pollVote->load(['poll', 'option', 'user']);
+        return $pollVote->fresh(['poll', 'option', 'user']);
     }
 }

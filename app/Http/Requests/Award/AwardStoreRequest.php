@@ -9,17 +9,17 @@ class AwardStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Award::class);
+        return $this->user()?->can('create', Award::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'year' => ['required', 'integer', 'min:1800', 'max:' . date('Y')],
+            'year' => ['required', 'integer', 'min:1800', 'max:2100'],
             'description' => ['nullable', 'string'],
             'organizer' => ['nullable', 'string', 'max:255'],
-            'country' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:50'],
             'ceremony_date' => ['nullable', 'date'],
         ];
     }
@@ -29,27 +29,27 @@ class AwardStoreRequest extends FormRequest
         return [
             'name' => [
                 'description' => 'Назва нагороди.',
-                'example' => 'Нобелівська премія з літератури',
+                'example' => 'Букерівська премія',
             ],
             'year' => [
-                'description' => 'Рік отримання нагороди.',
-                'example' => 2023,
+                'description' => 'Рік нагороди.',
+                'example' => 2024,
             ],
             'description' => [
                 'description' => 'Опис нагороди.',
-                'example' => 'Премія за видатний внесок у літературу.',
+                'example' => 'Престижна літературна премія за найкращий роман року.',
             ],
             'organizer' => [
                 'description' => 'Організатор нагороди.',
-                'example' => 'Шведська академія',
+                'example' => 'Booker Prize Foundation',
             ],
             'country' => [
                 'description' => 'Країна нагороди.',
-                'example' => 'Швеція',
+                'example' => 'United Kingdom',
             ],
             'ceremony_date' => [
-                'description' => 'Дата церемонії у форматі Y-m-d.',
-                'example' => '2023-12-10',
+                'description' => 'Дата церемонії нагородження.',
+                'example' => '2024-11-15',
             ],
         ];
     }

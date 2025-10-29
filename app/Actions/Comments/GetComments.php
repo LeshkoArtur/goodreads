@@ -2,72 +2,47 @@
 
 namespace App\Actions\Comments;
 
-use App\DTOs\Comment\CommentIndexDTO;
+use App\Data\Comment\CommentIndexData;
 use App\Models\Comment;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetComments
 {
     use AsAction;
 
-    /**
-     * Отримати список коментарів із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param CommentIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(CommentIndexDTO $dto): LengthAwarePaginator
+    public function handle(CommentIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Comment::search($dto->query ?? '');
+        $searchQuery = Comment::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if ($data->sort === 'created_at') {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/comments');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param CommentIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, CommentIndexDTO $dto): void
+    private function applyFilters(Builder $query, CommentIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"))
+                ->when($data->commentable_type, fn ($collection) => $collection->push("commentable_type = '{$data->commentable_type}'"))
+                ->when($data->commentable_id, fn ($collection) => $collection->push("commentable_id = '{$data->commentable_id}'"))
+                ->when($data->parent_id !== null, fn ($collection) => $collection->push($data->parent_id ? "parent_id = '{$data->parent_id}'" : 'parent_id IS NULL'))
+                ;
 
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = '{$dto->userId}'";
-            }
-
-            if ($dto->commentableType) {
-                $options['filter'][] = "commentable_type = '{$dto->commentableType}'";
-            }
-
-            if ($dto->commentableId) {
-                $options['filter'][] = "commentable_id = '{$dto->commentableId}'";
-            }
-
-            if ($dto->isRoot !== null) {
-                $options['filter'][] = "parent_id IS " . ($dto->isRoot ? 'NULL' : 'NOT NULL');
-            }
-
-            if ($dto->parentId) {
-                $options['filter'][] = "parent_id = '{$dto->parentId}'";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

@@ -18,7 +18,7 @@ class AuthorAnswerTest extends TestCase
     /** @test */
     public function it_has_fillable_properties()
     {
-        $model = new AuthorAnswer();
+        $model = new AuthorAnswer;
 
         $this->assertEquals([
             'question_id',

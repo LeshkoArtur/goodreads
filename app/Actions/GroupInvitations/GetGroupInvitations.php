@@ -2,68 +2,47 @@
 
 namespace App\Actions\GroupInvitations;
 
-use App\DTOs\GroupInvitation\GroupInvitationIndexDTO;
+use App\Data\GroupInvitation\GroupInvitationIndexData;
 use App\Models\GroupInvitation;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetGroupInvitations
 {
     use AsAction;
 
-    /**
-     * Отримати список запрошень до груп із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param GroupInvitationIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(GroupInvitationIndexDTO $dto): LengthAwarePaginator
+    public function handle(GroupInvitationIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = GroupInvitation::search($dto->query ?? '');
+        $searchQuery = GroupInvitation::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if ($data->sort === 'created_at') {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/group-invitations');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param GroupInvitationIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, GroupInvitationIndexDTO $dto): void
+    private function applyFilters(Builder $query, GroupInvitationIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->group_id, fn ($collection) => $collection->push("group_id = '{$data->group_id}'"))
+                ->when($data->inviter_id, fn ($collection) => $collection->push("inviter_id = '{$data->inviter_id}'"))
+                ->when($data->invitee_id, fn ($collection) => $collection->push("invitee_id = '{$data->invitee_id}'"))
+                ->when($data->status, fn ($collection) => $collection->push("status = '{$data->status->value}'"))
+                ;
 
-            if ($dto->groupId) {
-                $options['filter'][] = "group_id = '{$dto->groupId}'";
-            }
-
-            if ($dto->inviterId) {
-                $options['filter'][] = "inviter_id = '{$dto->inviterId}'";
-            }
-
-            if ($dto->inviteeId) {
-                $options['filter'][] = "invitee_id = '{$dto->inviteeId}'";
-            }
-
-            if ($dto->status) {
-                $options['filter'][] = "status = '{$dto->status}'";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

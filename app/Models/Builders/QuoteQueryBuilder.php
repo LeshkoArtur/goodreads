@@ -43,7 +43,7 @@ class QuoteQueryBuilder extends Builder
      */
     public function withText(string $text): static
     {
-        return $this->where('text', 'like', '%' . $text . '%');
+        return $this->where('text', 'like', '%'.$text.'%');
     }
 
     /**

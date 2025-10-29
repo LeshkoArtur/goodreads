@@ -9,13 +9,13 @@ class TagStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Tag::class);
+        return $this->user()?->can('create', Tag::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:tags,name'],
+            'name' => ['required', 'string', 'max:50', 'unique:tags,name'],
         ];
     }
 

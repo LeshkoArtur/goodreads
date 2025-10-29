@@ -10,7 +10,7 @@ class PostStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Post::class);
+        return $this->user()?->can('create', Post::class) ?? false;
     }
 
     public function rules(): array
@@ -25,8 +25,8 @@ class PostStoreRequest extends FormRequest
             'published_at' => ['nullable', 'date'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['string', 'exists:tags,id'],
-            'type' => ['nullable', Rule::in(\App\Enums\PostType::values())],
-            'status' => ['nullable', Rule::in(\App\Enums\PostStatus::values())],
+            'type' => ['nullable', Rule::in(\App\Enums\PostType::cases())],
+            'status' => ['nullable', Rule::in(\App\Enums\PostStatus::cases())],
         ];
     }
 

@@ -18,11 +18,11 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'username' => $this->faker->userName(),
+            'username' => $this->faker->unique()->userName(),
             'email' => $this->faker->unique()->safeEmail(),
             'password' => Hash::make('password123'),
             'email_verified_at' => $this->faker->dateTimeThisYear(),
-            'profile_picture' => $this->faker->imageUrl(),
+            'profile_picture' => 'https://placehold.co/300x300',
             'bio' => $this->faker->paragraph(),
             'is_public' => $this->faker->boolean(),
             'birthday' => $this->faker->dateTimeBetween('-80 years', '-18 years'),
@@ -35,5 +35,12 @@ class UserFactory extends Factory
             'role' => $this->faker->randomElement(Role::cases()),
             'gender' => $this->faker->randomElement(Gender::cases()),
         ];
+    }
+
+    public function admin(): static
+    {
+        return $this->state([
+            'role' => Role::ADMIN,
+        ]);
     }
 }

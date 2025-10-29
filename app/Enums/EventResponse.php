@@ -15,7 +15,7 @@ enum EventResponse: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('event_response.' . $this->value);
+        return __('event_response.'.$this->value);
     }
 
     // Colors for display in Filament

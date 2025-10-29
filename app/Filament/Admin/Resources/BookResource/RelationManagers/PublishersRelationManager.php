@@ -2,17 +2,14 @@
 
 namespace App\Filament\Admin\Resources\BookResource\RelationManagers;
 
+use App\Enums\CoverType;
+use App\Enums\ReadingFormat;
 use Filament\Forms;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\AttachAction;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class PublishersRelationManager extends RelationManager
 {
@@ -20,296 +17,214 @@ class PublishersRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Видавці книги') . ' ' . $ownerRecord->title;
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                TextInput::make('name')
-                    ->label(__('Назва видавця'))
-                    ->required()
-                    ->maxLength(100),
-
-                Textarea::make('description')
-                    ->label(__('Опис'))
-                    ->maxLength(65535)
-                    ->nullable()
-                    ->columnSpanFull(),
-
-                TextInput::make('website')
-                    ->label(__('Вебсайт'))
-                    ->url()
-                    ->maxLength(255)
-                    ->nullable(),
-
-                TextInput::make('country')
-                    ->label(__('Країна'))
-                    ->maxLength(100)
-                    ->nullable(),
-
-                TextInput::make('founded_year')
-                    ->label(__('Рік заснування'))
-                    ->numeric()
-                    ->minValue(1000)
-                    ->maxValue(date('Y'))
-                    ->nullable(),
-
-                Forms\Components\FileUpload::make('logo')
-                    ->label(__('Логотип'))
-                    ->directory('logo')
-                    ->image()
-                    ->maxSize(2048)
-                    ->nullable(),
-
-                TextInput::make('contact_email')
-                    ->label(__('Контактний email'))
-                    ->email()
-                    ->maxLength(255)
-                    ->nullable(),
-
-                TextInput::make('phone')
-                    ->label(__('Телефон'))
-                    ->maxLength(20)
-                    ->nullable(),
-
-                DatePicker::make('pivot.published_date')
-                    ->label(__('Дата публікації'))
-                    ->nullable(),
-
-                TextInput::make('pivot.isbn')
-                    ->label(__('ISBN'))
-                    ->maxLength(13)
-                    ->nullable(),
-
-                TextInput::make('pivot.circulation')
-                    ->label(__('Наклад'))
-                    ->numeric()
-                    ->minValue(1)
-                    ->nullable(),
-
-                Select::make('pivot.format')
-                    ->label(__('Формат'))
-                    ->options([
-                        'hardcover' => __('Тверда обкладинка'),
-                        'paperback' => __('М’яка обкладинка'),
-                        'ebook' => __('Електронна книга'),
-                        'audiobook' => __('Аудіокнига'),
-                    ])
-                    ->nullable(),
-
-                Select::make('pivot.cover_type')
-                    ->label(__('Тип обкладинки'))
-                    ->options([
-                        'glossy' => __('Глянцева'),
-                        'matte' => __('Матова'),
-                        'embossed' => __('Рельєфна'),
-                    ])
-                    ->nullable(),
-
-                TextInput::make('pivot.translator')
-                    ->label(__('Перекладач'))
-                    ->maxLength(100)
-                    ->nullable(),
-
-                TextInput::make('pivot.edition')
-                    ->label(__('Видання'))
-                    ->numeric()
-                    ->minValue(1)
-                    ->nullable(),
-
-                TextInput::make('pivot.price')
-                    ->label(__('Ціна'))
-                    ->numeric()
-                    ->minValue(0)
-                    ->step(0.01)
-                    ->nullable(),
-
-                Select::make('pivot.binding')
-                    ->label(__('Палітурка'))
-                    ->options([
-                        'stitched' => __('Прошита'),
-                        'glued' => __('Клеєна'),
-                        'spiral' => __('Спіральна'),
-                    ])
-                    ->nullable(),
-            ]);
-    }
+    protected static ?string $title = 'Видавництва';
 
     public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('name')
             ->columns([
-                ImageColumn::make('logo')
-                    ->label(__('Логотип'))
-                    ->getStateUsing(fn ($record) => $record->getFirstMediaUrl('logo'))
-                    ->circular()
-                    ->defaultImageUrl(url('path/to/default-publisher-logo.jpg')),
-
-                TextColumn::make('name')
-                    ->label(__('Назва'))
+                Tables\Columns\ImageColumn::make('logo')
+                    ->label('Логотип')
+                    ->size(40)
+                    ->circular(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Назва')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record) => route('filament.admin.resources.publishers.view', $record->id)),
-
-                TextColumn::make('country')
-                    ->label(__('Країна'))
-                    ->searchable()
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('published_date')
+                    ->label('Дата публікації')
+                    ->date('d.m.Y')
                     ->sortable()
+                    ->badge()
+                    ->color('info'),
+                Tables\Columns\TextColumn::make('isbn')
+                    ->label('ISBN')
+                    ->copyable()
                     ->toggleable(),
-
-                TextColumn::make('founded_year')
-                    ->label(__('Рік заснування'))
-                    ->sortable()
+                Tables\Columns\TextColumn::make('format')
+                    ->label('Формат')
+                    ->badge()
                     ->toggleable(),
-
-                TextColumn::make('pivot.published_date')
-                    ->label(__('Дата публікації'))
-                    ->date()
-                    ->sortable()
+                Tables\Columns\TextColumn::make('cover_type')
+                    ->label('Тип обкладинки')
+                    ->badge()
                     ->toggleable(),
-
-                TextColumn::make('pivot.isbn')
-                    ->label(__('ISBN'))
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('pivot.circulation')
-                    ->label(__('Наклад'))
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('pivot.format')
-                    ->label(__('Формат'))
-                    ->formatStateUsing(fn (?string $state) => match ($state) {
-                        'hardcover' => __('Тверда обкладинка'),
-                        'paperback' => __('М’яка обкладинка'),
-                        'ebook' => __('Електронна книга'),
-                        'audiobook' => __('Аудіокнига'),
-                        default => $state ?? '-',
-                    })
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('pivot.cover_type')
-                    ->label(__('Тип обкладинки'))
-                    ->formatStateUsing(fn (?string $state) => match ($state) {
-                        'glossy' => __('Глянцева'),
-                        'matte' => __('Матова'),
-                        'embossed' => __('Рельєфна'),
-                        default => $state ?? '-',
-                    })
+                Tables\Columns\TextColumn::make('price')
+                    ->label('Ціна')
+                    ->money('UAH')
                     ->sortable()
                     ->toggleable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('country')
-                    ->label(__('Країна'))
-                    ->options(fn () => \App\Models\Publisher::pluck('country', 'country')->filter()->toArray())
-                    ->multiple()
-                    ->indicator(__('Країна')),
-
-                Tables\Filters\SelectFilter::make('pivot.format')
-                    ->label(__('Формат'))
-                    ->options([
-                        'hardcover' => __('Тверда обкладинка'),
-                        'paperback' => __('М’яка обкладинка'),
-                        'ebook' => __('Електронна книга'),
-                        'audiobook' => __('Аудіокнига'),
-                    ])
-                    ->multiple()
-                    ->indicator(__('Формат')),
+                Tables\Filters\SelectFilter::make('format')
+                    ->label('Формат')
+                    ->options(ReadingFormat::class),
+                Tables\Filters\SelectFilter::make('cover_type')
+                    ->label('Тип обкладинки')
+                    ->options(CoverType::class),
             ])
             ->headerActions([
                 Tables\Actions\AttachAction::make()
-                    ->label(__('Додати видавця'))
+                    ->label('Прикріпити видавництво')
                     ->preloadRecordSelect()
-                    ->form(fn (Forms\Form $form) => $form->schema([
-                        Select::make('recordId')
-                            ->label(__('Видавець'))
-                            ->relationship('publishers', 'name')
-                            ->required()
-                            ->searchable()
-                            ->preload(),
-
-                        DatePicker::make('published_date')
-                            ->label(__('Дата публікації'))
-                            ->nullable(),
-
-                        TextInput::make('isbn')
-                            ->label(__('ISBN'))
-                            ->maxLength(13)
-                            ->nullable(),
-
-                        TextInput::make('circulation')
-                            ->label(__('Наклад'))
-                            ->numeric()
-                            ->minValue(1)
-                            ->nullable(),
-
-                        Select::make('format')
-                            ->label(__('Формат'))
-                            ->options([
-                                'hardcover' => __('Тверда обкладинка'),
-                                'paperback' => __('М’яка обкладинка'),
-                                'ebook' => __('Електронна книга'),
-                                'audiobook' => __('Аудіокнига'),
+                    ->recordSelectSearchColumns(['name', 'country'])
+                    ->modalHeading('Прикріпити видавництво до книги')
+                    ->form(fn (AttachAction $action): array => [
+                        $action->getRecordSelect(),
+                        Forms\Components\Section::make('Деталі публікації')
+                            ->schema([
+                                Forms\Components\DatePicker::make('published_date')
+                                    ->label('Дата публікації')
+                                    ->required()
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
+                                    ->maxDate(now()),
+                                Forms\Components\TextInput::make('isbn')
+                                    ->label('ISBN')
+                                    ->maxLength(20)
+                                    ->helperText('ISBN-10 або ISBN-13'),
+                                Forms\Components\Select::make('format')
+                                    ->label('Формат видання')
+                                    ->options(ReadingFormat::class)
+                                    ->required()
+                                    ->native(false)
+                                    ->default(ReadingFormat::PHYSICAL),
+                                Forms\Components\Select::make('cover_type')
+                                    ->label('Тип обкладинки')
+                                    ->options(CoverType::class)
+                                    ->required()
+                                    ->native(false)
+                                    ->default(CoverType::PAPERBACK),
+                                Forms\Components\TextInput::make('price')
+                                    ->label('Ціна')
+                                    ->numeric()
+                                    ->prefix('₴')
+                                    ->minValue(0)
+                                    ->step(0.01),
+                                Forms\Components\TextInput::make('circulation')
+                                    ->label('Тираж')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->suffix('екз.'),
+                                Forms\Components\TextInput::make('translator')
+                                    ->label('Перекладач')
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('edition')
+                                    ->label('Видання')
+                                    ->maxLength(50)
+                                    ->helperText('Наприклад: 2-ге видання'),
+                                Forms\Components\TextInput::make('binding')
+                                    ->label('Палітурка')
+                                    ->maxLength(50),
                             ])
-                            ->nullable(),
-
-                        Select::make('cover_type')
-                            ->label(__('Тип обкладинки'))
-                            ->options([
-                                'glossy' => __('Глянцева'),
-                                'matte' => __('Матова'),
-                                'embossed' => __('Рельєфна'),
-                            ])
-                            ->nullable(),
-
-                        TextInput::make('translator')
-                            ->label(__('Перекладач'))
-                            ->maxLength(100)
-                            ->nullable(),
-
-                        TextInput::make('edition')
-                            ->label(__('Видання'))
-                            ->numeric()
-                            ->minValue(1)
-                            ->nullable(),
-
-                        TextInput::make('price')
-                            ->label(__('Ціна'))
-                            ->numeric()
-                            ->minValue(0)
-                            ->step(0.01)
-                            ->nullable(),
-
-                        Select::make('binding')
-                            ->label(__('Палітурка'))
-                            ->options([
-                                'stitched' => __('Прошита'),
-                                'glued' => __('Клеєна'),
-                                'spiral' => __('Спіральна'),
-                            ])
-                            ->nullable(),
-                    ])),
+                            ->columns(3),
+                    ]),
+                Tables\Actions\CreateAction::make()
+                    ->label('Створити видавництво')
+                    ->modalHeading('Створити нове видавництво'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
+                    ->label('Редагувати')
+                    ->modalHeading('Редагувати деталі публікації')
+                    ->form([
+                        Forms\Components\DatePicker::make('published_date')
+                            ->label('Дата публікації')
+                            ->required()
+                            ->native(false)
+                            ->displayFormat('d/m/Y'),
+                        Forms\Components\TextInput::make('isbn')
+                            ->label('ISBN')
+                            ->maxLength(20),
+                        Forms\Components\Select::make('format')
+                            ->label('Формат видання')
+                            ->options(ReadingFormat::class)
+                            ->required()
+                            ->native(false),
+                        Forms\Components\Select::make('cover_type')
+                            ->label('Тип обкладинки')
+                            ->options(CoverType::class)
+                            ->required()
+                            ->native(false),
+                        Forms\Components\TextInput::make('price')
+                            ->label('Ціна')
+                            ->numeric()
+                            ->prefix('₴'),
+                        Forms\Components\TextInput::make('circulation')
+                            ->label('Тираж')
+                            ->numeric()
+                            ->suffix('екз.'),
+                        Forms\Components\TextInput::make('translator')
+                            ->label('Перекладач')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('edition')
+                            ->label('Видання')
+                            ->maxLength(50),
+                        Forms\Components\TextInput::make('binding')
+                            ->label('Палітурка')
+                            ->maxLength(50),
+                    ]),
                 Tables\Actions\DetachAction::make()
-                    ->label(__('Від’єднати')),
+                    ->label('Відкріпити')
+                    ->requiresConfirmation()
+                    ->modalHeading('Відкріпити видавництво?')
+                    ->modalDescription('Видавництво буде відкріплено від цієї книги.'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DetachBulkAction::make()
-                        ->label(__('Від’єднати вибраних')),
+                        ->label('Відкріпити обрані')
+                        ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('name', 'asc');
+            ->emptyStateHeading('Немає видавництв')
+            ->emptyStateDescription('Додайте видавництво до цієї книги.')
+            ->emptyStateActions([
+                Tables\Actions\AttachAction::make()
+                    ->label('Прикріпити видавництво')
+                    ->preloadRecordSelect(),
+            ]);
+    }
+
+    public function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\Section::make('Основна інформація')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Назва видавництва')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\FileUpload::make('logo')
+                            ->label('Логотип')
+                            ->image()
+                            ->disk('public')
+                            ->directory('publishers'),
+                        Forms\Components\Textarea::make('description')
+                            ->label('Опис')
+                            ->rows(3)
+                            ->maxLength(1000),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make('Контактна інформація')
+                    ->schema([
+                        Forms\Components\TextInput::make('website')
+                            ->label('Веб-сайт')
+                            ->url()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('contact_email')
+                            ->label('Email')
+                            ->email()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('country')
+                            ->label('Країна')
+                            ->maxLength(100),
+                    ])
+                    ->columns(3)
+                    ->collapsed(),
+            ]);
     }
 }

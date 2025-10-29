@@ -16,7 +16,7 @@ enum QuestionStatus: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('question_status.' . $this->value);
+        return __('question_status.'.$this->value);
     }
 
     // Colors for display in Filament
@@ -37,7 +37,7 @@ enum QuestionStatus: string implements HasColor, HasIcon, HasLabel
             self::PENDING => 'heroicon-o-clock',
             self::APPROVED => 'heroicon-o-check-circle',
             self::REJECTED => 'heroicon-o-x-circle',
-            self::ANSWERED => 'heroicon-o-chat',
+            self::ANSWERED => 'heroicon-o-chat-bubble-left-right',
         };
     }
 }

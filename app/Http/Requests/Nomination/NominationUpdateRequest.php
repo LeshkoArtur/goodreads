@@ -2,21 +2,19 @@
 
 namespace App\Http\Requests\Nomination;
 
-use App\Models\Nomination;
 use Illuminate\Foundation\Http\FormRequest;
 
 class NominationUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $nomination = $this->route('nomination');
-        return $this->user()->can('update', $nomination);
+        return $this->user()?->can('update', $this->route('nomination')) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'name' => ['nullable', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
         ];
     }
@@ -25,12 +23,12 @@ class NominationUpdateRequest extends FormRequest
     {
         return [
             'name' => [
-                'description' => 'Назва номінації.',
+                'description' => 'Оновлена назва номінації.',
                 'example' => 'Найкраща книга року',
             ],
             'description' => [
-                'description' => 'Опис номінації.',
-                'example' => 'Оновлений опис для номінації найкращих книг.',
+                'description' => 'Оновлений опис номінації.',
+                'example' => 'Номінація для найкращої художньої книги року.',
             ],
         ];
     }
@@ -39,8 +37,8 @@ class NominationUpdateRequest extends FormRequest
     {
         return [
             'nomination' => [
-                'description' => 'ID номінації для оновлення.',
-                'example' => 'nomination-uuid123',
+                'description' => 'UUID номінації.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

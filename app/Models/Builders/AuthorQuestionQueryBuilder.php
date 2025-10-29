@@ -4,7 +4,6 @@ namespace App\Models\Builders;
 
 use App\Enums\QuestionStatus;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 
 class AuthorQuestionQueryBuilder extends Builder
 {
@@ -45,7 +44,7 @@ class AuthorQuestionQueryBuilder extends Builder
      */
     public function withContent(string $content): static
     {
-        return $this->where('content', 'like', '%' . $content . '%');
+        return $this->where('content', 'like', '%'.$content.'%');
     }
 
     /**

@@ -9,15 +9,14 @@ class PollOptionStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', PollOption::class);
+        return $this->user()?->can('create', PollOption::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'group_poll_id' => ['required', 'string', 'exists:group_polls,id'],
+            'group_poll_id' => ['required', 'uuid', 'exists:group_polls,id'],
             'text' => ['required', 'string', 'max:255'],
-            'vote_count' => ['integer', 'min:0'],
         ];
     }
 
@@ -25,16 +24,12 @@ class PollOptionStoreRequest extends FormRequest
     {
         return [
             'group_poll_id' => [
-                'description' => 'ID опитування, до якого відноситься варіант.',
-                'example' => 'poll-uuid123',
+                'description' => 'UUID опитування.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'text' => [
-                'description' => 'Текст варіанту опитування.',
-                'example' => 'Варіант 1',
-            ],
-            'vote_count' => [
-                'description' => 'Кількість голосів за варіант.',
-                'example' => 0,
+                'description' => 'Текст варіанта відповіді.',
+                'example' => 'Варіант відповіді 1',
             ],
         ];
     }

@@ -9,36 +9,30 @@ class ReadingStatIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', ReadingStat::class);
+        return $this->user()?->can('viewAny', ReadingStat::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'q' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:year,books_read,pages_read,created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
             'user_id' => ['nullable', 'string', 'exists:users,id'],
-            'book_id' => ['nullable', 'string', 'exists:books,id'],
-            'status' => ['nullable', 'string', 'in:PLANNING,READING,FINISHED'],
+            'year' => ['nullable', 'integer', 'min:1900'],
+            'min_books_read' => ['nullable', 'integer', 'min:0'],
+            'max_books_read' => ['nullable', 'integer', 'min:0', 'gte:min_books_read'],
             'min_pages_read' => ['nullable', 'integer', 'min:0'],
             'max_pages_read' => ['nullable', 'integer', 'min:0', 'gte:min_pages_read'],
-            'min_start_date' => ['nullable', 'date'],
-            'max_start_date' => ['nullable', 'date', 'after_or_equal:min_start_date'],
-            'min_finish_date' => ['nullable', 'date'],
-            'max_finish_date' => ['nullable', 'date', 'after_or_equal:min_finish_date'],
+            'genres_read' => ['nullable', 'array'],
+            'genres_read.*' => ['string', 'max:100'],
         ];
     }
 
     public function queryParameters(): array
     {
         return [
-            'q' => [
-                'description' => 'Пошуковий запит для статистики читання.',
-                'example' => 'Читання 2023',
-            ],
             'page' => [
                 'description' => 'Номер сторінки для пагінації.',
                 'example' => 1,
@@ -59,37 +53,29 @@ class ReadingStatIndexRequest extends FormRequest
                 'description' => 'Фільтр за ID користувача.',
                 'example' => 'user-uuid123',
             ],
-            'book_id' => [
-                'description' => 'Фільтр за ID книги.',
-                'example' => 'book-uuid123',
+            'year' => [
+                'description' => 'Фільтр за роком.',
+                'example' => 2023,
             ],
-            'status' => [
-                'description' => 'Фільтр за статусом читання (PLANNING, READING, FINISHED).',
-                'example' => 'FINISHED',
+            'min_books_read' => [
+                'description' => 'Мінімальна кількість прочитаних книг.',
+                'example' => 5,
+            ],
+            'max_books_read' => [
+                'description' => 'Максимальна кількість прочитаних книг.',
+                'example' => 50,
             ],
             'min_pages_read' => [
-                'description' => 'Мінімальна кількість прочитаних сторінок для фільтрації.',
+                'description' => 'Мінімальна кількість прочитаних сторінок.',
                 'example' => 0,
             ],
             'max_pages_read' => [
-                'description' => 'Максимальна кількість прочитаних сторінок для фільтрації.',
+                'description' => 'Максимальна кількість прочитаних сторінок.',
                 'example' => 1000,
             ],
-            'min_start_date' => [
-                'description' => 'Мінімальна дата початку читання.',
-                'example' => '2023-01-01',
-            ],
-            'max_start_date' => [
-                'description' => 'Максимальна дата початку читання.',
-                'example' => '2023-12-31',
-            ],
-            'min_finish_date' => [
-                'description' => 'Мінімальна дата завершення читання.',
-                'example' => '2023-01-01',
-            ],
-            'max_finish_date' => [
-                'description' => 'Максимальна дата завершення читання.',
-                'example' => '2023-12-31',
+            'genres_read' => [
+                'description' => 'Фільтр за прочитаними жанрами (масив).',
+                'example' => '["Фантастика", "Класика"]',
             ],
         ];
     }

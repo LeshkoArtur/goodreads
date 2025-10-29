@@ -9,7 +9,7 @@ class RatingIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Rating::class);
+        return $this->user()?->can('viewAny', Rating::class) ?? true;
     }
 
     public function rules(): array
@@ -20,10 +20,10 @@ class RatingIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:rating,created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'user_id' => ['nullable', 'string', 'exists:users,id'],
-            'book_id' => ['nullable', 'string', 'exists:books,id'],
-            'min_score' => ['nullable', 'integer', 'min:1', 'max:5'],
-            'max_score' => ['nullable', 'integer', 'min:1', 'max:5', 'gte:min_score'],
+            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'book_id' => ['nullable', 'uuid', 'exists:books,id'],
+            'min_rating' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'max_rating' => ['nullable', 'integer', 'min:1', 'max:5', 'gte:min_rating'],
         ];
     }
 
@@ -58,11 +58,11 @@ class RatingIndexRequest extends FormRequest
                 'description' => 'Фільтр за ID книги.',
                 'example' => 'book-uuid123',
             ],
-            'min_score' => [
+            'min_rating' => [
                 'description' => 'Мінімальний бал рейтингу для фільтрації.',
                 'example' => 1,
             ],
-            'max_score' => [
+            'max_rating' => [
                 'description' => 'Максимальний бал рейтингу для фільтрації.',
                 'example' => 5,
             ],

@@ -5,13 +5,13 @@ namespace App\Http\Requests\AuthorQuestion;
 use App\Enums\QuestionStatus;
 use App\Models\AuthorQuestion;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class AuthorQuestionStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', AuthorQuestion::class);
+        return $this->user()?->can('create', AuthorQuestion::class) ?? false;
     }
 
     public function rules(): array
@@ -19,9 +19,9 @@ class AuthorQuestionStoreRequest extends FormRequest
         return [
             'user_id' => ['required', 'string', 'exists:users,id'],
             'author_id' => ['required', 'string', 'exists:authors,id'],
-            'content' => ['required', 'string'],
+            'content' => ['required', 'string', 'max:5000'],
             'book_id' => ['nullable', 'string', 'exists:books,id'],
-            'status' => ['nullable', Rule::in(QuestionStatus::values())],
+            'status' => ['nullable', new Enum(QuestionStatus::class)],
         ];
     }
 

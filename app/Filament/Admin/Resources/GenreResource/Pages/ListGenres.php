@@ -10,10 +10,13 @@ class ListGenres extends ListRecords
 {
     protected static string $resource = GenreResource::class;
 
+    protected ?string $heading = 'Жанри';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити жанр'),
         ];
     }
 }

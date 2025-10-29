@@ -2,23 +2,16 @@
 
 namespace App\Http\Requests\Favorite;
 
-use App\Models\Favorite;
 use Illuminate\Foundation\Http\FormRequest;
 
 class FavoriteDeleteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $favorite = $this->route('favorite');
-        return $this->user()->can('delete', $favorite);
+        return $this->user()?->can('delete', $this->route('favorite')) ?? false;
     }
 
     public function rules(): array
-    {
-        return [];
-    }
-
-    public function bodyParameters(): array
     {
         return [];
     }
@@ -27,8 +20,8 @@ class FavoriteDeleteRequest extends FormRequest
     {
         return [
             'favorite' => [
-                'description' => 'ID улюбленого для видалення.',
-                'example' => 'favorite-uuid123',
+                'description' => 'UUID улюбленого.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

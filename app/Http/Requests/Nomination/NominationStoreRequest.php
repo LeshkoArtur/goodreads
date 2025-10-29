@@ -9,13 +9,13 @@ class NominationStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Nomination::class);
+        return $this->user()?->can('create', Nomination::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'award_id' => ['required', 'string', 'exists:awards,id'],
+            'award_id' => ['required', 'uuid', 'exists:awards,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
         ];
@@ -25,8 +25,8 @@ class NominationStoreRequest extends FormRequest
     {
         return [
             'award_id' => [
-                'description' => 'ID нагороди, до якої відноситься номінація.',
-                'example' => 'award-uuid123',
+                'description' => 'UUID нагороди.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'name' => [
                 'description' => 'Назва номінації.',
@@ -34,7 +34,7 @@ class NominationStoreRequest extends FormRequest
             ],
             'description' => [
                 'description' => 'Опис номінації.',
-                'example' => 'Номінація для найкращих літературних творів року.',
+                'example' => 'Номінація для найкращої художньої книги року.',
             ],
         ];
     }

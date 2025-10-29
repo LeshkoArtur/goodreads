@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\ReadingStat;
 
-use App\Models\ReadingStat;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ReadingStatDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class ReadingStatDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $readingStat = $this->route('reading_stat');
-        return $this->user()->can('delete', $readingStat);
+
+        return $this->user()?->can('delete', $readingStat) ?? false;
     }
 
     public function rules(): array

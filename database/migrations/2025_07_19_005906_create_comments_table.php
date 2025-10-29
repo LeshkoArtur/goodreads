@@ -12,9 +12,12 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->uuidMorphs('commentable');
-            $table->text('content');
+            $table->string('content', 5000);
             $table->uuid('parent_id')->nullable();
             $table->timestamps();
+
+            $table->index('parent_id');
+            $table->index('user_id');
         });
 
         Schema::table('comments', function (Blueprint $table) {

@@ -6,8 +6,8 @@ use App\Models\Book;
 use App\Models\Collection;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\Validator;
+use Tests\TestCase;
 
 class CollectionTest extends TestCase
 {

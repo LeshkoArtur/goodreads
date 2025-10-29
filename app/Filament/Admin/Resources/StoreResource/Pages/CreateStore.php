@@ -2,20 +2,32 @@
 
 namespace App\Filament\Admin\Resources\StoreResource\Pages;
 
-use App\DTOs\Store\StoreStoreDTO;
+use App\Actions\Stores\CreateStore as CreateAction;
+use App\Data\Store\StoreStoreData;
 use App\Filament\Admin\Resources\StoreResource;
-use App\Models\Store;
-use App\Actions\Stores\CreateStore as CreateStoreAction;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateStore extends CreateRecord
 {
     protected static string $resource = StoreResource::class;
 
-    protected function handleRecordCreation(array $data): Store
-    {
-        $dto = StoreStoreDTO::fromArray($data);
+    protected ?string $heading = 'Створити магазин';
 
-        return CreateStoreAction::run($dto);
+    protected function handleRecordCreation(array $data): Model
+    {
+        $dto = StoreStoreData::fromArray($data);
+
+        return app(CreateAction::class)->handle($dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Магазин створено';
     }
 }

@@ -15,7 +15,7 @@ enum InvitationStatus: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('invitation_status.' . $this->value);
+        return __('invitation_status.'.$this->value);
     }
 
     // Colors for display in Filament

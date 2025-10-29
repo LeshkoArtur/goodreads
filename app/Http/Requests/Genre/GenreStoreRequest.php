@@ -9,14 +9,14 @@ class GenreStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Genre::class);
+        return $this->user()?->can('create', Genre::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'parent_id' => ['nullable', 'string', 'exists:genres,id'],
+            'name' => ['required', 'string', 'max:50'],
+            'parent_id' => ['nullable', 'uuid', 'exists:genres,id'],
             'description' => ['nullable', 'string'],
             'book_count' => ['nullable', 'integer', 'min:0'],
         ];

@@ -2,7 +2,7 @@
 
 namespace App\Actions\AuthorQuestions;
 
-use App\DTOs\AuthorQuestion\AuthorQuestionStoreDTO;
+use App\Data\AuthorQuestion\AuthorQuestionStoreData;
 use App\Models\AuthorQuestion;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,23 +10,16 @@ class CreateAuthorQuestion
 {
     use AsAction;
 
-    /**
-     * Створити нове питання до автора.
-     *
-     * @param AuthorQuestionStoreDTO $dto
-     * @return AuthorQuestion
-     */
-    public function handle(AuthorQuestionStoreDTO $dto): AuthorQuestion
+    public function handle(AuthorQuestionStoreData $data): AuthorQuestion
     {
-        $authorQuestion = new AuthorQuestion();
-        $authorQuestion->user_id = $dto->userId;
-        $authorQuestion->author_id = $dto->authorId;
-        $authorQuestion->book_id = $dto->bookId;
-        $authorQuestion->content = $dto->content;
-        $authorQuestion->status = $dto->status;
-
+        $authorQuestion = new AuthorQuestion;
+        $authorQuestion->user_id = $data->user_id;
+        $authorQuestion->author_id = $data->author_id;
+        $authorQuestion->content = $data->content;
+        $authorQuestion->book_id = $data->book_id;
+        $authorQuestion->status = $data->status;
         $authorQuestion->save();
 
-        return $authorQuestion->load(['user', 'author', 'book', 'answers']);
+        return $authorQuestion->fresh(['user', 'author', 'book', 'answers']);
     }
 }

@@ -2,21 +2,23 @@
 
 namespace App\Http\Requests\GroupModerationLog;
 
-use App\Models\GroupModerationLog;
+use App\Enums\ModerationAction;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class GroupModerationLogUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
         $groupModerationLog = $this->route('group_moderation_log');
-        return $this->user()->can('update', $groupModerationLog);
+
+        return $this->user()?->can('update', $groupModerationLog) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'action' => ['nullable', 'string', 'max:255'],
+            'action' => ['nullable', Rule::enum(ModerationAction::class)],
             'description' => ['nullable', 'string'],
         ];
     }
@@ -25,8 +27,8 @@ class GroupModerationLogUpdateRequest extends FormRequest
     {
         return [
             'action' => [
-                'description' => 'Дія модерації.',
-                'example' => 'UPDATE_POST',
+                'description' => 'Дія модерації. Можливі значення: delete, approve, reject, warning, ban, unban, pin, unpin, edit, move.',
+                'example' => 'edit',
             ],
             'description' => [
                 'description' => 'Опис дії модерації.',

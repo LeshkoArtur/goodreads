@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use App\Models\BookSeries;
 use App\Models\Book;
+use App\Models\BookSeries;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;

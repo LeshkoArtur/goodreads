@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Group;
 
+use App\Enums\JoinPolicy;
+use App\Enums\PostPolicy;
 use App\Models\Group;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,7 +12,7 @@ class GroupIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Group::class);
+        return $this->user()?->can('viewAny', Group::class) ?? true;
     }
 
     public function rules(): array
@@ -21,14 +23,15 @@ class GroupIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:name,created_at,member_count'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'creator_id' => ['nullable', 'string', 'exists:users,id'],
+            'creator_id' => ['nullable', 'uuid', 'exists:users,id'],
             'is_public' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
-            'join_policy' => ['nullable', Rule::in(\App\Enums\JoinPolicy::values())],
-            'post_policy' => ['nullable', Rule::in(\App\Enums\PostPolicy::values())],
+            'join_policy' => ['nullable', Rule::enum(JoinPolicy::class)],
+            'post_policy' => ['nullable', Rule::enum(PostPolicy::class)],
             'min_member_count' => ['nullable', 'integer', 'min:0'],
             'max_member_count' => ['nullable', 'integer', 'min:0'],
-            'member_ids' => ['nullable', 'json'],
+            'member_ids' => ['nullable', 'array'],
+            'member_ids.*' => ['uuid', 'exists:users,id'],
         ];
     }
 

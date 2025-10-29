@@ -2,20 +2,32 @@
 
 namespace App\Filament\Admin\Resources\GroupResource\Pages;
 
-use App\DTOs\Group\GroupStoreDTO;
-use App\Filament\Admin\Resources\GroupResource;
-use App\Models\Group;
 use App\Actions\Groups\CreateGroup as CreateGroupAction;
+use App\Data\Group\GroupStoreData;
+use App\Filament\Admin\Resources\GroupResource;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateGroup extends CreateRecord
 {
     protected static string $resource = GroupResource::class;
 
-    protected function handleRecordCreation(array $data): Group
-    {
-        $dto = GroupStoreDTO::fromArray($data);
+    protected ?string $heading = 'Створити групу';
 
-        return CreateGroupAction::run($dto);
+    protected function handleRecordCreation(array $data): Model
+    {
+        $dto = GroupStoreData::fromArray($data);
+
+        return app(CreateGroupAction::class)->handle($dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Групу створено';
     }
 }

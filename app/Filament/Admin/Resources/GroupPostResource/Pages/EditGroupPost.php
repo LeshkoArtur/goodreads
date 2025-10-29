@@ -3,10 +3,8 @@
 namespace App\Filament\Admin\Resources\GroupPostResource\Pages;
 
 use App\Actions\GroupPosts\UpdateGroupPost;
-use App\DTOs\GroupPost\GroupPostUpdateDTO;
+use App\Data\GroupPost\GroupPostUpdateData;
 use App\Filament\Admin\Resources\GroupPostResource;
-use App\Models\GroupPost;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,17 +12,15 @@ class EditGroupPost extends EditRecord
 {
     protected static string $resource = GroupPostResource::class;
 
-    protected function getHeaderActions(): array
+    protected ?string $heading = 'Редагувати пост групи';
+
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        return app(UpdateGroupPost::class)->handle($record, GroupPostUpdateData::fromArray($data));
     }
 
-    protected function handleRecordUpdate(GroupPost|Model $record, array $data): GroupPost
+    protected function getSavedNotificationTitle(): ?string
     {
-        $dto = GroupPostUpdateDTO::fromArray($data);
-
-        return UpdateGroupPost::run($record, $dto);
+        return 'Пост оновлено';
     }
 }

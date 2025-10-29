@@ -2,7 +2,7 @@
 
 namespace App\Actions\AuthorAnswers;
 
-use App\DTOs\AuthorAnswer\AuthorAnswerUpdateDTO;
+use App\Data\AuthorAnswer\AuthorAnswerUpdateData;
 use App\Models\AuthorAnswer;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,25 +10,16 @@ class UpdateAuthorAnswer
 {
     use AsAction;
 
-    /**
-     * Оновити існуючу відповідь автора.
-     *
-     * @param AuthorAnswer $authorAnswer
-     * @param AuthorAnswerUpdateDTO $dto
-     * @return AuthorAnswer
-     */
-    public function handle(AuthorAnswer $authorAnswer, AuthorAnswerUpdateDTO $dto): AuthorAnswer
+    public function handle(AuthorAnswer $authorAnswer, AuthorAnswerUpdateData $data): AuthorAnswer
     {
-        $attributes = [
-            'content' => $dto->body,
-            'status' => $dto->status,
-            'published_at' => $dto->publishedAt,
-        ];
+        $authorAnswer->update(array_filter([
+            'question_id' => $data->question_id,
+            'author_id' => $data->author_id,
+            'content' => $data->content,
+            'published_at' => $data->published_at,
+            'status' => $data->status,
+        ], fn ($value) => $value !== null));
 
-        $authorAnswer->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $authorAnswer->save();
-
-        return $authorAnswer->load(['question', 'author']);
+        return $authorAnswer->fresh(['question', 'author']);
     }
 }

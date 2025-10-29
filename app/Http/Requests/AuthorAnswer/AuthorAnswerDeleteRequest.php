@@ -9,7 +9,8 @@ class AuthorAnswerDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $authorAnswer = $this->route('author_answer');
-        return $this->user()->can('delete', $authorAnswer);
+
+        return $this->user()?->can('delete', $authorAnswer) ?? false;
     }
 
     public function rules(): array

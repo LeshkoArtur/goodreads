@@ -5,14 +5,12 @@ namespace App\Models;
 use App\Enums\TypeOfWork;
 use App\Models\Builders\AuthorQueryBuilder;
 use App\Models\Traits\HasFiles;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
-use Illuminate\Database\Eloquent\Relations\{
-    BelongsToMany,
-    HasMany
-};
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Scout\Searchable;
 
 /**
@@ -20,7 +18,7 @@ use Laravel\Scout\Searchable;
  */
 class Author extends Model
 {
-    use HasFactory, HasUuids, Searchable, HasFiles;
+    use HasFactory, HasFiles, HasUuids, Searchable;
 
     protected $fillable = [
         'name',

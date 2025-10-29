@@ -2,7 +2,7 @@
 
 namespace App\Actions\PollOptions;
 
-use App\DTOs\PollOption\PollOptionUpdateDTO;
+use App\Data\PollOption\PollOptionUpdateData;
 use App\Models\PollOption;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,23 +10,11 @@ class UpdatePollOption
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий варіант опитування.
-     *
-     * @param PollOption $pollOption
-     * @param PollOptionUpdateDTO $dto
-     * @return PollOption
-     */
-    public function handle(PollOption $pollOption, PollOptionUpdateDTO $dto): PollOption
+    public function handle(PollOption $pollOption, PollOptionUpdateData $data): PollOption
     {
-        $attributes = [
-            'text' => $dto->title,
-        ];
-
-        $pollOption->fill(array_filter($attributes, fn($value) => $value !== null));
-
+        $pollOption->text = $data->text;
         $pollOption->save();
 
-        return $pollOption->load(['poll']);
+        return $pollOption->fresh(['poll']);
     }
 }

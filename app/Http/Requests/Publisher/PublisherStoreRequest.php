@@ -9,20 +9,20 @@ class PublisherStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Publisher::class);
+        return $this->user()?->can('create', Publisher::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:publishers,name'],
+            'name' => ['required', 'string', 'max:100', 'unique:publishers,name'],
             'description' => ['nullable', 'string'],
             'website' => ['nullable', 'url', 'max:255'],
-            'country' => ['nullable', 'string', 'max:100'],
-            'founded_year' => ['nullable', 'integer', 'min:0', 'max:' . date('Y')],
+            'country' => ['nullable', 'string', 'max:50'],
+            'founded_year' => ['nullable', 'integer', 'min:0', 'max:'.date('Y')],
             'logo' => ['nullable', 'string', 'max:255'],
-            'contact_email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'contact_email' => ['nullable', 'email', 'max:376'],
+            'phone' => ['nullable', 'string', 'max:20'],
         ];
     }
 

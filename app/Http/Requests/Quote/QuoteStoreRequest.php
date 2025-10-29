@@ -9,18 +9,18 @@ class QuoteStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Quote::class);
+        return $this->user()?->can('create', Quote::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'string', 'exists:users,id'],
-            'book_id' => ['required', 'string', 'exists:books,id'],
+            'user_id' => ['required', 'uuid', 'exists:users,id'],
+            'book_id' => ['required', 'uuid', 'exists:books,id'],
             'text' => ['required', 'string'],
             'page_number' => ['nullable', 'integer', 'min:1'],
-            'contains_spoilers' => ['boolean'],
-            'is_public' => ['boolean'],
+            'contains_spoilers' => ['nullable', 'boolean'],
+            'is_public' => ['nullable', 'boolean'],
         ];
     }
 

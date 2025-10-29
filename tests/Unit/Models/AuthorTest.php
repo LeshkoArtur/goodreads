@@ -3,15 +3,13 @@
 namespace Tests\Unit\Models;
 
 use App\Enums\TypeOfWork;
-use App\Models\{
-    Author,
-    Book,
-    Post,
-    User,
-    NominationEntry,
-    AuthorQuestion,
-    AuthorAnswer
-};
+use App\Models\Author;
+use App\Models\AuthorAnswer;
+use App\Models\AuthorQuestion;
+use App\Models\Book;
+use App\Models\NominationEntry;
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -25,7 +23,7 @@ class AuthorTest extends TestCase
     /** @test */
     public function it_has_fillable_fields()
     {
-        $author = new Author();
+        $author = new Author;
         $this->assertEquals([
             'name',
             'bio',

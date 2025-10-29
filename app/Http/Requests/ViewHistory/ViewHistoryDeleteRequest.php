@@ -9,7 +9,8 @@ class ViewHistoryDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $viewHistory = $this->route('view_history');
-        return $this->user()->can('delete', $viewHistory);
+
+        return $this->user()?->can('delete', $viewHistory) ?? false;
     }
 
     public function rules(): array

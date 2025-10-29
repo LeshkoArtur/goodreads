@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Report;
 
-use App\Models\Report;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ReportDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class ReportDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $report = $this->route('report');
-        return $this->user()->can('delete', $report);
+
+        return $this->user()?->can('delete', $report) ?? false;
     }
 
     public function rules(): array

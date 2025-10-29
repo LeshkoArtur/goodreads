@@ -2,70 +2,45 @@
 
 namespace App\Actions\Publishers;
 
-use App\DTOs\Publisher\PublisherIndexDTO;
+use App\Data\Publisher\PublisherIndexData;
 use App\Models\Publisher;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetPublishers
 {
     use AsAction;
 
-    /**
-     * Отримати список видавців із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param PublisherIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(PublisherIndexDTO $dto): LengthAwarePaginator
+    public function handle(PublisherIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Publisher::search($dto->query ?? '');
+        $searchQuery = Publisher::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at', 'founded_year'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if (in_array($data->sort, ['created_at', 'founded_year'])) {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/publishers');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param PublisherIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, PublisherIndexDTO $dto): void
+    private function applyFilters(Builder $query, PublisherIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->country, fn ($collection) => $collection->push("country = '{$data->country}'"))
+            ->when($data->min_founded_year !== null, fn ($collection) => $collection->push("founded_year >= {$data->min_founded_year}"))
+            ->when($data->max_founded_year !== null, fn ($collection) => $collection->push("founded_year <= {$data->max_founded_year}"));
 
-            if ($dto->country) {
-                $options['filter'][] = "country = '{$dto->country}'";
-            }
-
-            if ($dto->minFoundedYear !== null) {
-                $options['filter'][] = "founded_year >= {$dto->minFoundedYear}";
-            }
-
-            if ($dto->maxFoundedYear !== null) {
-                $options['filter'][] = "founded_year <= {$dto->maxFoundedYear}";
-            }
-
-            if ($dto->contactEmails) {
-                foreach ($dto->contactEmails as $email) {
-                    $options['filter'][] = "contact_email = '{$email}'";
-                }
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

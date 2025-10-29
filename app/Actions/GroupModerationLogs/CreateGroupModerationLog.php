@@ -2,32 +2,26 @@
 
 namespace App\Actions\GroupModerationLogs;
 
-use App\DTOs\GroupModerationLog\GroupModerationLogStoreDTO;
+use App\Data\GroupModerationLog\GroupModerationLogStoreData;
 use App\Models\GroupModerationLog;
+use App\Models\User;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateGroupModerationLog
 {
     use AsAction;
 
-    /**
-     * Створити новий лог модерації групи.
-     *
-     * @param GroupModerationLogStoreDTO $dto
-     * @return GroupModerationLog
-     */
-    public function handle(GroupModerationLogStoreDTO $dto): GroupModerationLog
+    public function handle(GroupModerationLogStoreData $data, User $user): GroupModerationLog
     {
-        $groupModerationLog = new GroupModerationLog();
-        $groupModerationLog->group_id = $dto->groupId;
-        $groupModerationLog->moderator_id = $dto->moderatorId;
-        $groupModerationLog->action = $dto->action;
-        $groupModerationLog->targetable_id = $dto->targetableId;
-        $groupModerationLog->targetable_type = $dto->targetableType;
-        $groupModerationLog->description = $dto->description;
+        $log = new GroupModerationLog;
+        $log->group_id = $data->group_id;
+        $log->moderator_id = $user->id;
+        $log->action = $data->action;
+        $log->targetable_type = $data->targetable_type;
+        $log->targetable_id = $data->targetable_id;
+        $log->description = $data->description;
+        $log->save();
 
-        $groupModerationLog->save();
-
-        return $groupModerationLog->load(['group', 'moderator', 'targetable']);
+        return $log->fresh(['group', 'moderator', 'targetable']);
     }
 }

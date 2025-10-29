@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\EventRsvp;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
@@ -15,24 +15,18 @@ class EventRsvpPolicy
 
     /**
      * Виконується перед усіма перевірками авторизації.
-     *
-     * @param User $user
-     * @param string $ability
-     * @return bool|null
      */
     public function before(User $user, string $ability): ?bool
     {
         if ($user->isAdmin()) {
             return true;
         }
+
         return null;
     }
 
     /**
      * Визначає, чи може користувач переглядати будь-які RSVP.
-     *
-     * @param User $user
-     * @return bool
      */
     public function viewAny(User $user): bool
     {
@@ -41,10 +35,6 @@ class EventRsvpPolicy
 
     /**
      * Визначає, чи може користувач переглядати RSVP.
-     *
-     * @param User $user
-     * @param EventRsvp $eventRsvp
-     * @return bool
      */
     public function view(User $user, EventRsvp $eventRsvp): bool
     {
@@ -53,9 +43,6 @@ class EventRsvpPolicy
 
     /**
      * Визначає, чи може користувач створювати RSVP.
-     *
-     * @param User $user
-     * @return bool
      */
     public function create(User $user): bool
     {
@@ -64,10 +51,6 @@ class EventRsvpPolicy
 
     /**
      * Визначає, чи може користувач оновлювати RSVP.
-     *
-     * @param User $user
-     * @param EventRsvp $eventRsvp
-     * @return bool
      */
     public function update(User $user, EventRsvp $eventRsvp): bool
     {
@@ -76,10 +59,6 @@ class EventRsvpPolicy
 
     /**
      * Визначає, чи може користувач видаляти RSVP.
-     *
-     * @param User $user
-     * @param EventRsvp $eventRsvp
-     * @return bool
      */
     public function delete(User $user, EventRsvp $eventRsvp): bool
     {

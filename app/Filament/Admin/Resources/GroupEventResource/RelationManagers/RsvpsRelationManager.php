@@ -2,115 +2,61 @@
 
 namespace App\Filament\Admin\Resources\GroupEventResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Forms\Components\Select;
+use App\Enums\EventResponse;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class RsvpsRelationManager extends RelationManager
 {
     protected static string $relationship = 'rsvps';
 
-    protected static ?string $recordTitleAttribute = 'id';
-
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('RSVP до події') . ' ' . $ownerRecord->title;
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                Select::make('user_id')
-                    ->label(__('Користувач'))
-                    ->relationship('user', 'username')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
-
-                Select::make('response')
-                    ->label(__('Відповідь'))
-                    ->options([
-                        'going' => __('Відвідає'),
-                        'maybe' => __('Можливо'),
-                        'not_going' => __('Не відвідає'),
-                    ])
-                    ->required(),
-            ]);
-    }
+    protected static ?string $title = 'Відповіді на подію';
 
     public function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('user.username')
-                    ->label(__('Користувач'))
+                Tables\Columns\ImageColumn::make('user.profile_picture')
+                    ->label('Користувач')
+                    ->circular()
+                    ->size(40)
+                    ->defaultImageUrl(url('/images/default-avatar.png')),
+                Tables\Columns\TextColumn::make('user.username')
+                    ->label('Користувач')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record) => $record->user ? route('filament.admin.resources.users.view', $record->user_id) : null),
-
-                TextColumn::make('response')
-                    ->label(__('Відповідь'))
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('user.email')
+                    ->label('Email')
+                    ->searchable()
+                    ->copyable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('response')
+                    ->label('Відповідь')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => match ($state) {
-                        'going' => __('Відвідає'),
-                        'maybe' => __('Можливо'),
-                        'not_going' => __('Не відвідає'),
-                        default => $state ?? '-',
+                    ->color(fn (?EventResponse $state) => match ($state) {
+                        EventResponse::GOING => 'success',
+                        EventResponse::MAYBE => 'warning',
+                        EventResponse::NOT_GOING => 'danger',
+                        default => 'gray',
                     })
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Відповів')
+                    ->dateTime('d.m.Y H:i')
+                    ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('user_id')
-                    ->label(__('Користувач'))
-                    ->relationship('user', 'username')
-                    ->multiple()
-                    ->indicator(__('Користувач')),
-
-                SelectFilter::make('response')
-                    ->label(__('Відповідь'))
-                    ->options([
-                        'going' => __('Відвідає'),
-                        'maybe' => __('Можливо'),
-                        'not_going' => __('Не відвідає'),
-                    ])
-                    ->multiple()
-                    ->indicator(__('Відповідь')),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label(__('Додати RSVP')),
+                Tables\Filters\SelectFilter::make('response')
+                    ->label('Відповідь')
+                    ->options(EventResponse::class),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
-                Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                Tables\Actions\ViewAction::make()->label('Переглянути'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
-                ]),
-            ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->emptyStateHeading('Немає відповідей')
+            ->emptyStateDescription('Поки що ніхто не відповів на цю подію.');
     }
 }

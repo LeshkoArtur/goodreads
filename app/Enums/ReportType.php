@@ -18,7 +18,7 @@ enum ReportType: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('report_type.' . $this->value);
+        return __('report_type.'.$this->value);
     }
 
     // Colors for display in Filament
@@ -43,7 +43,7 @@ enum ReportType: string implements HasColor, HasIcon, HasLabel
             self::INAPPROPRIATE => 'heroicon-o-shield-exclamation',
             self::SPOILERS => 'heroicon-o-eye-slash',
             self::COPYRIGHT => 'heroicon-o-document-text',
-            self::OTHER => 'heroicon-o-dots-horizontal',
+            self::OTHER => 'heroicon-o-ellipsis-horizontal',
         };
     }
 }

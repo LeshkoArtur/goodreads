@@ -2,7 +2,7 @@
 
 namespace App\Actions\Genres;
 
-use App\DTOs\Genre\GenreStoreDTO;
+use App\Data\Genre\GenreStoreData;
 use App\Models\Genre;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,22 +10,15 @@ class CreateGenre
 {
     use AsAction;
 
-    /**
-     * Створити новий жанр.
-     *
-     * @param GenreStoreDTO $dto
-     * @return Genre
-     */
-    public function handle(GenreStoreDTO $dto): Genre
+    public function handle(GenreStoreData $data): Genre
     {
-        $genre = new Genre();
-        $genre->name = $dto->name;
-        $genre->parent_id = $dto->parentId;
-        $genre->description = $dto->description;
-        $genre->book_count = $dto->bookCount;
-
+        $genre = new Genre;
+        $genre->name = $data->name;
+        $genre->parent_id = $data->parent_id;
+        $genre->description = $data->description;
+        $genre->book_count = $data->book_count;
         $genre->save();
 
-        return $genre->load(['books', 'parent', 'children']);
+        return $genre->fresh(['books', 'parent', 'children']);
     }
 }

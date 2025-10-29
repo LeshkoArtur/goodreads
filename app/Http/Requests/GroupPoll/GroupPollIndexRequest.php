@@ -9,7 +9,7 @@ class GroupPollIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', GroupPoll::class);
+        return $this->user()?->can('viewAny', GroupPoll::class) ?? true;
     }
 
     public function rules(): array
@@ -20,8 +20,8 @@ class GroupPollIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:question,created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'group_id' => ['nullable', 'string', 'exists:groups,id'],
-            'creator_id' => ['nullable', 'string', 'exists:users,id'],
+            'group_id' => ['nullable', 'uuid', 'exists:groups,id'],
+            'creator_id' => ['nullable', 'uuid', 'exists:users,id'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }
@@ -31,7 +31,7 @@ class GroupPollIndexRequest extends FormRequest
         return [
             'q' => [
                 'description' => 'Пошуковий запит для питання опитування.',
-                'example' => 'Яка книга найкраща?',
+                'example' => 'Яка ваша улюблена книга?',
             ],
             'page' => [
                 'description' => 'Номер сторінки для пагінації.',
@@ -43,19 +43,19 @@ class GroupPollIndexRequest extends FormRequest
             ],
             'sort' => [
                 'description' => 'Поле для сортування (question, created_at).',
-                'example' => 'question',
+                'example' => 'created_at',
             ],
             'direction' => [
                 'description' => 'Напрямок сортування (asc або desc).',
-                'example' => 'asc',
+                'example' => 'desc',
             ],
             'group_id' => [
-                'description' => 'Фільтр за ID групи.',
-                'example' => 'group-uuid123',
+                'description' => 'Фільтр за UUID групи.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'creator_id' => [
-                'description' => 'Фільтр за ID творця опитування.',
-                'example' => 'user-uuid123',
+                'description' => 'Фільтр за UUID створювача.',
+                'example' => '8c6d7e2b-1a9c-3d4e-8f2b-1c2d3e4f5a6b',
             ],
             'is_active' => [
                 'description' => 'Фільтр за активністю опитування.',

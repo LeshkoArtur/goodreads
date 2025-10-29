@@ -3,15 +3,10 @@
 namespace App\Filament\Admin\Resources\BookResource\RelationManagers;
 
 use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class GenresRelationManager extends RelationManager
 {
@@ -19,92 +14,103 @@ class GenresRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Жанри книги') . ' ' . $ownerRecord->title;
-    }
+    protected static ?string $title = 'Жанри';
 
-    public function form(Forms\Form $form): Forms\Form
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->label(__('Назва жанру'))
+                Forms\Components\TextInput::make('name')
+                    ->label('Назва жанру')
                     ->required()
-                    ->maxLength(100),
-
-                Select::make('parent_id')
-                    ->label(__('Батьківський жанр'))
+                    ->maxLength(255),
+                Forms\Components\Textarea::make('description')
+                    ->label('Опис')
+                    ->rows(3)
+                    ->maxLength(1000),
+                Forms\Components\Select::make('parent_id')
+                    ->label('Батьківський жанр')
                     ->relationship('parent', 'name')
                     ->searchable()
                     ->preload()
-                    ->nullable(),
-
-                Textarea::make('description')
-                    ->label(__('Опис'))
-                    ->maxLength(65535)
-                    ->nullable()
-                    ->columnSpanFull(),
+                    ->helperText('Залиште порожнім для головного жанру'),
             ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('name')
-                    ->label(__('Назва'))
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Назва')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record) => route('filament.admin.resources.genres.view', $record->id)),
-
-                TextColumn::make('parent.name')
-                    ->label(__('Батьківський жанр'))
+                    ->weight('bold')
+                    ->badge()
+                    ->color('primary'),
+                Tables\Columns\TextColumn::make('parent.name')
+                    ->label('Батьківський жанр')
                     ->searchable()
                     ->sortable()
+                    ->badge()
+                    ->color('gray')
+                    ->placeholder('—')
                     ->toggleable(),
-
-                TextColumn::make('book_count')
-                    ->label(__('Кількість книг'))
-                    ->sortable()
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Опис')
+                    ->limit(50)
+                    ->tooltip(fn ($record) => $record->description)
                     ->toggleable(),
-
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                Tables\Columns\TextColumn::make('books_count')
+                    ->label('Книг')
+                    ->counts('books')
+                    ->badge()
+                    ->color('success')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('parent_id')
-                    ->label(__('Батьківський жанр'))
-                    ->relationship('parent', 'name')
-                    ->multiple()
-                    ->indicator(__('Батьківський жанр')),
+                Tables\Filters\TernaryFilter::make('parent_id')
+                    ->label('Тип жанру')
+                    ->placeholder('Всі жанри')
+                    ->trueLabel('Підкатегорії')
+                    ->falseLabel('Головні жанри')
+                    ->queries(
+                        true: fn ($query) => $query->whereNotNull('parent_id'),
+                        false: fn ($query) => $query->whereNull('parent_id'),
+                    ),
             ])
             ->headerActions([
                 Tables\Actions\AttachAction::make()
-                    ->label(__('Додати жанр'))
-                    ->preloadRecordSelect(),
+                    ->label('Прикріпити жанр')
+                    ->preloadRecordSelect()
+                    ->multiple()
+                    ->recordSelectSearchColumns(['name', 'description'])
+                    ->modalHeading('Прикріпити жанри до книги'),
+                Tables\Actions\CreateAction::make()
+                    ->label('Створити жанр')
+                    ->modalHeading('Створити новий жанр'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
                 Tables\Actions\DetachAction::make()
-                    ->label(__('Від’єднати')),
+                    ->label('Відкріпити')
+                    ->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DetachBulkAction::make()
-                        ->label(__('Від’єднати вибрані')),
+                        ->label('Відкріпити обрані')
+                        ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('name', 'asc');
+            ->emptyStateHeading('Немає жанрів')
+            ->emptyStateDescription('Додайте жанри до цієї книги.')
+            ->emptyStateActions([
+                Tables\Actions\AttachAction::make()
+                    ->label('Прикріпити жанр')
+                    ->preloadRecordSelect()
+                    ->multiple(),
+            ]);
     }
 }

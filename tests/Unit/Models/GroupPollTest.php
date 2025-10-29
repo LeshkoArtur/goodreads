@@ -106,5 +106,4 @@ class GroupPollTest extends TestCase
         $this->assertCount(2, $poll->votes);
         $this->assertInstanceOf(PollVote::class, $poll->votes->first());
     }
-
 }

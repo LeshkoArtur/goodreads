@@ -2,33 +2,27 @@
 
 namespace App\Actions\GroupEvents;
 
-use App\DTOs\GroupEvent\GroupEventStoreDTO;
+use App\Data\GroupEvent\GroupEventStoreData;
 use App\Models\GroupEvent;
+use App\Models\User;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class CreateGroupEvent
 {
     use AsAction;
 
-    /**
-     * Створити нову подію групи.
-     *
-     * @param GroupEventStoreDTO $dto
-     * @return GroupEvent
-     */
-    public function handle(GroupEventStoreDTO $dto): GroupEvent
+    public function handle(GroupEventStoreData $data, User $user): GroupEvent
     {
-        $groupEvent = new GroupEvent();
-        $groupEvent->group_id = $dto->groupId;
-        $groupEvent->creator_id = $dto->creatorId;
-        $groupEvent->title = $dto->title;
-        $groupEvent->description = $dto->description;
-        $groupEvent->event_date = $dto->eventDate;
-        $groupEvent->location = $dto->location;
-        $groupEvent->status = $dto->status;
-
+        $groupEvent = new GroupEvent;
+        $groupEvent->group_id = $data->group_id;
+        $groupEvent->creator_id = $user->id;
+        $groupEvent->title = $data->title;
+        $groupEvent->description = $data->description;
+        $groupEvent->event_date = $data->event_date;
+        $groupEvent->location = $data->location;
+        $groupEvent->status = $data->status;
         $groupEvent->save();
 
-        return $groupEvent->load(['group', 'creator', 'rsvps']);
+        return $groupEvent->fresh(['group', 'creator']);
     }
 }

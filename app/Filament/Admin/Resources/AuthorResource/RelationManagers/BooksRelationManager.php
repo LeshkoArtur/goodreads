@@ -2,22 +2,9 @@
 
 namespace App\Filament\Admin\Resources\AuthorResource\RelationManagers;
 
-use App\Enums\AgeRestriction;
-use Filament\Forms;
-use Filament\Forms\Components\KeyValue;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class BooksRelationManager extends RelationManager
 {
@@ -25,215 +12,95 @@ class BooksRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'title';
 
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Книги автора') . ' ' . $ownerRecord->name;
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                TextInput::make('title')
-                    ->label(__('Назва'))
-                    ->required()
-                    ->maxLength(255),
-
-                Textarea::make('description')
-                    ->label(__('Опис'))
-                    ->maxLength(65535)
-                    ->nullable()
-                    ->columnSpanFull(),
-
-                Textarea::make('plot')
-                    ->label(__('Сюжет'))
-                    ->maxLength(65535)
-                    ->nullable()
-                    ->columnSpanFull(),
-
-                Textarea::make('history')
-                    ->label(__('Історія створення'))
-                    ->maxLength(65535)
-                    ->nullable()
-                    ->columnSpanFull(),
-
-                Select::make('series_id')
-                    ->label(__('Серія'))
-                    ->relationship('series', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->nullable(),
-
-                TextInput::make('number_in_series')
-                    ->label(__('Номер у серії'))
-                    ->numeric()
-                    ->minValue(1)
-                    ->nullable(),
-
-                TextInput::make('page_count')
-                    ->label(__('Кількість сторінок'))
-                    ->numeric()
-                    ->minValue(1)
-                    ->nullable(),
-
-                KeyValue::make('languages')
-                    ->label(__('Мови'))
-                    ->keyLabel(__('Код мови'))
-                    ->valueLabel(__('Назва мови'))
-                    ->nullable(),
-
-                Forms\Components\FileUpload::make('cover_image')
-                    ->label(__('Обкладинка'))
-                    ->directory('cover_image')
-                    ->image()
-                    ->maxSize(2048)
-                    ->nullable(),
-
-                KeyValue::make('fun_facts')
-                    ->label(__('Цікаві факти'))
-                    ->keyLabel(__('Факт'))
-                    ->valueLabel(__('Опис'))
-                    ->nullable(),
-
-                KeyValue::make('adaptations')
-                    ->label(__('Екранізації'))
-                    ->keyLabel(__('Назва'))
-                    ->valueLabel(__('Опис'))
-                    ->nullable(),
-
-                Toggle::make('is_bestseller')
-                    ->label(__('Бестселер'))
-                    ->default(false),
-
-                TextInput::make('average_rating')
-                    ->label(__('Середній рейтинг'))
-                    ->numeric()
-                    ->minValue(0)
-                    ->maxValue(5)
-                    ->step(0.1)
-                    ->disabled()
-                    ->dehydrated(false),
-
-                Select::make('age_restriction')
-                    ->label(__('Вікове обмеження'))
-                    ->options(AgeRestriction::class)
-                    ->nullable(),
-            ]);
-    }
+    protected static ?string $title = 'Книги автора';
 
     public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('title')
             ->columns([
-                ImageColumn::make('cover_image')
-                    ->label(__('Обкладинка'))
-                    ->getStateUsing(fn ($record) => $record->getFirstMediaUrl('cover_image'))
-                    ->circular()
-                    ->defaultImageUrl(url('path/to/default-book-image.jpg')),
-
-                TextColumn::make('title')
-                    ->label(__('Назва'))
+                Tables\Columns\ImageColumn::make('cover_image')
+                    ->label('Обкладинка')
+                    ->size(50),
+                Tables\Columns\TextColumn::make('title')
+                    ->label('Назва')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record) => route('filament.admin.resources.books.view', $record->id)),
-
-                TextColumn::make('series.name')
-                    ->label(__('Серія'))
+                    ->limit(50)
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('series.title')
+                    ->label('Серія')
                     ->searchable()
                     ->sortable()
+                    ->placeholder('—')
                     ->toggleable(),
-
-                TextColumn::make('number_in_series')
-                    ->label(__('Номер у серії'))
+                Tables\Columns\TextColumn::make('average_rating')
+                    ->label('Рейтинг')
                     ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('page_count')
-                    ->label(__('Сторінки'))
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('average_rating')
-                    ->label(__('Середній рейтинг'))
-                    ->sortable()
-                    ->toggleable(),
-
-                IconColumn::make('is_bestseller')
-                    ->label(__('Бестселер'))
-                    ->boolean()
-                    ->trueIcon('heroicon-o-star')
-                    ->falseIcon('heroicon-o-star')
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('age_restriction')
-                    ->label(__('Вікове обмеження'))
                     ->badge()
-                    ->formatStateUsing(fn (?AgeRestriction $state) => $state?->getLabel())
+                    ->color(fn ($state) => match (true) {
+                        $state >= 4.5 => 'success',
+                        $state >= 3.5 => 'warning',
+                        default => 'info',
+                    })
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 1).' ⭐' : '—'),
+                Tables\Columns\TextColumn::make('page_count')
+                    ->label('Сторінок')
                     ->sortable()
                     ->toggleable(),
-
-                TextColumn::make('ratings_count')
-                    ->label(__('Кількість рейтингів'))
+                Tables\Columns\IconColumn::make('is_bestseller')
+                    ->label('Бестселер')
+                    ->boolean()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('ratings_count')
+                    ->label('Оцінок')
                     ->counts('ratings')
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('quotes_count')
-                    ->label(__('Кількість цитат'))
-                    ->counts('quotes')
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
+                    ->badge()
+                    ->color('info')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Додано')
+                    ->dateTime('d.m.Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('age_restriction')
-                    ->label(__('Вікове обмеження'))
-                    ->options(AgeRestriction::class)
-                    ->multiple()
-                    ->indicator(__('Вікове обмеження')),
-
-                TernaryFilter::make('is_bestseller')
-                    ->label(__('Бестселер'))
-                    ->placeholder(__('Всі'))
-                    ->trueLabel(__('Бестселери'))
-                    ->falseLabel(__('Не бестселери'))
-                    ->indicator(__('Бестселер')),
-
-                SelectFilter::make('series_id')
-                    ->label(__('Серія'))
-                    ->relationship('series', 'name')
-                    ->multiple()
-                    ->indicator(__('Серія')),
+                Tables\Filters\TernaryFilter::make('is_bestseller')
+                    ->label('Бестселер'),
+                Tables\Filters\SelectFilter::make('series_id')
+                    ->label('Серія')
+                    ->relationship('series', 'title')
+                    ->searchable()
+                    ->preload(),
             ])
             ->headerActions([
                 Tables\Actions\AttachAction::make()
-                    ->label(__('Додати книгу'))
-                    ->preloadRecordSelect(),
+                    ->label('Прикріпити книгу')
+                    ->preloadRecordSelect()
+                    ->modalHeading('Прикріпити книгу до автора'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label(__('Редагувати')),
+                Tables\Actions\ViewAction::make()
+                    ->label('Переглянути'),
                 Tables\Actions\DetachAction::make()
-                    ->label(__('Від’єднати')),
+                    ->label('Відкріпити')
+                    ->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DetachBulkAction::make()
-                        ->label(__('Від’єднати вибрані')),
+                        ->label('Відкріпити обрані')
+                        ->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('title', 'asc');
+            ->defaultSort('created_at', 'desc')
+            ->emptyStateHeading('Немає книг')
+            ->emptyStateDescription('У цього автора поки немає книг.')
+            ->emptyStateActions([
+                Tables\Actions\AttachAction::make()
+                    ->label('Прикріпити книгу')
+                    ->preloadRecordSelect(),
+            ]);
     }
 }

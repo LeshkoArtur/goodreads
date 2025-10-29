@@ -2,7 +2,7 @@
 
 namespace App\Actions\BookOffers;
 
-use App\DTOs\BookOffer\BookOfferUpdateDTO;
+use App\Data\BookOffer\BookOfferUpdateData;
 use App\Models\BookOffer;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,26 +10,19 @@ class UpdateBookOffer
 {
     use AsAction;
 
-    /**
-     * Оновити існуючу пропозицію книги.
-     *
-     * @param BookOffer $bookOffer
-     * @param BookOfferUpdateDTO $dto
-     * @return BookOffer
-     */
-    public function handle(BookOffer $bookOffer, BookOfferUpdateDTO $dto): BookOffer
+    public function handle(BookOffer $bookOffer, BookOfferUpdateData $data): BookOffer
     {
-        $attributes = [
-            'price' => $dto->price,
-            'currency' => $dto->currency,
-            'status' => $dto->status,
-            'referral_url' => $dto->url,
-        ];
+        $bookOffer->update(array_filter([
+            'book_id' => $data->book_id,
+            'store_id' => $data->store_id,
+            'price' => $data->price,
+            'currency' => $data->currency,
+            'referral_url' => $data->referral_url,
+            'availability' => $data->availability,
+            'status' => $data->status,
+            'last_updated_at' => $data->last_updated_at,
+        ], fn ($value) => $value !== null));
 
-        $bookOffer->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $bookOffer->save();
-
-        return $bookOffer->load(['book', 'store']);
+        return $bookOffer->fresh(['book', 'store']);
     }
 }

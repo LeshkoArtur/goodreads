@@ -9,20 +9,20 @@ use App\Enums\ReadingFormat;
 use App\Enums\Role;
 use App\Models\Author;
 use App\Models\Book;
+use App\Models\Comment;
+use App\Models\EventRsvp;
+use App\Models\Favorite;
 use App\Models\Group;
 use App\Models\GroupEvent;
 use App\Models\GroupInvitation;
-use App\Models\EventRsvp;
-use App\Models\Post;
-use App\Models\User;
-use App\Models\Shelf;
-use App\Models\UserBook;
-use App\Models\Rating;
-use App\Models\Quote;
-use App\Models\Note;
-use App\Models\Comment;
 use App\Models\Like;
-use App\Models\Favorite;
+use App\Models\Note;
+use App\Models\Post;
+use App\Models\Quote;
+use App\Models\Rating;
+use App\Models\Shelf;
+use App\Models\User;
+use App\Models\UserBook;
 use App\Models\ViewHistory;
 use DateTimeInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,7 +35,7 @@ class UserTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_fields()
     {
-        $user = new User();
+        $user = new User;
         $this->assertEquals([
             'username',
             'email',
@@ -56,7 +56,7 @@ class UserTest extends TestCase
     /** @test */
     public function it_hides_password_field()
     {
-        $user = new User();
+        $user = new User;
         $this->assertContains('password', $user->getHidden());
     }
 

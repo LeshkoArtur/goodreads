@@ -86,6 +86,8 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \App\Enums\AnswerStatus $status
  * @property-read \App\Models\Author $author
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Like> $likes
+ * @property-read int|null $likes_count
  * @property-read \App\Models\AuthorQuestion $question
  * @method static \App\Models\Builders\AuthorAnswerQueryBuilder<static>|AuthorAnswer byAuthor(string $authorId)
  * @method static \Database\Factories\AuthorAnswerFactory factory($count = null, $state = [])
@@ -325,6 +327,8 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string $cover_type
+ * @property-read \App\Models\Book $book
+ * @property-read \App\Models\Publisher $publisher
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BookPublisher query()
@@ -471,6 +475,8 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent $commentable
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Like> $likes
+ * @property-read int|null $likes_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\GroupModerationLog> $moderationLogs
  * @property-read int|null $moderation_logs_count
  * @property-read Comment|null $parent
@@ -508,7 +514,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \App\Enums\EventResponse $response
- * @property-read \App\Models\GroupEvent|null $event
+ * @property-read \App\Models\GroupEvent $event
  * @property-read \App\Models\User $user
  * @method static \App\Models\Builders\EventRsvpQueryBuilder<static>|EventRsvp byUser(string $userId)
  * @method static \Database\Factories\EventRsvpFactory factory($count = null, $state = [])
@@ -571,12 +577,13 @@ namespace App\Models{
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Genre> $children
  * @property-read int|null $children_count
  * @property-read Genre|null $parent
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Genre> $subgenres
+ * @property-read int|null $subgenres_count
  * @method static \Database\Factories\GenreFactory factory($count = null, $state = [])
  * @method static \App\Models\Builders\GenreQueryBuilder<static>|Genre minBooks(int $count)
  * @method static \App\Models\Builders\GenreQueryBuilder<static>|Genre newModelQuery()
  * @method static \App\Models\Builders\GenreQueryBuilder<static>|Genre newQuery()
  * @method static \App\Models\Builders\GenreQueryBuilder<static>|Genre query()
- * @method static \App\Models\Builders\GenreQueryBuilder<static>|Genre subGenres(string $parentId)
  * @method static \App\Models\Builders\GenreQueryBuilder<static>|Genre topLevel()
  * @method static \App\Models\Builders\GenreQueryBuilder<static>|Genre whereBookCount($value)
  * @method static \App\Models\Builders\GenreQueryBuilder<static>|Genre whereCreatedAt($value)
@@ -732,7 +739,7 @@ namespace App\Models{
  * @property string $id
  * @property string $group_id
  * @property string $moderator_id
- * @property string $action
+ * @property \App\Enums\ModerationAction $action
  * @property string $targetable_type
  * @property string $targetable_id
  * @property string|null $description
@@ -985,6 +992,8 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\GroupPoll $poll
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PollVote> $votes
+ * @property-read int|null $votes_count
  * @method static \Database\Factories\PollOptionFactory factory($count = null, $state = [])
  * @method static \App\Models\Builders\PollOptionQueryBuilder<static>|PollOption forPoll(string $pollId)
  * @method static \App\Models\Builders\PollOptionQueryBuilder<static>|PollOption minVotes(int $count)
@@ -1104,6 +1113,8 @@ namespace App\Models{
  * @property string|null $phone
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\BookPublisher> $bookPublishers
+ * @property-read int|null $book_publishers_count
  * @property-read \App\Models\BookPublisher|null $pivot
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Book> $books
  * @property-read int|null $books_count
@@ -1293,6 +1304,8 @@ namespace App\Models{
  * @property string $name
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Book> $books
+ * @property-read int|null $books_count
  * @property-read \App\Models\User|null $user
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\UserBook> $userBooks
  * @property-read int|null $user_books_count
@@ -1376,6 +1389,7 @@ namespace App\Models{
  * @property string $email
  * @property \Illuminate\Support\Carbon|null $email_verified_at
  * @property string $password
+ * @property string|null $remember_token
  * @property string $username
  * @property string|null $profile_picture
  * @property string|null $bio
@@ -1387,7 +1401,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \App\Enums\Role $role
- * @property \App\Enums\Gender $gender
+ * @property \App\Enums\Gender|null $gender
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Author> $authors
  * @property-read int|null $authors_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\UserBook> $books
@@ -1410,12 +1424,16 @@ namespace App\Models{
  * @property-read int|null $likes_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Note> $notes
  * @property-read int|null $notes_count
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Quote> $quotes
  * @property-read int|null $quotes_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Rating> $ratings
  * @property-read int|null $ratings_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shelf> $shelves
  * @property-read int|null $shelves_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
+ * @property-read int|null $tokens_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ViewHistory> $viewHistories
  * @property-read int|null $view_histories_count
  * @method static \App\Models\Builders\UserQueryBuilder<static>|User emailVerified()
@@ -1439,6 +1457,7 @@ namespace App\Models{
  * @method static \App\Models\Builders\UserQueryBuilder<static>|User whereLocation($value)
  * @method static \App\Models\Builders\UserQueryBuilder<static>|User wherePassword($value)
  * @method static \App\Models\Builders\UserQueryBuilder<static>|User whereProfilePicture($value)
+ * @method static \App\Models\Builders\UserQueryBuilder<static>|User whereRememberToken($value)
  * @method static \App\Models\Builders\UserQueryBuilder<static>|User whereRole($value)
  * @method static \App\Models\Builders\UserQueryBuilder<static>|User whereSocialMediaLinks($value)
  * @method static \App\Models\Builders\UserQueryBuilder<static>|User whereUpdatedAt($value)

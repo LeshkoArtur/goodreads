@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\PollVote;
 
-use App\Models\PollVote;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PollVoteUpdateRequest extends FormRequest
@@ -10,7 +9,8 @@ class PollVoteUpdateRequest extends FormRequest
     public function authorize(): bool
     {
         $pollVote = $this->route('poll_vote');
-        return $this->user()->can('update', $pollVote);
+
+        return $this->user()?->can('update', $pollVote) ?? false;
     }
 
     public function rules(): array

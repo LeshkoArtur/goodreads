@@ -2,34 +2,30 @@
 
 namespace App\Http\Requests\Report;
 
-use App\Models\Report;
+use App\Enums\ReportStatus;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class ReportUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
         $report = $this->route('report');
-        return $this->user()->can('update', $report);
+
+        return $this->user()?->can('update', $report) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'reason' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'status' => ['nullable', Rule::in(\App\Enums\ReportStatus::values())],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'status' => ['nullable', new Enum(ReportStatus::class)],
         ];
     }
 
     public function bodyParameters(): array
     {
         return [
-            'reason' => [
-                'description' => 'Причина звіту.',
-                'example' => 'Непристойний вміст',
-            ],
             'description' => [
                 'description' => 'Опис звіту.',
                 'example' => 'Оновлений опис звіту.',

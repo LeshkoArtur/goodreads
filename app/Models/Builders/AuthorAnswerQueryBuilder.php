@@ -45,6 +45,6 @@ class AuthorAnswerQueryBuilder extends Builder
      */
     public function withContent(string $content): static
     {
-        return $this->where('content', 'like', '%' . $content . '%');
+        return $this->where('content', 'like', '%'.$content.'%');
     }
 }

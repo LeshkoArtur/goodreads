@@ -16,7 +16,7 @@ enum EventStatus: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('event_status.' . $this->value);
+        return __('event_status.'.$this->value);
     }
 
     // Colors for display in Filament

@@ -37,7 +37,7 @@ class GroupQueryBuilder extends Builder
      */
     public function withName(string $name): static
     {
-        return $this->where('name', 'like', '%' . $name . '%');
+        return $this->where('name', 'like', '%'.$name.'%');
     }
 
     /**

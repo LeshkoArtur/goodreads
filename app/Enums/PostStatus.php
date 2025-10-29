@@ -16,7 +16,7 @@ enum PostStatus: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('post_status.' . $this->value);
+        return __('post_status.'.$this->value);
     }
 
     // Colors for display in Filament
@@ -37,7 +37,7 @@ enum PostStatus: string implements HasColor, HasIcon, HasLabel
             self::DRAFT => 'heroicon-o-pencil',
             self::PENDING => 'heroicon-o-clock',
             self::PUBLISHED => 'heroicon-o-check-circle',
-            self::ARCHIVED => 'heroicon-o-archive',
+            self::ARCHIVED => 'heroicon-o-clock',
         };
     }
 }

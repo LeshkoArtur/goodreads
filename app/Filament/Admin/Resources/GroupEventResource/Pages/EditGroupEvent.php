@@ -3,10 +3,8 @@
 namespace App\Filament\Admin\Resources\GroupEventResource\Pages;
 
 use App\Actions\GroupEvents\UpdateGroupEvent;
-use App\DTOs\GroupEvent\GroupEventUpdateDTO;
+use App\Data\GroupEvent\GroupEventUpdateData;
 use App\Filament\Admin\Resources\GroupEventResource;
-use App\Models\GroupEvent;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,17 +12,15 @@ class EditGroupEvent extends EditRecord
 {
     protected static string $resource = GroupEventResource::class;
 
-    protected function getHeaderActions(): array
+    protected ?string $heading = 'Редагувати подію';
+
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        return app(UpdateGroupEvent::class)->handle($record, GroupEventUpdateData::fromArray($data));
     }
 
-    protected function handleRecordUpdate(GroupEvent|Model $record, array $data): GroupEvent
+    protected function getRedirectUrl(): string
     {
-        $dto = GroupEventUpdateDTO::fromArray($data);
-
-        return UpdateGroupEvent::run($record, $dto);
+        return $this->getResource()::getUrl('index');
     }
 }

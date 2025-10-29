@@ -2,7 +2,7 @@
 
 namespace App\Actions\GroupInvitations;
 
-use App\DTOs\GroupInvitation\GroupInvitationUpdateDTO;
+use App\Data\GroupInvitation\GroupInvitationUpdateData;
 use App\Models\GroupInvitation;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,23 +10,15 @@ class UpdateGroupInvitation
 {
     use AsAction;
 
-    /**
-     * Оновити існуюче запрошення до групи.
-     *
-     * @param GroupInvitation $groupInvitation
-     * @param GroupInvitationUpdateDTO $dto
-     * @return GroupInvitation
-     */
-    public function handle(GroupInvitation $groupInvitation, GroupInvitationUpdateDTO $dto): GroupInvitation
+    public function handle(GroupInvitation $groupInvitation, GroupInvitationUpdateData $data): GroupInvitation
     {
-        $attributes = [
-            'status' => $dto->status,
-        ];
+        $groupInvitation->update(array_filter([
+            'group_id' => $data->group_id,
+            'inviter_id' => $data->inviter_id,
+            'invitee_id' => $data->invitee_id,
+            'status' => $data->status,
+        ], fn ($value) => $value !== null));
 
-        $groupInvitation->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $groupInvitation->save();
-
-        return $groupInvitation->load(['group', 'inviter', 'invitee']);
+        return $groupInvitation->fresh(['group', 'inviter', 'invitee']);
     }
 }

@@ -45,7 +45,7 @@ class GroupEventQueryBuilder extends Builder
      */
     public function atLocation(string $location): static
     {
-        return $this->where('location', 'like', '%' . $location . '%');
+        return $this->where('location', 'like', '%'.$location.'%');
     }
 
     /**

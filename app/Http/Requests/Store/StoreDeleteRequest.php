@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Store;
 
-use App\Models\Store;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class StoreDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $store = $this->route('store');
-        return $this->user()->can('delete', $store);
+
+        return $this->user()?->can('delete', $store) ?? false;
     }
 
     public function rules(): array

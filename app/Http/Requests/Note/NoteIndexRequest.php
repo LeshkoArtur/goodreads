@@ -9,7 +9,7 @@ class NoteIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Note::class);
+        return $this->user()?->can('viewAny', Note::class) ?? false;
     }
 
     public function rules(): array
@@ -20,8 +20,8 @@ class NoteIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:text,created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'user_id' => ['nullable', 'string', 'exists:users,id'],
-            'book_id' => ['nullable', 'string', 'exists:books,id'],
+            'user_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'book_id' => ['nullable', 'uuid', 'exists:books,id'],
             'contains_spoilers' => ['nullable', 'boolean'],
             'is_private' => ['nullable', 'boolean'],
             'min_page_number' => ['nullable', 'integer', 'min:1'],

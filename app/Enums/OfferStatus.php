@@ -15,7 +15,7 @@ enum OfferStatus: string implements HasColor, HasIcon, HasLabel
 
     public function getLabel(): ?string
     {
-        return __('offer_status.' . $this->value);
+        return __('offer_status.'.$this->value);
     }
 
     public function getColor(): string|array|null
@@ -34,7 +34,7 @@ enum OfferStatus: string implements HasColor, HasIcon, HasLabel
             self::ACTIVE => 'heroicon-o-check-circle',
             self::PENDING => 'heroicon-o-clock',
             self::INACTIVE => 'heroicon-o-x-circle',
-            self::REJECTED => 'heroicon-o-ban',
+            self::REJECTED => 'heroicon-o-no-symbol',
         };
     }
 }

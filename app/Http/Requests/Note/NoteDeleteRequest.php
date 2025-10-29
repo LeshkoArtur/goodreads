@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Note;
 
-use App\Models\Note;
 use Illuminate\Foundation\Http\FormRequest;
 
 class NoteDeleteRequest extends FormRequest
@@ -10,7 +9,8 @@ class NoteDeleteRequest extends FormRequest
     public function authorize(): bool
     {
         $note = $this->route('note');
-        return $this->user()->can('delete', $note);
+
+        return $this->user()?->can('delete', $note) ?? false;
     }
 
     public function rules(): array

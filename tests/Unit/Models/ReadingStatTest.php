@@ -15,7 +15,7 @@ class ReadingStatTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_attributes()
     {
-        $model = new ReadingStat();
+        $model = new ReadingStat;
 
         $this->assertEquals([
             'user_id',

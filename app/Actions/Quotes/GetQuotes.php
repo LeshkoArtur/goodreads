@@ -2,72 +2,49 @@
 
 namespace App\Actions\Quotes;
 
-use App\DTOs\Quote\QuoteIndexDTO;
+use App\Data\Quote\QuoteIndexData;
 use App\Models\Quote;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetQuotes
 {
     use AsAction;
 
-    /**
-     * Отримати список цитат із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param QuoteIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(QuoteIndexDTO $dto): LengthAwarePaginator
+    public function handle(QuoteIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Quote::search($dto->query ?? '');
+        $searchQuery = Quote::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at', 'page_number'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['created_at', 'page_number']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/quotes');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param QuoteIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, QuoteIndexDTO $dto): void
+    private function applyFilters(Builder $query, QuoteIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"))
+            ->when($data->book_id, fn ($collection) => $collection->push("book_id = '{$data->book_id}'"))
+            ->when($data->contains_spoilers !== null, fn ($collection) => $collection->push('contains_spoilers = '.($data->contains_spoilers ? 'true' : 'false')))
+            ->when($data->is_public !== null, fn ($collection) => $collection->push('is_public = '.($data->is_public ? 'true' : 'false')))
+            ->when($data->min_page_number !== null, fn ($collection) => $collection->push("page_number >= {$data->min_page_number}"))
+            ->when($data->max_page_number !== null, fn ($collection) => $collection->push("page_number <= {$data->max_page_number}"));
 
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = {$dto->userId}";
-            }
-
-            if ($dto->bookId) {
-                $options['filter'][] = "book_id = {$dto->bookId}";
-            }
-
-            if ($dto->authorId) {
-                $options['filter'][] = "author_id = {$dto->authorId}";
-            }
-
-            if ($dto->status) {
-                $options['filter'][] = "is_public = " . ($dto->status === 'public' ? 'true' : 'false');
-            }
-
-            if ($dto->tagIds) {
-                $options['filter'][] = "tag_ids IN [" . implode(',', $dto->tagIds) . "]";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

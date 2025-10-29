@@ -3,9 +3,8 @@
 namespace App\Filament\Admin\Resources\ShelfResource\Pages;
 
 use App\Actions\Shelves\UpdateShelf;
-use App\DTOs\Shelf\ShelfUpdateDTO;
+use App\Data\Shelf\ShelfUpdateData;
 use App\Filament\Admin\Resources\ShelfResource;
-use App\Models\Shelf;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -14,17 +13,32 @@ class EditShelf extends EditRecord
 {
     protected static string $resource = ShelfResource::class;
 
+    protected ?string $heading = 'Редагувати полицю';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\ViewAction::make()
+                ->label('Переглянути'),
+            Actions\DeleteAction::make()
+                ->label('Видалити'),
         ];
     }
 
-    protected function handleRecordUpdate(Shelf|Model $record, array $data): Shelf
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $dto = ShelfUpdateDTO::fromArray($data);
+        $dto = ShelfUpdateData::fromArray($data);
 
-        return UpdateShelf::run($record, $dto);
+        return app(UpdateShelf::class)->handle($record, $dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Полицю оновлено';
     }
 }

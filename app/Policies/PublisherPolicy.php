@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Publisher;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
@@ -15,24 +15,18 @@ class PublisherPolicy
 
     /**
      * Виконується перед усіма перевірками авторизації.
-     *
-     * @param User $user
-     * @param string $ability
-     * @return bool|null
      */
     public function before(User $user, string $ability): ?bool
     {
         if ($user->isAdmin()) {
             return true;
         }
+
         return null;
     }
 
     /**
      * Визначає, чи може користувач переглядати будь-які видавництва.
-     *
-     * @param User $user
-     * @return bool
      */
     public function viewAny(User $user): bool
     {
@@ -41,10 +35,6 @@ class PublisherPolicy
 
     /**
      * Визначає, чи може користувач переглядати видавництво.
-     *
-     * @param User $user
-     * @param Publisher $publisher
-     * @return bool
      */
     public function view(User $user, Publisher $publisher): bool
     {
@@ -53,9 +43,6 @@ class PublisherPolicy
 
     /**
      * Визначає, чи може користувач створювати видавництва.
-     *
-     * @param User $user
-     * @return bool
      */
     public function create(User $user): bool
     {
@@ -64,10 +51,6 @@ class PublisherPolicy
 
     /**
      * Визначає, чи може користувач оновлювати видавництво.
-     *
-     * @param User $user
-     * @param Publisher $publisher
-     * @return bool
      */
     public function update(User $user, Publisher $publisher): bool
     {
@@ -76,10 +59,6 @@ class PublisherPolicy
 
     /**
      * Визначає, чи може користувач видаляти видавництво.
-     *
-     * @param User $user
-     * @param Publisher $publisher
-     * @return bool
      */
     public function delete(User $user, Publisher $publisher): bool
     {

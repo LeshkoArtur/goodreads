@@ -10,10 +10,10 @@ class ListGroupEvents extends ListRecords
 {
     protected static string $resource = GroupEventResource::class;
 
+    protected ?string $heading = 'Події';
+
     protected function getHeaderActions(): array
     {
-        return [
-            Actions\CreateAction::make(),
-        ];
+        return [Actions\CreateAction::make()->label('Створити подію')];
     }
 }

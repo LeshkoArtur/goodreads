@@ -17,7 +17,7 @@ enum PostCategory: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('post_category.' . $this->value);
+        return __('post_category.'.$this->value);
     }
 
     // Colors for display in Filament
@@ -38,9 +38,9 @@ enum PostCategory: string implements HasColor, HasIcon, HasLabel
         return match ($this) {
             self::GENERAL => 'heroicon-o-chat-bubble-left-right',
             self::SPOILERS => 'heroicon-o-eye-slash',
-            self::RECOMMENDATIONS => 'heroicon-o-thumb-up',
+            self::RECOMMENDATIONS => 'heroicon-o-hand-thumb-up',
             self::OFF_TOPIC => 'heroicon-o-exclamation-circle',
-            self::OTHER => 'heroicon-o-dots-horizontal',
+            self::OTHER => 'heroicon-o-ellipsis-horizontal',
         };
     }
 }

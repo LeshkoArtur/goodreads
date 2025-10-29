@@ -2,23 +2,16 @@
 
 namespace App\Http\Requests\Award;
 
-use App\Models\Award;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AwardDeleteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $award = $this->route('award');
-        return $this->user()->can('delete', $award);
+        return $this->user()?->can('delete', $this->route('award')) ?? false;
     }
 
     public function rules(): array
-    {
-        return [];
-    }
-
-    public function bodyParameters(): array
     {
         return [];
     }
@@ -27,8 +20,8 @@ class AwardDeleteRequest extends FormRequest
     {
         return [
             'award' => [
-                'description' => 'ID нагороди для видалення.',
-                'example' => 'award-uuid123',
+                'description' => 'UUID нагороди.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

@@ -10,10 +10,13 @@ class ListGroups extends ListRecords
 {
     protected static string $resource = GroupResource::class;
 
+    protected ?string $heading = 'Групи';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Створити групу'),
         ];
     }
 }

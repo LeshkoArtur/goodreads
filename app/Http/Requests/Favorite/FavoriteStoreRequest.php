@@ -4,37 +4,44 @@ namespace App\Http\Requests\Favorite;
 
 use App\Models\Favorite;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class FavoriteStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Favorite::class);
+        return $this->user()?->can('create', Favorite::class) ?? false;
     }
 
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'string', 'exists:users,id'],
-            'favoriteable_id' => ['required', 'string'],
-            'favoriteable_type' => ['required', 'string', 'in:App\Models\Book,App\Models\Author,App\Models\Series'],
+            'favoriteable_type' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::in([
+                    'App\\Models\\Book',
+                    'App\\Models\\Post',
+                    'App\\Models\\GroupPost',
+                    'App\\Models\\Quote',
+                    'App\\Models\\Rating',
+                ]),
+            ],
+            'favoriteable_id' => ['required', 'uuid'],
         ];
     }
 
     public function bodyParameters(): array
     {
         return [
-            'user_id' => [
-                'description' => 'ID користувача, який додає об’єкт до улюблених.',
-                'example' => 'user-uuid123',
+            'favoriteable_type' => [
+                'description' => 'Тип об\'єкта для додавання в улюблені. Можливі значення: App\\Models\\Book, App\\Models\\Post, App\\Models\\GroupPost, App\\Models\\Quote, App\\Models\\Rating.',
+                'example' => 'App\\Models\\Book',
             ],
             'favoriteable_id' => [
-                'description' => 'ID об’єкта, що додається до улюблених.',
-                'example' => 'book-uuid123',
-            ],
-            'favoriteable_type' => [
-                'description' => 'Тип об’єкта, що додається до улюблених (напр., App\Models\Book).',
-                'example' => 'App\Models\Book',
+                'description' => 'UUID об\'єкта для додавання в улюблені.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

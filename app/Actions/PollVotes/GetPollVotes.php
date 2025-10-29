@@ -2,64 +2,46 @@
 
 namespace App\Actions\PollVotes;
 
-use App\DTOs\PollVote\PollVoteIndexDTO;
+use App\Data\PollVote\PollVoteIndexData;
 use App\Models\PollVote;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetPollVotes
 {
     use AsAction;
 
-    /**
-     * Отримати список голосів в опитуваннях із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param PollVoteIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(PollVoteIndexDTO $dto): LengthAwarePaginator
+    public function handle(PollVoteIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = PollVote::search($dto->query ?? '');
+        $searchQuery = PollVote::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
+        if ($data->sort === 'created_at') {
+            $searchQuery->orderBy($data->sort, $data->direction ?? 'desc');
         }
 
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
         );
+
+        $paginator->withPath(config('app.frontend_url').'/poll-votes');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param PollVoteIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, PollVoteIndexDTO $dto): void
+    private function applyFilters(Builder $query, PollVoteIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->group_poll_id, fn ($collection) => $collection->push("group_poll_id = '{$data->group_poll_id}'"))
+                ->when($data->poll_option_id, fn ($collection) => $collection->push("poll_option_id = '{$data->poll_option_id}'"))
+                ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"))
+                ;
 
-            if ($dto->groupPollId) {
-                $options['filter'][] = "group_poll_id = {$dto->groupPollId}";
-            }
-
-            if ($dto->pollOptionId) {
-                $options['filter'][] = "poll_option_id = {$dto->pollOptionId}";
-            }
-
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = {$dto->userId}";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Actions\UserBooks;
 
-use App\DTOs\UserBook\UserBookStoreDTO;
+use App\Data\UserBook\UserBookStoreData;
 use App\Models\UserBook;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,28 +10,21 @@ class CreateUserBook
 {
     use AsAction;
 
-    /**
-     * Створити новий зв’язок між користувачем та книгою.
-     *
-     * @param UserBookStoreDTO $dto
-     * @return UserBook
-     */
-    public function handle(UserBookStoreDTO $dto): UserBook
+    public function handle(UserBookStoreData $data): UserBook
     {
-        $userBook = new UserBook();
-        $userBook->user_id = $dto->userId;
-        $userBook->book_id = $dto->bookId;
-        $userBook->shelf_id = $dto->shelfId;
-        $userBook->start_date = $dto->startDate;
-        $userBook->read_date = $dto->readDate;
-        $userBook->progress_pages = $dto->progressPages;
-        $userBook->is_private = $dto->isPrivate;
-        $userBook->rating = $dto->rating;
-        $userBook->notes = $dto->notes;
-        $userBook->reading_format = $dto->readingFormat?->value;
-
+        $userBook = new UserBook;
+        $userBook->user_id = $data->user_id;
+        $userBook->book_id = $data->book_id;
+        $userBook->shelf_id = $data->shelf_id;
+        $userBook->start_date = $data->start_date;
+        $userBook->read_date = $data->read_date;
+        $userBook->progress_pages = $data->progress_pages;
+        $userBook->is_private = $data->is_private;
+        $userBook->rating = $data->rating;
+        $userBook->notes = $data->notes;
+        $userBook->reading_format = $data->reading_format;
         $userBook->save();
 
-        return $userBook->load(['user', 'book', 'shelf']);
+        return $userBook->fresh(['user', 'book', 'shelf']);
     }
 }

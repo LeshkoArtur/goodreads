@@ -2,7 +2,7 @@
 
 namespace App\Actions\Groups;
 
-use App\DTOs\Group\GroupUpdateDTO;
+use App\Data\Group\GroupUpdateData;
 use App\Models\Group;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,28 +10,23 @@ class UpdateGroup
 {
     use AsAction;
 
-    /**
-     * Оновити існуючу групу.
-     *
-     * @param Group $group
-     * @param GroupUpdateDTO $dto
-     * @return Group
-     */
-    public function handle(Group $group, GroupUpdateDTO $dto): Group
+    public function handle(Group $group, GroupUpdateData $data): Group
     {
-        $attributes = [
-            'name' => $dto->name,
-            'is_public' => $dto->isPublic,
-            'is_active' => $dto->isActive,
-            'join_policy' => $dto->joinPolicy,
-            'post_policy' => $dto->postPolicy,
-            'description' => $dto->description,
-        ];
+        $group->update(array_filter([
+            'name' => $data->name,
+            'creator_id' => $data->creator_id,
+            'description' => $data->description,
+            'is_public' => $data->is_public,
+            'cover_image' => $data->cover_image,
+            'rules' => $data->rules,
+            'member_count' => $data->member_count,
+            'is_active' => $data->is_active,
+            'join_policy' => $data->join_policy,
+            'post_policy' => $data->post_policy,
+        ], fn ($value) => $value !== null));
 
-        $group->fill(array_filter($attributes, fn($value) => $value !== null));
+        when($data->member_ids !== null, fn () => $group->members()->sync($data->member_ids));
 
-        $group->save();
-
-        return $group->load(['creator', 'members', 'posts', 'events', 'invitations', 'polls', 'moderationLogs']);
+        return $group->fresh(['creator', 'members', 'posts']);
     }
 }

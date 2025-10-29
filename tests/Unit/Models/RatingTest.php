@@ -2,8 +2,14 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\{Rating, User, Book, Comment, Like, Favorite};
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, MorphMany};
+use App\Models\Book;
+use App\Models\Comment;
+use App\Models\Favorite;
+use App\Models\Like;
+use App\Models\Rating;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -14,7 +20,7 @@ class RatingTest extends TestCase
     /** @test */
     public function it_has_expected_fillable_fields(): void
     {
-        $rating = new Rating();
+        $rating = new Rating;
 
         $this->assertEquals([
             'user_id',

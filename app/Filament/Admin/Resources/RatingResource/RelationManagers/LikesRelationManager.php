@@ -2,86 +2,51 @@
 
 namespace App\Filament\Admin\Resources\RatingResource\RelationManagers;
 
-use App\Models\Like;
-use App\Models\Rating;
-use Filament\Forms;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class LikesRelationManager extends RelationManager
 {
     protected static string $relationship = 'likes';
 
-    protected static ?string $recordTitleAttribute = 'user.username';
-
-    public static function getTitle(Model $ownerRecord, string $pageClass): string
-    {
-        return __('Лайки до оцінки') . ' ' . $ownerRecord->rating . ' (' . $ownerRecord->book->title . ')';
-    }
-
-    public function form(Forms\Form $form): Forms\Form
-    {
-        return $form
-            ->schema([
-                Section::make(__('Лайк'))
-                    ->schema([
-                        Select::make('user_id')
-                            ->label(__('Користувач'))
-                            ->relationship('user', 'username')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
-                    ]),
-            ]);
-    }
+    protected static ?string $title = 'Лайки';
 
     public function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('user.username')
-                    ->label(__('Користувач'))
+                Tables\Columns\ImageColumn::make('user.profile_picture')
+                    ->label('Користувач')
+                    ->circular()
+                    ->size(40)
+                    ->defaultImageUrl(url('/images/default-avatar.png')),
+                Tables\Columns\TextColumn::make('user.username')
+                    ->label('Користувач')
                     ->searchable()
                     ->sortable()
-                    ->url(fn (Model $record): ?string => $record->user ? route('filament.admin.resources.users.view', $record->user_id) : null),
-                TextColumn::make('created_at')
-                    ->label(__('Дата лайку'))
-                    ->dateTime()
-                    ->sortable()
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('user.email')
+                    ->label('Email')
+                    ->searchable()
+                    ->copyable()
                     ->toggleable(),
-                TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Лайкнув')
+                    ->dateTime('d.m.Y H:i')
+                    ->sortable(),
             ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('user')
-                    ->label(__('Користувач'))
-                    ->relationship('user', 'username')
-                    ->searchable()
-                    ->multiple()
-                    ->indicator(__('Користувач')),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label(__('Додати лайк')),
-            ])
+            ->filters([])
             ->actions([
-                Tables\Actions\DeleteAction::make()
-                    ->label(__('Видалити')),
+                Tables\Actions\DeleteAction::make()->label('Видалити')->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->label(__('Видалити вибрані')),
+                    Tables\Actions\DeleteBulkAction::make()->label('Видалити обрані')->requiresConfirmation(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->emptyStateHeading('Немає лайків')
+            ->emptyStateDescription('Поки що ніхто не лайкнув цю оцінку.');
     }
 }

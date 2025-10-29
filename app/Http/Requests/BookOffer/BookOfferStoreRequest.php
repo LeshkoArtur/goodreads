@@ -10,7 +10,7 @@ class BookOfferStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', BookOffer::class);
+        return $this->user()?->can('create', BookOffer::class) ?? false;
     }
 
     public function rules(): array
@@ -19,10 +19,10 @@ class BookOfferStoreRequest extends FormRequest
             'book_id' => ['required', 'string', 'exists:books,id'],
             'store_id' => ['required', 'string', 'exists:stores,id'],
             'price' => ['required', 'numeric', 'min:0'],
-            'currency' => ['required', Rule::in(\App\Enums\Currency::values())],
+            'currency' => ['required', Rule::in(\App\Enums\Currency::cases())],
             'referral_url' => ['nullable', 'url'],
             'availability' => ['nullable', 'boolean'],
-            'status' => ['nullable', Rule::in(\App\Enums\OfferStatus::values())],
+            'status' => ['nullable', Rule::in(\App\Enums\OfferStatus::cases())],
             'last_updated_at' => ['nullable', 'date'],
         ];
     }

@@ -3,9 +3,8 @@
 namespace App\Filament\Admin\Resources\BookResource\Pages;
 
 use App\Actions\Books\UpdateBook;
-use App\DTOs\Book\BookUpdateDTO;
+use App\Data\Book\BookUpdateData;
 use App\Filament\Admin\Resources\BookResource;
-use App\Models\Book;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -14,17 +13,32 @@ class EditBook extends EditRecord
 {
     protected static string $resource = BookResource::class;
 
+    protected ?string $heading = 'Редагувати книгу';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\ViewAction::make()
+                ->label('Переглянути'),
+            Actions\DeleteAction::make()
+                ->label('Видалити'),
         ];
     }
 
-    protected function handleRecordUpdate(Book|Model $record, array $data): Book
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $dto = BookUpdateDTO::fromArray($data);
+        $dto = BookUpdateData::fromArray($data);
 
-        return UpdateBook::run($record, $dto);
+        return app(UpdateBook::class)->handle($record, $dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Книгу оновлено';
     }
 }

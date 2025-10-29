@@ -2,22 +2,24 @@
 
 namespace App\Filament\Admin\Resources;
 
-use App\Filament\Admin\Resources\GenreResource\Pages\CreateGenre;
-use App\Filament\Admin\Resources\GenreResource\Pages\EditGenre;
-use App\Filament\Admin\Resources\GenreResource\Pages\ListGenres;
-use App\Filament\Admin\Resources\GenreResource\Pages\ViewGenre;
-use App\Filament\Admin\Resources\GenreResource\RelationManagers\BooksRelationManager;
+use App\Filament\Admin\Resources\GenreResource\Pages;
 use App\Models\Genre;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class GenreResource extends Resource
 {
@@ -25,46 +27,78 @@ class GenreResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Жанри';
+    protected static ?string $navigationGroup = 'Основні сутності';
 
     protected static ?int $navigationSort = 5;
 
-    public static function getNavigationLabel(): string
-    {
-        return __('Жанри');
-    }
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function getModelLabel(): string
     {
-        return __('Жанр');
+        return 'Жанр';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Жанри');
+        return 'Жанри';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Жанри';
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'description'];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->name;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Батьківський' => $record->parent?->name ?? '—',
+            'Книг' => $record->books_count ?? 0,
+        ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withCount(['books', 'children']);
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->label(__('Назва'))
-                    ->required()
-                    ->maxLength(100),
-
-                Select::make('parent_id')
-                    ->label(__('Батьківський жанр'))
-                    ->relationship('parent', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->nullable(),
-
-                Textarea::make('description')
-                    ->label(__('Опис'))
-                    ->maxLength(65535)
-                    ->nullable()
-                    ->columnSpanFull(),
+                Section::make('Інформація про жанр')
+                    ->description('Базові дані про літературний жанр')
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Назва жанру')
+                            ->required()
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true)
+                            ->helperText('Унікальна назва жанру'),
+                        Select::make('parent_id')
+                            ->label('Батьківський жанр')
+                            ->relationship('parent', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Оберіть батьківський жанр, якщо цей є підкатегорією'),
+                        Textarea::make('description')
+                            ->label('Опис жанру')
+                            ->rows(4)
+                            ->maxLength(1000)
+                            ->helperText('Детальний опис жанру (до 1000 символів)')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -72,78 +106,82 @@ class GenreResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
                 TextColumn::make('name')
-                    ->label(__('Назва'))
+                    ->label('Назва')
                     ->searchable()
                     ->sortable()
-                    ->url(fn ($record) => route('filament.admin.resources.genres.view', $record->id)),
-
+                    ->weight('bold'),
                 TextColumn::make('parent.name')
-                    ->label(__('Батьківський жанр'))
+                    ->label('Батьківський жанр')
                     ->searchable()
                     ->sortable()
+                    ->badge()
+                    ->color('info')
+                    ->placeholder('—')
                     ->toggleable(),
-
-                TextColumn::make('book_count')
-                    ->label(__('Кількість книг'))
+                TextColumn::make('books_count')
+                    ->label('Книг')
+                    ->badge()
+                    ->color('success')
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('children_count')
+                    ->label('Підкатегорій')
+                    ->badge()
+                    ->color('warning')
                     ->sortable()
                     ->toggleable(),
-
                 TextColumn::make('created_at')
-                    ->label(__('Дата створення'))
-                    ->dateTime()
+                    ->label('Створено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-
                 TextColumn::make('updated_at')
-                    ->label(__('Дата оновлення'))
-                    ->dateTime()
+                    ->label('Оновлено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('parent_id')
-                    ->label(__('Батьківський жанр'))
+                SelectFilter::make('parent')
+                    ->label('Батьківський жанр')
                     ->relationship('parent', 'name')
-                    ->multiple()
-                    ->indicator(__('Батьківський жанр')),
+                    ->searchable()
+                    ->preload()
+                    ->multiple(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('name', 'asc')
-            ->groups([
-                'parent_id',
-            ]);
+            ->striped()
+            ->persistSortInSession()
+            ->persistSearchInSession()
+            ->persistFiltersInSession();
     }
 
     public static function getRelations(): array
     {
         return [
-            BooksRelationManager::class,
+            GenreResource\RelationManagers\BooksRelationManager::class,
+            GenreResource\RelationManagers\SubgenresRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListGenres::route('/'),
-            'create' => CreateGenre::route('/create'),
-            'view' => ViewGenre::route('/{record}'),
-            'edit' => EditGenre::route('/{record}/edit'),
+            'index' => Pages\ListGenres::route('/'),
+            'create' => Pages\CreateGenre::route('/create'),
+            'view' => Pages\ViewGenre::route('/{record}'),
+            'edit' => Pages\EditGenre::route('/{record}/edit'),
         ];
     }
 }

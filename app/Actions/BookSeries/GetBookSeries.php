@@ -2,64 +2,47 @@
 
 namespace App\Actions\BookSeries;
 
-use App\DTOs\BookSeries\BookSeriesIndexDTO;
+use App\Data\BookSeries\BookSeriesIndexData;
 use App\Models\BookSeries;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetBookSeries
 {
     use AsAction;
 
-    /**
-     * Отримати список книжкових серій із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param BookSeriesIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(BookSeriesIndexDTO $dto): LengthAwarePaginator
+    public function handle(BookSeriesIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = BookSeries::search($dto->query ?? '');
+        $searchQuery = BookSeries::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['title', 'total_books', 'created_at'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['title', 'total_books', 'created_at']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/book-series');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param BookSeriesIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, BookSeriesIndexDTO $dto): void
+    private function applyFilters(Builder $query, BookSeriesIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+                ->when($data->is_completed !== null, fn ($collection) => $collection->push('is_completed = '.($data->is_completed ? 'true' : 'false')))
+                ->when($data->min_total_books !== null, fn ($collection) => $collection->push("total_books >= {$data->min_total_books}"))
+                ->when($data->max_total_books !== null, fn ($collection) => $collection->push("total_books <= {$data->max_total_books}"))
+                ;
 
-            if ($dto->minTotalBooks !== null) {
-                $options['filter'][] = "total_books >= {$dto->minTotalBooks}";
-            }
-
-            if ($dto->maxTotalBooks !== null) {
-                $options['filter'][] = "total_books <= {$dto->maxTotalBooks}";
-            }
-
-            if ($dto->isCompleted !== null) {
-                $options['filter'][] = "is_completed = " . ($dto->isCompleted ? 'true' : 'false');
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

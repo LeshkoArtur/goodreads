@@ -195,7 +195,7 @@ enum BookLanguage: string implements HasColor, HasIcon, HasLabel
     // Localized labels for Filament
     public function getLabel(): ?string
     {
-        return __('book_language.' . $this->value);
+        return __('book_language.'.$this->value);
     }
 
     // Colors for display in Filament
@@ -204,6 +204,7 @@ enum BookLanguage: string implements HasColor, HasIcon, HasLabel
         // Rotate through a set of colors to differentiate languages
         $colors = ['primary', 'success', 'info', 'warning', 'danger', 'gray'];
         $index = array_search($this->value, array_column(self::cases(), 'value')) % count($colors);
+
         return $colors[$index];
     }
 

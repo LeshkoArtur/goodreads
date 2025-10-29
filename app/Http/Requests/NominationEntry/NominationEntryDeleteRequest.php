@@ -2,15 +2,13 @@
 
 namespace App\Http\Requests\NominationEntry;
 
-use App\Models\NominationEntry;
 use Illuminate\Foundation\Http\FormRequest;
 
 class NominationEntryDeleteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $nominationEntry = $this->route('nomination_entry');
-        return $this->user()->can('delete', $nominationEntry);
+        return $this->user()?->can('delete', $this->route('nominationEntry')) ?? false;
     }
 
     public function rules(): array
@@ -18,17 +16,12 @@ class NominationEntryDeleteRequest extends FormRequest
         return [];
     }
 
-    public function bodyParameters(): array
-    {
-        return [];
-    }
-
     public function urlParameters(): array
     {
         return [
-            'nomination_entry' => [
-                'description' => 'ID запису номінації для видалення.',
-                'example' => 'entry-uuid123',
+            'nominationEntry' => [
+                'description' => 'UUID запису номінації.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

@@ -54,7 +54,7 @@ class UserQueryBuilder extends Builder
      */
     public function withUsername(string $username): static
     {
-        return $this->where('username', 'like', '%' . $username . '%');
+        return $this->where('username', 'like', '%'.$username.'%');
     }
 
     /**

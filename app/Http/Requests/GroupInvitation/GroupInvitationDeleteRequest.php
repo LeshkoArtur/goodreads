@@ -2,15 +2,13 @@
 
 namespace App\Http\Requests\GroupInvitation;
 
-use App\Models\GroupInvitation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GroupInvitationDeleteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $groupInvitation = $this->route('group_invitation');
-        return $this->user()->can('delete', $groupInvitation);
+        return $this->user()?->can('delete', $this->route('groupInvitation')) ?? false;
     }
 
     public function rules(): array
@@ -18,17 +16,12 @@ class GroupInvitationDeleteRequest extends FormRequest
         return [];
     }
 
-    public function bodyParameters(): array
-    {
-        return [];
-    }
-
     public function urlParameters(): array
     {
         return [
-            'group_invitation' => [
-                'description' => 'ID запрошення до групи для видалення.',
-                'example' => 'invitation-uuid123',
+            'groupInvitation' => [
+                'description' => 'UUID запрошення групи.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

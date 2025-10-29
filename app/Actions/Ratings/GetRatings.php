@@ -2,68 +2,47 @@
 
 namespace App\Actions\Ratings;
 
-use App\DTOs\Rating\RatingIndexDTO;
+use App\Data\Rating\RatingIndexData;
 use App\Models\Rating;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Scout\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
-use MeiliSearch\Endpoints\Indexes;
 
 class GetRatings
 {
     use AsAction;
 
-    /**
-     * Отримати список рейтингів із пагінацією, фільтрацією та сортуванням через Meilisearch.
-     *
-     * @param RatingIndexDTO $dto
-     * @return LengthAwarePaginator
-     */
-    public function handle(RatingIndexDTO $dto): LengthAwarePaginator
+    public function handle(RatingIndexData $data): LengthAwarePaginator
     {
-        $searchQuery = Rating::search($dto->query ?? '');
+        $searchQuery = Rating::search($data->q ?? '');
 
-        $this->applyFilters($searchQuery, $dto);
+        $this->applyFilters($searchQuery, $data);
 
-        if (in_array($dto->sort, ['created_at', 'rating'])) {
-            $searchQuery->orderBy($dto->sort, $dto->direction ?? 'desc');
-        }
-
-        return $searchQuery->paginate(
-            perPage: $dto->perPage,
-            page: $dto->page
+        when(
+            in_array($data->sort, ['created_at', 'rating']),
+            fn () => $searchQuery->orderBy($data->sort, $data->direction ?? 'desc')
         );
+
+        $paginator = $searchQuery->paginate(
+            perPage: $data->per_page ?? 15,
+            page: $data->page ?? 1
+        );
+
+        $paginator->withPath(config('app.frontend_url').'/ratings');
+
+        return $paginator;
     }
 
-    /**
-     * Застосувати фільтри до пошукового запиту Meilisearch.
-     *
-     * @param Builder $query
-     * @param RatingIndexDTO $dto
-     * @return void
-     */
-    private function applyFilters(Builder $query, RatingIndexDTO $dto): void
+    private function applyFilters(Builder $query, RatingIndexData $data): void
     {
-        $query->query(function (Indexes $meilisearch, $queryString, $options) use ($dto) {
-            $options['filter'] = $options['filter'] ?? [];
+        $filters = collect()
+            ->when($data->user_id, fn ($collection) => $collection->push("user_id = '{$data->user_id}'"))
+            ->when($data->book_id, fn ($collection) => $collection->push("book_id = '{$data->book_id}'"))
+            ->when($data->min_rating !== null, fn ($collection) => $collection->push("rating >= {$data->min_rating}"))
+            ->when($data->max_rating !== null, fn ($collection) => $collection->push("rating <= {$data->max_rating}"));
 
-            if ($dto->userId) {
-                $options['filter'][] = "user_id = {$dto->userId}";
-            }
-
-            if ($dto->bookId) {
-                $options['filter'][] = "book_id = {$dto->bookId}";
-            }
-
-            if ($dto->minScore !== null) {
-                $options['filter'][] = "rating >= {$dto->minScore}";
-            }
-
-            if ($dto->maxScore !== null) {
-                $options['filter'][] = "rating <= {$dto->maxScore}";
-            }
-
-            return $meilisearch->search($queryString, $options);
-        });
+        if ($filters->isNotEmpty()) {
+            $query->options(['filter' => $filters->implode(' AND ')]);
+        }
     }
 }

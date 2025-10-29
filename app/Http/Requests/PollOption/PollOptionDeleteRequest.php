@@ -2,15 +2,13 @@
 
 namespace App\Http\Requests\PollOption;
 
-use App\Models\PollOption;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PollOptionDeleteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $pollOption = $this->route('poll_option');
-        return $this->user()->can('delete', $pollOption);
+        return $this->user()?->can('delete', $this->route('pollOption')) ?? false;
     }
 
     public function rules(): array
@@ -18,17 +16,12 @@ class PollOptionDeleteRequest extends FormRequest
         return [];
     }
 
-    public function bodyParameters(): array
-    {
-        return [];
-    }
-
     public function urlParameters(): array
     {
         return [
-            'poll_option' => [
-                'description' => 'ID варіанту опитування для видалення.',
-                'example' => 'option-uuid123',
+            'pollOption' => [
+                'description' => 'UUID варіанта опитування.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
         ];
     }

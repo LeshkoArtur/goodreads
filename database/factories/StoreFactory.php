@@ -16,9 +16,9 @@ class StoreFactory extends Factory
     {
         return [
             'name' => $this->faker->company(),
-            'logo_url' => $this->faker->imageUrl(),
-            'region' => $this->faker->country(),
-            'website_url' => $this->faker->url(),
+            'logo_url' => 'https://placehold.co/300x200',
+            'region' => substr($this->faker->city(), 0, 100),
+            'website_url' => substr($this->faker->url(), 0, 255),
         ];
     }
 }

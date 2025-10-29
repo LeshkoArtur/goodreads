@@ -2,7 +2,7 @@
 
 namespace App\Actions\BookSeries;
 
-use App\DTOs\BookSeries\BookSeriesStoreDTO;
+use App\Data\BookSeries\BookSeriesStoreData;
 use App\Models\BookSeries;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,22 +10,15 @@ class CreateBookSeries
 {
     use AsAction;
 
-    /**
-     * Створити нову книжкову серію.
-     *
-     * @param BookSeriesStoreDTO $dto
-     * @return BookSeries
-     */
-    public function handle(BookSeriesStoreDTO $dto): BookSeries
+    public function handle(BookSeriesStoreData $data): BookSeries
     {
-        $bookSeries = new BookSeries();
-        $bookSeries->title = $dto->title;
-        $bookSeries->description = $dto->description;
-        $bookSeries->total_books = $dto->totalBooks;
-        $bookSeries->is_completed = $dto->isCompleted;
-
+        $bookSeries = new BookSeries;
+        $bookSeries->title = $data->title;
+        $bookSeries->description = $data->description;
+        $bookSeries->total_books = $data->total_books;
+        $bookSeries->is_completed = $data->is_completed;
         $bookSeries->save();
 
-        return $bookSeries->load(['books']);
+        return $bookSeries->fresh(['books']);
     }
 }

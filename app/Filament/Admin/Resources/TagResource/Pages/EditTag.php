@@ -3,9 +3,8 @@
 namespace App\Filament\Admin\Resources\TagResource\Pages;
 
 use App\Actions\Tags\UpdateTag;
-use App\DTOs\Tag\TagUpdateDTO;
+use App\Data\Tag\TagUpdateData;
 use App\Filament\Admin\Resources\TagResource;
-use App\Models\Tag;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -14,17 +13,30 @@ class EditTag extends EditRecord
 {
     protected static string $resource = TagResource::class;
 
+    protected ?string $heading = 'Редагувати тег';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Видалити'),
         ];
     }
 
-    protected function handleRecordUpdate(Tag|Model $record, array $data): Tag
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $dto = TagUpdateDTO::fromArray($data);
+        $dto = TagUpdateData::fromArray($data);
 
-        return UpdateTag::run($record, $dto);
+        return app(UpdateTag::class)->handle($record, $dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Тег оновлено';
     }
 }

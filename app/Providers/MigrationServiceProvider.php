@@ -18,10 +18,10 @@ class MigrationServiceProvider extends ServiceProvider
 
         Blueprint::macro('enumAlterColumn',
             function (string $columnName,
-                      string $enumTypeName,
-                      string $enumClass,
-                      ?string $default = null,
-                      bool $nullable = false) {
+                string $enumTypeName,
+                string $enumClass,
+                ?string $default = null,
+                bool $nullable = false) {
                 // Генеруємо список значень enum
                 $value = collect($enumClass::cases())
                     ->map(fn ($case) => "'{$case->value}'")

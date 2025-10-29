@@ -2,7 +2,7 @@
 
 namespace App\Actions\Posts;
 
-use App\DTOs\Post\PostUpdateDTO;
+use App\Data\Post\PostUpdateData;
 use App\Models\Post;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,31 +10,22 @@ class UpdatePost
 {
     use AsAction;
 
-    /**
-     * Оновити існуючий пост.
-     *
-     * @param Post $post
-     * @param PostUpdateDTO $dto
-     * @return Post
-     */
-    public function handle(Post $post, PostUpdateDTO $dto): Post
+    public function handle(Post $post, PostUpdateData $data): Post
     {
-        $attributes = [
-            'title' => $dto->title,
-            'content' => $dto->body,
-            'type' => $dto->type,
-            'status' => $dto->status,
-            'published_at' => $dto->publishedAt,
-        ];
+        $post->update(array_filter([
+            'user_id' => $data->user_id,
+            'title' => $data->title,
+            'content' => $data->content,
+            'book_id' => $data->book_id,
+            'author_id' => $data->author_id,
+            'cover_image' => $data->cover_image,
+            'published_at' => $data->published_at,
+            'type' => $data->type,
+            'status' => $data->status,
+        ], fn ($value) => $value !== null));
 
-        $post->fill(array_filter($attributes, fn($value) => $value !== null));
+        when($data->tag_ids !== null, fn () => $post->tags()->sync($data->tag_ids));
 
-        $post->save();
-
-        if ($dto->tagIds !== null) {
-            $post->tags()->sync($dto->tagIds);
-        }
-
-        return $post->load(['user', 'book', 'author', 'comments', 'likes', 'favorites', 'tags']);
+        return $post->fresh(['user', 'book', 'author', 'tags']);
     }
 }

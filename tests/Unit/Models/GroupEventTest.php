@@ -3,10 +3,10 @@
 namespace Tests\Unit\Models;
 
 use App\Enums\EventStatus;
+use App\Models\EventRsvp;
 use App\Models\Group;
 use App\Models\GroupEvent;
 use App\Models\User;
-use App\Models\EventRsvp;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
@@ -55,7 +55,7 @@ class GroupEventTest extends TestCase
         $data['group_status'] = 'invalid_status';
 
         $validator = Validator::make($data, [
-            'group_status' => 'required|in:' . implode(',', array_map(fn($e) => $e->value, EventStatus::cases())),
+            'group_status' => 'required|in:'.implode(',', array_map(fn ($e) => $e->value, EventStatus::cases())),
         ]);
 
         $this->assertTrue($validator->fails());

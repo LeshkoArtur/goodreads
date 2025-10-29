@@ -9,7 +9,7 @@ class CharacterIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Character::class);
+        return $this->user()?->can('viewAny', Character::class) ?? true;
     }
 
     public function rules(): array
@@ -20,11 +20,10 @@ class CharacterIndexRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort' => ['nullable', 'string', 'in:name,created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'book_id' => ['nullable', 'string', 'exists:books,id'],
-            'race' => ['nullable', 'string', 'max:255'],
-            'nationality' => ['nullable', 'string', 'max:255'],
-            'residence' => ['nullable', 'string', 'max:255'],
-            'other_names' => ['nullable', 'json'],
+            'book_id' => ['nullable', 'uuid', 'exists:books,id'],
+            'race' => ['nullable', 'string', 'max:50'],
+            'nationality' => ['nullable', 'string', 'max:50'],
+            'residence' => ['nullable', 'string', 'max:100'],
         ];
     }
 
@@ -32,8 +31,8 @@ class CharacterIndexRequest extends FormRequest
     {
         return [
             'q' => [
-                'description' => 'Пошуковий запит для імені, опису або біографії персонажа.',
-                'example' => 'Герой фентезі',
+                'description' => 'Пошуковий запит для імені або біографії персонажа.',
+                'example' => 'Гаррі Поттер',
             ],
             'page' => [
                 'description' => 'Номер сторінки для пагінації.',
@@ -52,24 +51,20 @@ class CharacterIndexRequest extends FormRequest
                 'example' => 'asc',
             ],
             'book_id' => [
-                'description' => 'Фільтр за ID книги.',
-                'example' => 'book-uuid123',
+                'description' => 'Фільтр за UUID книги.',
+                'example' => '9d7e8f1a-3b2c-4d5e-9f1a-2b3c4d5e6f7a',
             ],
             'race' => [
                 'description' => 'Фільтр за расою персонажа.',
-                'example' => 'Ельф',
+                'example' => 'Чарівник',
             ],
             'nationality' => [
-                'description' => 'Фільтр за національністю персонажа.',
-                'example' => 'Гондорець',
+                'description' => 'Фільтр за національністю.',
+                'example' => 'British',
             ],
             'residence' => [
-                'description' => 'Фільтр за місцем проживання персонажа.',
-                'example' => 'Шир',
-            ],
-            'other_names' => [
-                'description' => 'Фільтр за іншими іменами персонажа (JSON масив).',
-                'example' => '["Більбо", "Беггінс"]',
+                'description' => 'Фільтр за місцем проживання.',
+                'example' => 'Hogwarts',
             ],
         ];
     }

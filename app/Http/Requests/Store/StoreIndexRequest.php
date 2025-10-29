@@ -9,7 +9,14 @@ class StoreIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', Store::class);
+        return $this->user()?->can('viewAny', Store::class) ?? true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'query' => $this->input('q'),
+        ]);
     }
 
     public function rules(): array
@@ -18,11 +25,9 @@ class StoreIndexRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'sort' => ['nullable', 'string', 'in:name,region,created_at'],
+            'sort' => ['nullable', 'string', 'in:name,created_at'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'country' => ['nullable', 'string', 'max:100'],
-            'type' => ['nullable', 'string', 'in:BOOKSTORE,LIBRARY,MARKETPLACE'],
-            'is_online' => ['nullable', 'boolean'],
+            'region' => ['nullable', 'string', 'max:100'],
         ];
     }
 
@@ -30,7 +35,7 @@ class StoreIndexRequest extends FormRequest
     {
         return [
             'q' => [
-                'description' => 'Пошуковий запит для назви або регіону магазину.',
+                'description' => 'Пошуковий запит для назви магазину.',
                 'example' => 'Книгарня',
             ],
             'page' => [
@@ -42,24 +47,16 @@ class StoreIndexRequest extends FormRequest
                 'example' => 15,
             ],
             'sort' => [
-                'description' => 'Поле для сортування (name, region, created_at).',
+                'description' => 'Поле для сортування (name, created_at).',
                 'example' => 'name',
             ],
             'direction' => [
                 'description' => 'Напрямок сортування (asc або desc).',
                 'example' => 'asc',
             ],
-            'country' => [
-                'description' => 'Фільтр за країною магазину.',
+            'region' => [
+                'description' => 'Фільтр за регіоном магазину.',
                 'example' => 'Україна',
-            ],
-            'type' => [
-                'description' => 'Фільтр за типом магазину (BOOKSTORE, LIBRARY, MARKETPLACE).',
-                'example' => 'BOOKSTORE',
-            ],
-            'is_online' => [
-                'description' => 'Фільтр за онлайн/офлайн статусом магазину.',
-                'example' => true,
             ],
         ];
     }

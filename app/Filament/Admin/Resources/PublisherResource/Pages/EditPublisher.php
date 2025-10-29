@@ -3,9 +3,8 @@
 namespace App\Filament\Admin\Resources\PublisherResource\Pages;
 
 use App\Actions\Publishers\UpdatePublisher;
-use App\DTOs\Publisher\PublisherUpdateDTO;
+use App\Data\Publisher\PublisherUpdateData;
 use App\Filament\Admin\Resources\PublisherResource;
-use App\Models\Publisher;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -14,17 +13,32 @@ class EditPublisher extends EditRecord
 {
     protected static string $resource = PublisherResource::class;
 
+    protected ?string $heading = 'Редагувати видавництво';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\ViewAction::make()
+                ->label('Переглянути'),
+            Actions\DeleteAction::make()
+                ->label('Видалити'),
         ];
     }
 
-    protected function handleRecordUpdate(Publisher|Model $record, array $data): Publisher
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $dto = PublisherUpdateDTO::fromArray($data);
+        $dto = PublisherUpdateData::fromArray($data);
 
-        return UpdatePublisher::run($record, $dto);
+        return app(UpdatePublisher::class)->handle($record, $dto);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Видавництво оновлено';
     }
 }

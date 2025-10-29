@@ -2,7 +2,7 @@
 
 namespace App\Actions\ReadingStats;
 
-use App\DTOs\ReadingStat\ReadingStatUpdateDTO;
+use App\Data\ReadingStat\ReadingStatUpdateData;
 use App\Models\ReadingStat;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -10,23 +10,16 @@ class UpdateReadingStat
 {
     use AsAction;
 
-    /**
-     * Оновити існуючу статистику читання.
-     *
-     * @param ReadingStat $readingStat
-     * @param ReadingStatUpdateDTO $dto
-     * @return ReadingStat
-     */
-    public function handle(ReadingStat $readingStat, ReadingStatUpdateDTO $dto): ReadingStat
+    public function handle(ReadingStat $readingStat, ReadingStatUpdateData $data): ReadingStat
     {
-        $attributes = [
-            'pages_read' => $dto->pagesRead,
-        ];
+        $readingStat->update(array_filter([
+            'user_id' => $data->user_id,
+            'year' => $data->year,
+            'books_read' => $data->books_read,
+            'pages_read' => $data->pages_read,
+            'genres_read' => $data->genres_read,
+        ], fn ($value) => $value !== null));
 
-        $readingStat->fill(array_filter($attributes, fn($value) => $value !== null));
-
-        $readingStat->save();
-
-        return $readingStat->load(['user']);
+        return $readingStat->fresh(['user']);
     }
 }
